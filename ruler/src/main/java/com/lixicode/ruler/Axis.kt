@@ -4,6 +4,7 @@ import com.lixicode.ruler.Constants.Companion.DIVIDER_COUNT
 import com.lixicode.ruler.Constants.Companion.DIVIDER_SPACING
 import com.lixicode.ruler.Constants.Companion.REPEAT
 import com.lixicode.ruler.Constants.Companion.VISIBLE_RANGE_MAXIMUN
+import com.lixicode.ruler.data.LabelOptions
 import com.lixicode.ruler.data.LineOptions
 import com.lixicode.ruler.utils.Utils
 
@@ -13,6 +14,9 @@ import com.lixicode.ruler.utils.Utils
  * @date 2019/2/27
  */
 abstract class Axis {
+
+
+    lateinit var labelOptions: LabelOptions
 
 
     /**
@@ -30,20 +34,25 @@ abstract class Axis {
     /**
      * 刻度分隔线
      */
-    var dividerOptions: LineOptions? = null
-    var dividerCount = DIVIDER_COUNT
+    var dividerLineOptions: LineOptions? = null
 
-    var dividerSpacing: Float = DIVIDER_SPACING.toFloat()
-        get() = Utils.dpToPx(field.toInt())
+    var dividerLineCount = DIVIDER_COUNT
+
+    var dividerLineSpacing: Float = Utils.dpToPx(DIVIDER_SPACING)
+
+    val visibleDividerLineCount
+        get() = dividerLineCount * visibleRangeMaximun
 
 
-    val visibleDividerCount
-        get() = dividerCount * visibleRangeMaximun
+    val visibleDividerLineSpacingCount
+        get() = (dividerLineCount + 1) * visibleRangeMaximun
 
 
-    val visibleDividerSpacingCount
-        get() = (dividerCount + 1) * visibleRangeMaximun
-
+    val dividerLineWidthWithSpacing: Float
+        get() {
+            return (dividerLineCount + 1) * dividerLineSpacing +
+                    dividerLineCount * ((dividerLineOptions?.width ?: 0F))
+        }
 
     /**
      * 刻度线的参数

@@ -13,49 +13,47 @@ class ViewPortHandler {
         RectF()
     }
 
-    var width: Float = 0F
-    var height: Float = 0F
-
-    val contentLeft
-        get() = contentRect.left
-    val contentTop
-        get() = contentRect.top
-    val contentRight
-        get() = contentRect.right
-    val contentBottom
-        get() = contentRect.bottom
-    val contentWidth
-        get() = contentRect.width()
-    val contentHeight
-        get() = contentRect.height()
+    val offsetRect by lazy {
+        RectF()
+    }
 
 
     val offsetLeft
-        get() = contentRect.left
+        get() = offsetRect.left
     val offsetTop
-        get() = contentRect.top
+        get() = offsetRect.top
     val offsetRight
-        get() = width - contentRect.right
+        get() = offsetRect.right
     val offsetBottom
-        get() = contentRect.bottom
+        get() = offsetRect.bottom
+
+    val contentLeft
+        get() = contentRect.left + offsetLeft
+    val contentTop
+        get() = contentRect.top + offsetTop
+    val contentRight
+        get() = contentRect.right - offsetRight
+    val contentBottom
+        get() = contentRect.bottom - offsetBottom
+    val contentWidth
+        get() = contentRight - contentLeft
+    val contentHeight
+        get() = contentBottom - contentTop
 
 
-    fun setDimens(width: Float, height: Float) {
-        val offsetLeft = offsetLeft
-        val offsetTop = offsetTop
-        val offsetRight = offsetRight
-        val offsetBottom = offsetBottom
+    val width: Float
+        get() = contentRect.width()
 
-        this.width = width
-        this.height = height
+    val height: Float
+        get() = contentRect.height()
 
-        restrainViewPort(offsetLeft, offsetTop, offsetRight, offsetBottom)
+
+    fun setDimens(left: Float, top: Float, right: Float, bottom: Float) {
+        contentRect.set(left, top, right, bottom)
     }
 
-    fun restrainViewPort(
-        offsetLeft: Float, offsetTop: Float,
-        offsetRight: Float, offsetBottom: Float
-    ) {
-        contentRect.set(offsetLeft, offsetTop, width - offsetRight, height - offsetBottom)
+    fun setOffset(left: Float, top: Float, right: Float, bottom: Float) {
+        offsetRect.set(left, top, right, bottom)
     }
+
 }

@@ -1,5 +1,7 @@
 package com.lixicode.ruler
 
+import com.lixicode.ruler.data.LabelOptions
+
 /**
  * <>
  * @author 陈晓辉

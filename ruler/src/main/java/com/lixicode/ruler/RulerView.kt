@@ -6,10 +6,13 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.lixicode.ruler.Axis
+import com.lixicode.ruler.BuildConfig
 import com.lixicode.ruler.Constants.Companion.COLOR_DEFAULT
 import com.lixicode.ruler.Constants.Companion.LABEL_TEXT_SIZE
 import com.lixicode.ruler.XAxis
+import com.lixicode.ruler.data.LabelOptions
 import com.lixicode.ruler.data.LineOptions
+import com.lixicode.ruler.data.RulerBuffer
 import com.lixicode.ruler.renderer.LabelRenderer
 import com.lixicode.ruler.renderer.Renderer
 import com.lixicode.ruler.renderer.XAxisRenderer
@@ -38,17 +41,21 @@ open class RulerView @JvmOverloads constructor(
     val viewPort = ViewPortHandler()
     val labelRenderer: Renderer
 
+    var buffer: RulerBuffer
+
     init {
         Utils.init(context)
+
         val xAxis = XAxis()
-
-        this.labelRenderer = LabelRenderer(xAxis, viewPort, COLOR_DEFAULT, Utils.spToPx(LABEL_TEXT_SIZE))
-
+        xAxis.labelOptions = LabelOptions()
         xAxis.baselineOptions = LineOptions()
         xAxis.scaleLineOptions = LineOptions()
-        xAxis.dividerOptions = LineOptions()
+        xAxis.dividerLineOptions = LineOptions()
 
-        this.axisRenderer = XAxisRenderer(xAxis, viewPort)
+
+        this.labelRenderer = LabelRenderer(viewPort, xAxis)
+        this.axisRenderer = XAxisRenderer(viewPort, xAxis)
+        this.buffer = RulerBuffer(xAxis.visibleRangeMaximun)
         this.axis = xAxis
     }
 
@@ -74,24 +81,34 @@ open class RulerView @JvmOverloads constructor(
             )
         )
 
+        viewPort.setDimens(
+            paddingLeft.toFloat(),
+            paddingTop.toFloat(),
+            measuredWidth.toFloat() - paddingRight,
+            measuredHeight.toFloat() - paddingBottom
+        )
 
-        viewPort.setDimens(measuredWidth.toFloat(), measuredHeight.toFloat())
+        buffer.feed(axis, viewPort)
     }
 
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.run {
-            axisRenderer.draw(this)
+            // 不显示屏幕之外的内容
+            // TODO 临时注释
+//            clipRect(0, 0, width, height)
+
+            axisRenderer.draw(this, buffer)
             if (axis.repeat) {
                 val saveId = save()
-                rotate(180F)
-                translate(-width.toFloat(), -height.toFloat())
-                axisRenderer.draw(this)
+                scale(1F, -1F)
+                translate(0F, -height.toFloat())
+                axisRenderer.draw(this, buffer)
                 restoreToCount(saveId)
             }
 
-            labelRenderer.draw(this)
+            labelRenderer.draw(this, buffer)
         }
 
 
