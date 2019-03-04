@@ -1,5 +1,6 @@
 package com.lixicode.ruler.data
 
+import android.graphics.Matrix
 import com.lixicode.ruler.Axis
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
@@ -13,6 +14,7 @@ import kotlin.math.max
 class RulerBuffer(size: Int) {
 
 
+    val matrix = Matrix()
     val dividerLineBuffer: FloatArray = FloatArray(size * 4 * 2)
     val scaleLineBuffer: FloatArray = FloatArray(size * 2)
 
@@ -61,6 +63,14 @@ class RulerBuffer(size: Int) {
             scaleLineBuffer[scaleLineIndex++] = axis.scaleLineOptions.size
         }
 
+    }
+
+
+    fun translation(dx: Float, dy: Float) {
+        matrix.reset()
+        matrix.postTranslate(dx, dy)
+        matrix.mapPoints(scaleLineBuffer)
+        matrix.mapPoints(dividerLineBuffer)
     }
 
 }
