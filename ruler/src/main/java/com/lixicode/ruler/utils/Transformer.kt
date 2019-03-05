@@ -11,8 +11,8 @@ import com.lixicode.ruler.data.FSize
 class Transformer(private val viewPort: ViewPortHandler) {
 
 
-    var mMatrixPxToValue = Matrix()
-    var mMatrixValueToPx = Matrix()
+    private var mMatrixPxToValue = Matrix()
+    private var mMatrixValueToPx = Matrix()
 
 
     fun prepareMatrixValuePx(xMinimum: Float, deltaX: Int, yMinimun: Float, deltaY: Int) {

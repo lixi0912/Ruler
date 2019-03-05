@@ -3,7 +3,7 @@ package com.lixicode.ruler.renderer
 import android.graphics.Canvas
 import com.lixicode.ruler.data.FSize
 import com.lixicode.ruler.utils.Transformer
-import com.lixicode.run.ui.view.RulerView
+import com.lixicode.ruler.RulerView
 
 /**
  * <>

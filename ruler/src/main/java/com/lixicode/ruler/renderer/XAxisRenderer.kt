@@ -2,13 +2,13 @@ package com.lixicode.ruler.renderer
 
 import android.graphics.Canvas
 import android.view.View
-import com.lixicode.ruler.XAxis
 import com.lixicode.ruler.data.FSize
 import com.lixicode.ruler.data.createPaint
 import com.lixicode.ruler.data.offset
 import com.lixicode.ruler.utils.Transformer
-import com.lixicode.run.ui.view.RulerView
+import com.lixicode.ruler.RulerView
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * <>
@@ -110,9 +110,8 @@ class XAxisRenderer(view: RulerView) : Renderer(view) {
         val viewPort = view.viewPort
         val xAxis = view.axis
 
-        // 绘制基准线
         if (xAxis.baselineOptions.enable) {
-
+            // 绘制基准线
             val x = view.scrollX + view.paddingLeft
             val yPx = viewPort.contentTop
             canvas.drawLine(
@@ -124,10 +123,24 @@ class XAxisRenderer(view: RulerView) : Renderer(view) {
             )
         }
 
+
+        // TODO 处理起始数据绘制问题
+        val scrollPts = FSize.obtain(view.scrollX.toFloat(), view.scrollY.toFloat())
+        transformer.invertPixelToValue(scrollPts)
+
+        val startX = scrollPts.x.roundToInt()
+
+        scrollPts.recycle()
+
+
+        val bulgeCenterStep = xAxis.scaleLineStep / 2 == 1
+
         for (x in xAxis.minValue until xAxis.maxValue) {
-            val y = when (x % xAxis.scaleLineStep) {
-                0, xAxis.scaleLineStep -> 1F
-                xAxis.scaleLineStep / 2 -> xAxis.dividerLineOptions.ratioOfParent + 0.1F
+
+            val remainder = x % xAxis.scaleLineStep
+            val y = when {
+                remainder == 0 || remainder == xAxis.scaleLineStep -> 1F
+                bulgeCenterStep -> xAxis.dividerLineOptions.ratioOfParent + 0.1F
                 else -> xAxis.dividerLineOptions.ratioOfParent
             }
 

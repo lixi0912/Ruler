@@ -1,7 +1,5 @@
 package com.lixicode.ruler
 
-import com.lixicode.run.ui.view.RulerView
-
 /**
  * <>
  * @author 陈晓辉

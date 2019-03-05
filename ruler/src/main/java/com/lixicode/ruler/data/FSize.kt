@@ -15,7 +15,7 @@ class FSize {
 
 
     companion object {
-        private val sPool = Pools.SimplePool<FSize>(2)
+        private val sPool = Pools.SimplePool<FSize>(5)
 
 
         fun obtain(x: Float, y: Float): FSize {

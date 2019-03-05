@@ -12,7 +12,7 @@
         tools:context=".MainActivity">
 
 
-    <com.lixicode.run.ui.view.RulerView
+    <com.lixicode.ruler.RulerView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

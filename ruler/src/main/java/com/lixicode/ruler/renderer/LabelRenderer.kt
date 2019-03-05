@@ -2,10 +2,9 @@ package com.lixicode.ruler.renderer
 
 import android.graphics.Canvas
 import android.view.View
-import com.lixicode.ruler.XAxis
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.utils.Transformer
-import com.lixicode.run.ui.view.RulerView
+import com.lixicode.ruler.RulerView
 
 /**
  * <>
