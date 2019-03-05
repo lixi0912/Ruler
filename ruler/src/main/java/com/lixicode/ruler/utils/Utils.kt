@@ -37,3 +37,13 @@ class Utils {
     }
 
 }
+
+/**
+ * 确保数据是有限的
+ */
+fun Float.letFinite(): Float =
+    if (isFinite()) {
+        this
+    } else {
+        0F
+    }

@@ -7,6 +7,7 @@ import com.lixicode.ruler.Constants.Companion.VISIBLE_RANGE_MAXIMUN
 import com.lixicode.ruler.data.LabelOptions
 import com.lixicode.ruler.data.LineOptions
 import com.lixicode.ruler.utils.Utils
+import com.lixicode.run.ui.view.RulerView
 
 /**
  * <>
@@ -19,39 +20,54 @@ abstract class Axis {
     lateinit var labelOptions: LabelOptions
 
 
+    var minValue: Int = 100
+    var maxValue: Int = 200
+    val range: Int
+        get() = maxValue - minValue
+
+
+    var scaleLineStep: Int = 10
+
     /**
-     * 最大可见刻度的个数
+     * 最小可见刻度的个数
      */
-    var visibleRangeMaximun: Int = VISIBLE_RANGE_MAXIMUN
+    var visibleRangeMinimum: Int = VISIBLE_RANGE_MAXIMUN
 
 
     /**
      * 绘制 baseline 的参数
      */
-    var baselineOptions: LineOptions? = null
+    var baselineOptions = LineOptions.NONE
 
 
     /**
      * 刻度分隔线
      */
-    var dividerLineOptions: LineOptions? = null
+    var dividerLineOptions = LineOptions.NONE
 
     var dividerLineCount = DIVIDER_COUNT
 
     var dividerLineSpacing: Float = Utils.dpToPx(DIVIDER_SPACING)
 
     val visibleDividerLineCount
-        get() = dividerLineCount * visibleRangeMaximun
+        get() = dividerLineCount * visibleRangeMinimum
 
 
     val visibleDividerLineSpacingCount
-        get() = (dividerLineCount + 1) * visibleRangeMaximun
+        get() = (dividerLineCount + 1) * visibleRangeMinimum
 
 
-    val dividerLineWidthWithSpacing: Float
+    /**
+     * 大刻度的间隔
+     */
+    val scaleLineSpacing: Float
         get() {
             return (dividerLineCount + 1) * dividerLineSpacing +
-                    dividerLineCount * ((dividerLineOptions?.width ?: 0F))
+                    dividerLineCount * if (dividerLineOptions.enable) {
+                dividerLineOptions.widthNeeded
+            } else {
+                0F
+            }
         }
 
     /**

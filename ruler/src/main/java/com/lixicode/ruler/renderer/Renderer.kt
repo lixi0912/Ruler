@@ -1,17 +1,23 @@
 package com.lixicode.ruler.renderer
 
 import android.graphics.Canvas
-import com.lixicode.ruler.data.RulerBuffer
-import com.lixicode.ruler.utils.ViewPortHandler
+import com.lixicode.ruler.data.FSize
+import com.lixicode.ruler.utils.Transformer
+import com.lixicode.run.ui.view.RulerView
 
 /**
  * <>
  * @author 陈晓辉
  * @date 2019/2/27
  */
-abstract class Renderer(val viewPort: ViewPortHandler) {
-    abstract fun computeMinimumWidth(widthMeasureSpec: Int, minimunWidth: Float): Float
-    abstract fun computeMinimumHeight(heightMeasureSpec: Int, minimunHeight: Float): Float
+abstract class Renderer(val view: RulerView) {
 
-    abstract fun draw(canvas: Canvas, buffer: RulerBuffer)
+    abstract fun computeSize(
+        widthMeasureSpec: Int,
+        minimunWidth: Float,
+        heightMeasureSpec: Int,
+        minimunHeight: Float
+    ): FSize
+
+    abstract fun draw(canvas: Canvas, transformer: Transformer)
 }

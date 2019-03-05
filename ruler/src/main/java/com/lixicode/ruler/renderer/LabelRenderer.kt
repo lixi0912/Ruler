@@ -4,7 +4,8 @@ import android.graphics.Canvas
 import android.view.View
 import com.lixicode.ruler.XAxis
 import com.lixicode.ruler.data.*
-import com.lixicode.ruler.utils.ViewPortHandler
+import com.lixicode.ruler.utils.Transformer
+import com.lixicode.run.ui.view.RulerView
 
 /**
  * <>
@@ -12,44 +13,43 @@ import com.lixicode.ruler.utils.ViewPortHandler
  * @date 2019/2/27
  */
 class LabelRenderer(
-    viewPort: ViewPortHandler,
-    private val xAxis: XAxis
-) : Renderer(viewPort) {
+    view: RulerView
+) : Renderer(view) {
 
-
-    override fun computeMinimumWidth(widthMeasureSpec: Int, minimunWidth: Float): Float {
+    override fun computeSize(
+        widthMeasureSpec: Int,
+        minimunWidth: Float,
+        heightMeasureSpec: Int,
+        minimunHeight: Float
+    ): FSize {
+        val viewPort = view.viewPort
+        val xAxis = view.axis
         val labelOptions = xAxis.labelOptions
-        val mode = View.MeasureSpec.getMode(widthMeasureSpec)
-        return if (mode == View.MeasureSpec.EXACTLY) {
-            val viewWidth = View.MeasureSpec.getSize(widthMeasureSpec).toFloat()
-            labelOptions.resizeTextSize(viewWidth / xAxis.visibleRangeMaximun)
-            viewWidth
-        } else {
-            val textMearsuredWidth = labelOptions.paint.measureText(labelOptions.measuredText)
-            when (labelOptions.textMode) {
-                LabelOptions.LEFT -> {
-                    viewPort.offsetRect.left = textMearsuredWidth
-                    textMearsuredWidth * xAxis.visibleRangeMaximun + viewPort.offsetLeft
-                }
-                LabelOptions.CENTER -> {
-                    viewPort.offsetRect.left = textMearsuredWidth / 2
-                    textMearsuredWidth * xAxis.visibleRangeMaximun + viewPort.offsetRect.left
-                }
-                else -> {
-                    viewPort.offsetRect.right = textMearsuredWidth
-                    textMearsuredWidth * xAxis.visibleRangeMaximun + viewPort.offsetRight
+        val width = when {
+            View.MeasureSpec.getMode(widthMeasureSpec) == View.MeasureSpec.EXACTLY -> {
+                View.MeasureSpec.getSize(
+                    widthMeasureSpec
+                ).toFloat().apply {
+                    labelOptions.autoTextSize(this / xAxis.visibleRangeMinimum)
                 }
             }
+            else -> {
+                val longestTextWidth = labelOptions.measureLongestTextWidth()
+                when {
+                    labelOptions.textMode == LabelOptions.ALIGN_LEFT -> viewPort.offsetRect.left += longestTextWidth
+                    labelOptions.textMode == LabelOptions.ALIGN_CENTER -> viewPort.offsetRect.left += longestTextWidth / 2
+                    labelOptions.textMode == LabelOptions.ALIGIN_RIGHT -> viewPort.offsetRect.right += longestTextWidth
+                }
+                longestTextWidth * xAxis.visibleRangeMinimum + viewPort.offsetRect.width()
+            }
         }
+        val height = xAxis.labelOptions.calcTextHeight().toFloat()
+        return FSize.obtain(width, height)
+
     }
 
 
-    override fun computeMinimumHeight(heightMeasureSpec: Int, minimunHeight: Float): Float {
-        return xAxis.labelOptions.calcTextHeight().toFloat()
-    }
-
-
-    override fun draw(canvas: Canvas, buffer: RulerBuffer) {
+    override fun draw(canvas: Canvas, transformer: Transformer) {
 
 
     }

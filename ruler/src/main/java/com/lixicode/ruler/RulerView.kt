@@ -1,27 +1,20 @@
 package com.lixicode.run.ui.view
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
-import android.view.VelocityTracker
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.OverScroller
-import android.widget.Scroller
 import com.lixicode.ruler.Axis
-import com.lixicode.ruler.BuildConfig
-import com.lixicode.ruler.Constants.Companion.COLOR_DEFAULT
-import com.lixicode.ruler.Constants.Companion.LABEL_TEXT_SIZE
 import com.lixicode.ruler.XAxis
-import com.lixicode.ruler.data.FPoint
-import com.lixicode.ruler.data.LabelOptions
-import com.lixicode.ruler.data.LineOptions
-import com.lixicode.ruler.data.RulerBuffer
+import com.lixicode.ruler.data.*
 import com.lixicode.ruler.renderer.LabelRenderer
 import com.lixicode.ruler.renderer.Renderer
 import com.lixicode.ruler.renderer.XAxisRenderer
+import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.Utils
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
@@ -31,7 +24,7 @@ import kotlin.math.max
  * @author 陈晓辉
  * @date 2019/2/27
  */
-open class RulerView @JvmOverloads constructor(
+class RulerView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
@@ -47,47 +40,49 @@ open class RulerView @JvmOverloads constructor(
     val viewPort = ViewPortHandler()
     val labelRenderer: Renderer
 
-    var buffer: RulerBuffer
     val scroller: OverScroller = OverScroller(context)
 
+    private val transformer: Transformer
     init {
-
         Utils.init(context)
+        this.transformer = Transformer(viewPort)
+
 
         val xAxis = XAxis()
+        this.axis = xAxis
+
         xAxis.labelOptions = LabelOptions()
         xAxis.baselineOptions = LineOptions()
         xAxis.scaleLineOptions = LineOptions()
         xAxis.dividerLineOptions = LineOptions()
 
 
-        this.labelRenderer = LabelRenderer(viewPort, xAxis)
-        this.axisRenderer = XAxisRenderer(viewPort, xAxis)
-        this.buffer = RulerBuffer(xAxis.visibleRangeMaximun)
-        this.axis = xAxis
+        this.labelRenderer = LabelRenderer(this)
+        this.axisRenderer = XAxisRenderer(this)
+
     }
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 
 
-        var computeWidth = labelRenderer.computeMinimumWidth(widthMeasureSpec, 0F)
-        computeWidth = axisRenderer.computeMinimumWidth(widthMeasureSpec, computeWidth)
+        // reset offset
+        viewPort.offsetRect.setEmpty()
 
-
-        var computeHeight = labelRenderer.computeMinimumHeight(widthMeasureSpec, 0F)
-        computeHeight = axisRenderer.computeMinimumHeight(heightMeasureSpec, computeHeight)
-
+        val labelSize = labelRenderer.computeSize(widthMeasureSpec, 0F, heightMeasureSpec, 0F)
+        val axisSize = axisRenderer.computeSize(widthMeasureSpec, labelSize.x, heightMeasureSpec, labelSize.y)
+        labelSize.recycle()
 
         setMeasuredDimension(
             resolveSize(
-                max(suggestedMinimumWidth, computeWidth.toInt())
+                max(suggestedMinimumWidth, axisSize.x.toInt())
                 , widthMeasureSpec
             ), resolveSize(
-                max(suggestedMinimumHeight, computeHeight.toInt())
+                max(suggestedMinimumHeight, axisSize.y.toInt())
                 , heightMeasureSpec
             )
         )
+        axisSize.recycle()
 
         viewPort.setDimens(
             paddingLeft.toFloat(),
@@ -96,76 +91,90 @@ open class RulerView @JvmOverloads constructor(
             measuredHeight.toFloat() - paddingBottom
         )
 
-        buffer.feed(axis, viewPort)
+        transformer.prepareMatrixValuePx(
+            axis.minValue.toFloat(),
+            axis.visibleDividerLineSpacingCount,
+            0F, 3
+        )
     }
 
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
+        val startTimeMillis = System.currentTimeMillis()
+
         canvas?.run {
             // 不显示屏幕之外的内容
             // TODO 临时注释
-//            clipRect(0, 0, width, height)
+//            clipRect(0, 0, widthNeeded, height)
 
-            axisRenderer.draw(this, buffer)
+            axisRenderer.draw(this, transformer)
             if (axis.repeat) {
                 val saveId = save()
                 scale(1F, -1F)
                 translate(0F, -height.toFloat())
-                axisRenderer.draw(this, buffer)
+                axisRenderer.draw(this, transformer)
                 restoreToCount(saveId)
             }
 
-            labelRenderer.draw(this, buffer)
+            labelRenderer.draw(this, transformer)
         }
 
+
+        val endTimeMillis = System.currentTimeMillis()
+        val usedTimeMillis = endTimeMillis - startTimeMillis
+
+        Log.e(RulerView::class.java.simpleName, "cost $usedTimeMillis milliseconds on draw event")
 
     }
 
 
-    var lastPoint: FPoint? = null
+    var mLastTouchPoint: FSize? = null
+
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+
+
         val isHorizontal = origintation == HORIZONTAL
         return event?.run {
+            val lastPoint = (mLastTouchPoint ?: FSize.obtain(x, y)).apply {
+                mLastTouchPoint = this
+            }
+
+
             when (action) {
                 MotionEvent.ACTION_DOWN -> {
                     abortScrollAnimation()
-                    lastPoint = FPoint.obtain(x, y)
                     // disable parent scroll event
                     parent?.requestDisallowInterceptTouchEvent(true)
                 }
 
                 MotionEvent.ACTION_MOVE -> {
                     if (isHorizontal) {
-                        val moveX = lastPoint!!.offsetX(x)
-
-                        buffer.translation(-moveX, 0F)
-
-                        invalidate()
-//                        scrollBy(moveX.toInt(), 0)
+                        val offsetX = lastPoint.offsetX(x)
+                        scrollBy(offsetX.toInt(), 0)
                     } else {
-                        val moveY = lastPoint!!.offsetY(y)
-
-                        buffer.translation(0F, moveY)
-
-                        scrollBy(0, moveY.toInt())
+                        val offsetY = lastPoint.offsetY(y)
+                        scrollBy(0, offsetY.toInt())
                     }
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    lastPoint?.recycle()
+                    recycleTouchPoint()
 
                     abortScrollAnimation()
 
                     // release parent scroll event
                     parent?.requestDisallowInterceptTouchEvent(false)
                 }
-
-
             }
             true
         } ?: super.onTouchEvent(event)
+    }
+
+    private fun recycleTouchPoint() {
+        mLastTouchPoint?.recycle()
+        mLastTouchPoint = null
     }
 
     fun abortScrollAnimation() {

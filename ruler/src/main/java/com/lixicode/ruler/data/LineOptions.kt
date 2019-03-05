@@ -1,7 +1,7 @@
 package com.lixicode.ruler.data
 
 import android.graphics.Paint
-import android.text.TextPaint
+import androidx.annotation.FloatRange
 import com.lixicode.ruler.Constants.Companion.COLOR_DEFAULT
 import com.lixicode.ruler.Constants.Companion.LINE_SIZE
 import com.lixicode.ruler.Constants.Companion.LINE_WIDTH
@@ -16,7 +16,7 @@ import kotlin.math.max
  */
 class LineOptions(
 
-    var width: Float = Utils.dpToPx(LINE_WIDTH),
+    var widthNeeded: Float = Utils.dpToPx(LINE_WIDTH),
 
     var color: Int = COLOR_DEFAULT,
 
@@ -27,11 +27,18 @@ class LineOptions(
     var cap: Paint.Cap = Paint.Cap.ROUND,
 
     var enable: Boolean = true
-)
+) {
+
+    companion object {
+        val NONE = LineOptions(enable = false)
+    }
+
+}
+
 
 fun LineOptions.offset(): Float {
     return if (isRoundCap()) {
-        width / 2
+        widthNeeded / 2
     } else {
         0F
     }
@@ -45,7 +52,7 @@ fun LineOptions.createPaint(): Paint {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     paint.color = color
     // 去除本身线的 1px 的宽度
-    paint.strokeWidth = max(0F, width - 1)
+    paint.strokeWidth = max(0F, widthNeeded - 1)
     paint.strokeCap = cap
     return paint
 }
