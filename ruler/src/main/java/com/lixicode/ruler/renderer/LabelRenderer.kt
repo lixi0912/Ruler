@@ -7,6 +7,7 @@ import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.utils.Transformer
+import kotlin.math.abs
 import kotlin.math.min
 
 /**
@@ -15,8 +16,7 @@ import kotlin.math.min
  * @date 2019/2/27
  */
 class LabelRenderer(
-    view: RulerView,
-    var valueFormatter: ValueFormatter = object : ValueFormatter {}
+    view: RulerView
 ) : Renderer(view) {
 
     override fun computeSize(
@@ -29,21 +29,7 @@ class LabelRenderer(
         val xAxis = view.axis
         val labelOptions = xAxis.labelOptions
 
-        val measuredText = if (TextUtils.isEmpty(labelOptions.longestLabelText)) {
-            var longestLength = 0
-            var longestString = ""
-            for (index in 0..xAxis.range) {
-                val formatted = valueFormatter.formatValue((xAxis.minValue + (index * xAxis.scaleLineStep)).toFloat())
-                if (formatted.length > longestLength) {
-                    longestString = formatted
-                    longestLength = formatted.length
-                }
-            }
-            labelOptions.longestLabelText = longestString
-            longestString
-        } else {
-            labelOptions.longestLabelText
-        }
+        val measuredText = view.getLongestMeasuredText()
 
         val width = when {
             View.MeasureSpec.getMode(widthMeasureSpec) == View.MeasureSpec.EXACTLY -> {
@@ -56,11 +42,15 @@ class LabelRenderer(
             else -> {
                 val longestTextWidth = labelOptions.measureLongestTextWidth(measuredText)
                 when {
-                    labelOptions.textMode == LabelOptions.ALIGN_LEFT -> viewPort.offsetRect.left += longestTextWidth
-                    labelOptions.textMode == LabelOptions.ALIGN_CENTER -> viewPort.offsetRect.left += longestTextWidth / 2
-                    labelOptions.textMode == LabelOptions.ALIGIN_RIGHT -> viewPort.offsetRect.right += longestTextWidth
+                    labelOptions.textMode == LabelOptions.ALIGN_LEFT -> viewPort.offsetRect.right += longestTextWidth
+                    labelOptions.textMode == LabelOptions.ALIGN_CENTER -> {
+                        val halfOfTextWidth = longestTextWidth / 2
+                        viewPort.offsetRect.left += halfOfTextWidth
+                        viewPort.offsetRect.right += halfOfTextWidth
+                    }
+                    labelOptions.textMode == LabelOptions.ALIGIN_RIGHT -> viewPort.offsetRect.left += longestTextWidth
                 }
-                longestTextWidth * xAxis.visibleRangeMinimum + viewPort.offsetRect.width()
+                longestTextWidth * xAxis.visibleRangeMinimum + viewPort.offsetRect.left + viewPort.offsetRect.right
             }
         }
 
@@ -77,15 +67,30 @@ class LabelRenderer(
         val startValue = view.getCurrentScaleValue()
         val endValue = min(startValue + view.getScaleValueRangePerScreen(), xAxis.maxValue)
 
-        for (x in startValue until endValue) {
+        for (x in startValue..endValue) {
             val remainder = (x - xAxis.minValue).rem(xAxis.scaleLineStep)
             if (remainder == 0) {
                 // 说明当前为起始刻度
                 val point = FSize.obtain(x.toFloat(), 2F)
                 transformer.pointValuesToPixel(point)
+
+                val text = view.valueFormatter.formatValue(x.toFloat())
+                val textOffset = when (xAxis.labelOptions.textMode) {
+                    LabelOptions.ALIGN_LEFT -> {
+                        0F
+                    }
+                    LabelOptions.ALIGIN_RIGHT -> {
+                        -xAxis.labelOptions.measureLongestTextWidth(text)
+                    }
+                    else -> {
+                        -xAxis.labelOptions.measureLongestTextWidth(text) / 2
+                    }
+                }
+
+
                 canvas.drawText(
-                    valueFormatter.formatValue(x.toFloat()),
-                    point.x,
+                    text,
+                    point.x + textOffset,
                     point.y,
                     xAxis.labelOptions.paint
                 )

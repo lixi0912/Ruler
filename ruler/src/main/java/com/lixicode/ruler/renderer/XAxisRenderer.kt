@@ -129,7 +129,7 @@ class XAxisRenderer(view: RulerView) : Renderer(view) {
         val startValue = view.getCurrentScaleValue()
         val endValue = min(startValue + view.getScaleValueRangePerScreen(), xAxis.maxValue)
 
-        for (x in startValue until endValue) {
+        for (x in startValue..endValue) {
 
             val remainder = (x - xAxis.minValue).rem(xAxis.scaleLineStep)
             val y = when {

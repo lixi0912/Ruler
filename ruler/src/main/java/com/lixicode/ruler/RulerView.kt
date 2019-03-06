@@ -2,6 +2,7 @@ package com.lixicode.ruler
 
 import android.content.Context
 import android.graphics.Canvas
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -9,6 +10,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.OverScroller
 import com.lixicode.ruler.data.*
+import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.renderer.LabelRenderer
 import com.lixicode.ruler.renderer.Renderer
 import com.lixicode.ruler.renderer.XAxisRenderer
@@ -44,13 +46,14 @@ class RulerView @JvmOverloads constructor(
     val scroller: OverScroller = OverScroller(context)
 
 
-    private var minScroll: Int = 0
-    private var maxScroll: Int = 0
+    private var minScrollPosition: Int = 0
+    private var maxScrollPosition: Int = 0
 
     private var totalScrollRangeX: Int = 0
     private var totalScrollRangeY: Int = 0
 
     private val transformer: Transformer
+    var valueFormatter: ValueFormatter = object : ValueFormatter {}
 
     init {
         Utils.init(context)
@@ -134,6 +137,24 @@ class RulerView @JvmOverloads constructor(
 
     }
 
+    fun getLongestMeasuredText(): String {
+        return if (TextUtils.isEmpty(axis.labelOptions.longestLabelText)) {
+            var longestLength = 0
+            var longestString = ""
+            for (index in 0..axis.range) {
+                val formatted = valueFormatter.formatValue((axis.minValue + (index * axis.scaleLineStep)).toFloat())
+                if (formatted.length > longestLength) {
+                    longestString = formatted
+                    longestLength = formatted.length
+                }
+            }
+            axis.labelOptions.longestLabelText = longestString
+            longestString
+        } else {
+            axis.labelOptions.longestLabelText
+        }
+    }
+
     fun getCurrentScaleValue(): Int {
         val scrollPts = FSize.obtain(scrollX.toFloat(), scrollY.toFloat())
         transformer.invertPixelToValue(scrollPts)
@@ -206,18 +227,19 @@ class RulerView @JvmOverloads constructor(
         } ?: super.onTouchEvent(event)
     }
 
+
     private fun scrollToNearByValue() {
         var dx = 0
         var dy = 0
 
         var isDirty = false
         if (origintation == HORIZONTAL) {
-            if (scrollX < minScroll) {
+            if (scrollX < minScrollPosition) {
                 isDirty = true
-                dx = minScroll
-            } else if (scrollX > maxScroll) {
+                dx = minScrollPosition
+            } else if (scrollX > maxScrollPosition) {
                 isDirty = true
-                dx = maxScroll
+                dx = maxScrollPosition
             }
             dy = 0
         } else {
@@ -285,8 +307,8 @@ class RulerView @JvmOverloads constructor(
 
         var clampedX = false
         if (canScrollHorizontal) {
-            val left = minScroll - maxOverScrollX
-            val right = maxOverScrollX + maxScroll
+            val left = minScrollPosition - maxOverScrollX
+            val right = maxOverScrollX + maxScrollPosition
 
             if (newScrollX > right) {
                 newScrollX = right
@@ -301,7 +323,7 @@ class RulerView @JvmOverloads constructor(
         var clampedY = false
         if (canScrollVertical) {
             val top = -maxOverScrollY
-            val bottom = maxOverScrollY + maxScroll
+            val bottom = maxOverScrollY + maxScrollPosition
 
             if (newScrollY > bottom) {
                 newScrollY = bottom
@@ -341,22 +363,20 @@ class RulerView @JvmOverloads constructor(
         transformer.pointValuesToPixel(minxScrollValuePts)
 
         if (origintation == HORIZONTAL) {
+            minScrollPosition = (minxScrollValuePts.x - viewPort.offsetLeft).roundToInt()
+            maxScrollPosition = (maxScrollValuePts.x - width + axis.scaleLineOptions.widthNeeded + viewPort.offsetRight).roundToInt()
 
+            scrollX = minScrollPosition
 
-            minScroll = minxScrollValuePts.x.roundToInt()
-            scrollX = minScroll
-
-            maxScroll = maxScrollValuePts.x.roundToInt() - width
-
-            totalScrollRangeX = maxScroll - minScroll
+            totalScrollRangeX = maxScrollPosition - minScrollPosition
         } else {
 
-            minScroll = minxScrollValuePts.y.roundToInt()
-            maxScroll = maxScrollValuePts.y.roundToInt() - height
+            minScrollPosition = minxScrollValuePts.y.roundToInt()
+            maxScrollPosition = maxScrollValuePts.y.roundToInt() - height
 
-            scrollY = minScroll
+            scrollY = minScrollPosition
 
-            totalScrollRangeY = maxScroll - minScroll
+            totalScrollRangeY = maxScrollPosition - minScrollPosition
         }
 
 

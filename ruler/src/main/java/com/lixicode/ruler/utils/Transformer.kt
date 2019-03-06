@@ -13,6 +13,7 @@ class Transformer(private val viewPort: ViewPortHandler) {
 
     private var mMatrixPxToValue = Matrix()
     private var mMatrixValueToPx = Matrix()
+    private var mMatrixOffset = Matrix()
 
 
     fun prepareMatrixValuePx(xMinimum: Float, deltaX: Int, yMinimun: Float, deltaY: Int) {
@@ -24,10 +25,10 @@ class Transformer(private val viewPort: ViewPortHandler) {
         matrix.reset()
         matrix.postTranslate(-xMinimum, -yMinimun)
         matrix.postScale(scaleX, scaleY)
-        matrix.postTranslate(viewPort.offsetLeft, viewPort.offsetTop)
-
 
         matrix.invert(mMatrixPxToValue)
+
+
     }
 
 

@@ -17,19 +17,19 @@ class LabelOptions(
 
     var size: Float = Utils.spToPx(Constants.LABEL_TEXT_SIZE),
 
-    var textMode: Int = ALIGIN_RIGHT,
+    var textMode: Int = ALIGN_CENTER,
 
     var longestLabelText: String = "",
 
-    val textSizeFiducial: Float = Utils.spToPx(1)
+    val fiducialTextSize: Float = Utils.spToPx(1)
 
 ) {
 
 
     companion object {
-        const val ALIGN_LEFT = -1
+        const val ALIGIN_RIGHT = -1
         const val ALIGN_CENTER = 0
-        const val ALIGIN_RIGHT = 1
+        const val ALIGN_LEFT = 1
     }
 
     val paint by lazy {
@@ -65,7 +65,7 @@ fun LabelOptions.calcTextHeight(measuredText: String): Int {
 fun LabelOptions.autoTextSize(measuredText: String, specWidth: Float) {
     val specTextWidth = paint.measureText(measuredText)
     if (specWidth < specTextWidth) {
-        paint.textSize -= textSizeFiducial
+        paint.textSize -= fiducialTextSize
         autoTextSize(measuredText, specWidth)
     }
 }
