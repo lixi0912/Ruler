@@ -126,7 +126,7 @@ class XAxisRenderer(view: RulerView) : Renderer(view) {
 
         //
         val significantBetweenScaleLine = xAxis.enableSignificantBetweenScaleLine && xAxis.scaleLineStep / 2 == 1
-        val startValue = view.getCurrentScaleValue()
+        val startValue = view.getStartScaleValue()
         val endValue = min(startValue + view.getScaleValueRangePerScreen(), xAxis.maxValue)
 
         for (x in startValue..endValue) {

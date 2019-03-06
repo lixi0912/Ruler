@@ -1,13 +1,10 @@
 package com.lixicode.ruler.renderer
 
 import android.graphics.Canvas
-import android.text.TextUtils
 import android.view.View
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.*
-import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.utils.Transformer
-import kotlin.math.abs
 import kotlin.math.min
 
 /**
@@ -64,7 +61,7 @@ class LabelRenderer(
     override fun draw(canvas: Canvas, transformer: Transformer) {
         val xAxis = view.axis
 
-        val startValue = view.getCurrentScaleValue()
+        val startValue = view.getStartScaleValue()
         val endValue = min(startValue + view.getScaleValueRangePerScreen(), xAxis.maxValue)
 
         for (x in startValue..endValue) {
@@ -86,7 +83,6 @@ class LabelRenderer(
                         -xAxis.labelOptions.measureLongestTextWidth(text) / 2
                     }
                 }
-
 
                 canvas.drawText(
                     text,

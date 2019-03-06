@@ -14,7 +14,7 @@ import kotlin.math.max
  * @author 陈晓辉
  * @date 2019/2/27
  */
-class LineOptions(
+open class LineOptions(
 
     var widthNeeded: Float = Utils.dpToPx(LINE_WIDTH),
 

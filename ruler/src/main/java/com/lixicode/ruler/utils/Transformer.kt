@@ -13,8 +13,6 @@ class Transformer(private val viewPort: ViewPortHandler) {
 
     private var mMatrixPxToValue = Matrix()
     private var mMatrixValueToPx = Matrix()
-    private var mMatrixOffset = Matrix()
-
 
     fun prepareMatrixValuePx(xMinimum: Float, deltaX: Int, yMinimun: Float, deltaY: Int) {
         val scaleX = (viewPort.contentWidth / deltaX).letFinite()
@@ -25,12 +23,14 @@ class Transformer(private val viewPort: ViewPortHandler) {
         matrix.reset()
         matrix.postTranslate(-xMinimum, -yMinimun)
         matrix.postScale(scaleX, scaleY)
-
         matrix.invert(mMatrixPxToValue)
-
-
     }
 
+    fun generateValueToPixel(value: Int): FSize {
+        val pts = FSize.obtain(value, value)
+        mMatrixValueToPx.mapPoints(pts)
+        return pts
+    }
 
     fun pointValuesToPixel(pts: FSize) {
         mMatrixValueToPx.mapPoints(pts)

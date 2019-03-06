@@ -6,11 +6,16 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
+import android.view.VelocityTracker
 import android.view.View
+import android.view.ViewConfiguration
 import android.widget.LinearLayout
 import android.widget.OverScroller
+import androidx.core.view.ViewCompat
+import androidx.customview.widget.ViewDragHelper.INVALID_POINTER
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.formatter.ValueFormatter
+import com.lixicode.ruler.renderer.CursorRenderer
 import com.lixicode.ruler.renderer.LabelRenderer
 import com.lixicode.ruler.renderer.Renderer
 import com.lixicode.ruler.renderer.XAxisRenderer
@@ -34,10 +39,18 @@ class RulerView @JvmOverloads constructor(
         const val VERTICAL = LinearLayout.VERTICAL
 
         const val MAX_OVER_SCROLL_EDGE = 100
+
+
+        const val TOUCH_STATE_INIT = 0
+        const val TOUCH_STATE_MOVING = 1
+        const val TOUCH_STATE_FLING = 2
+        const val TOUCH_STATE_REST = 3
+
     }
 
     var axis: Axis
     var axisRenderer: Renderer
+    var cursorRenderer: Renderer
     var origintation = HORIZONTAL
 
     val viewPort = ViewPortHandler()
@@ -49,14 +62,23 @@ class RulerView @JvmOverloads constructor(
     private var minScrollPosition: Int = 0
     private var maxScrollPosition: Int = 0
 
-    private var totalScrollRangeX: Int = 0
-    private var totalScrollRangeY: Int = 0
 
     private val transformer: Transformer
     var valueFormatter: ValueFormatter = object : ValueFormatter {}
 
+
+    private val mTouchSlop: Int
+    private val mMinimumVelocity: Int
+    private val mMaximumVelocity: Int
+
     init {
         Utils.init(context)
+
+        val configuration = ViewConfiguration.get(getContext())
+        mTouchSlop = configuration.scaledTouchSlop
+        mMinimumVelocity = configuration.scaledMinimumFlingVelocity
+        mMaximumVelocity = configuration.scaledMaximumFlingVelocity
+
         this.transformer = Transformer(viewPort)
 
 
@@ -71,13 +93,12 @@ class RulerView @JvmOverloads constructor(
 
         this.labelRenderer = LabelRenderer(this)
         this.axisRenderer = XAxisRenderer(this)
+        this.cursorRenderer = CursorRenderer(this, CursorOptions(null))
 
     }
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-
-
         // reset offset
         viewPort.offsetRect.setEmpty()
 
@@ -96,35 +117,35 @@ class RulerView @JvmOverloads constructor(
         )
         axisSize.recycle()
 
-        viewPort.setDimens(
-            paddingLeft.toFloat(),
-            paddingTop.toFloat(),
-            measuredWidth.toFloat() - paddingRight,
-            measuredHeight.toFloat() - paddingBottom
-        )
-
         computeXAxisSize()
     }
 
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+
         val startTimeMillis = System.currentTimeMillis()
+        canvas.clipRect(
+            scrollX,
+            scrollY,
+            scrollX + width,
+            scrollY + height
+        )
 
-        canvas?.run {
+        axisRenderer.draw(canvas, transformer)
+        cursorRenderer.draw(canvas, transformer)
 
-            axisRenderer.draw(this, transformer)
-            if (axis.repeat) {
-                val saveId = save()
-                scale(1F, -1F)
-                translate(0F, -height.toFloat())
-                axisRenderer.draw(this, transformer)
-                restoreToCount(saveId)
-            }
-
-            labelRenderer.draw(this, transformer)
+        if (axis.repeat) {
+            val saveId = canvas.save()
+            canvas.scale(1F, -1F)
+            canvas.translate(0F, -height.toFloat())
+            axisRenderer.draw(canvas, transformer)
+            cursorRenderer.draw(canvas, transformer)
+            canvas.restoreToCount(saveId)
         }
+
+        labelRenderer.draw(canvas, transformer)
 
 
         val endTimeMillis = System.currentTimeMillis()
@@ -157,95 +178,216 @@ class RulerView @JvmOverloads constructor(
         }
     }
 
-    fun getCurrentScaleValue(): Int {
+    internal fun getStartScaleValue(): Int {
         val scrollPts = FSize.obtain(scrollX.toFloat(), scrollY.toFloat())
         transformer.invertPixelToValue(scrollPts)
-        return if (origintation == RulerView.HORIZONTAL) {
-            when {
-                scrollPts.x < axis.minValue -> axis.minValue
-                scrollPts.x > axis.maxValue -> axis.maxValue
-                else -> scrollPts.x.roundToInt()
-            }
+        return if (isHorizontal) {
+            scrollPts.x.roundToInt().coerceIn(axis.minValue, axis.maxValue)
         } else {
-            when {
-                scrollPts.y < axis.minValue -> axis.minValue
-                scrollPts.y > axis.maxValue -> axis.maxValue
-                else -> scrollPts.y.roundToInt()
-            }
+            scrollPts.y.roundToInt().coerceIn(axis.minValue, axis.maxValue)
         }.apply {
             scrollPts.recycle()
         }
     }
 
+
+    private var scaleValueRangePerScreen: Int = 0
 
     fun getScaleValueRangePerScreen(): Int {
-        val scrollPts = FSize.obtain(width.toFloat(), height.toFloat())
-        transformer.invertPixelToValue(scrollPts)
-        return if (origintation == RulerView.HORIZONTAL) {
-            scrollPts.x.roundToInt() - axis.minValue
-        } else {
-            scrollPts.y.roundToInt() - axis.minValue
-        }.apply {
-            scrollPts.recycle()
+        return scaleValueRangePerScreen
+    }
+
+    val isHorizontal
+        get() = origintation == HORIZONTAL
+
+
+    private var mActivePointerId = INVALID_POINTER
+    private var mVelocityTracker: VelocityTracker? = null
+    private var mTouchState: Int = 0
+    private var mLastTouchPoint: FSize? = null
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        initVelocityTrackerIfNotExists()
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                mLastTouchPoint = FSize.obtain(event.x, event.y)
+
+                initOrResetVelocityTracker()
+
+                // disable parent scroll event
+                requestDisallowInterceptTouchEvent(true)
+
+                abortScrollAnimation()
+
+
+                mActivePointerId = event.getPointerId(0)
+
+                mVelocityTracker!!.addMovement(event)
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                val touchPoint = mLastTouchPoint!!
+                val velocityTracker = mVelocityTracker!!
+
+                velocityTracker.addMovement(event)
+                val activePointerIndex = event.findPointerIndex(mActivePointerId)
+                if (activePointerIndex != -1) {
+                    mTouchState = TOUCH_STATE_MOVING
+                    if (isHorizontal) {
+                        val deltaX = touchPoint.offsetX(event.getX(activePointerIndex))
+                        if (overScrollByCompat(-deltaX.roundToInt(), 0)) {
+                            velocityTracker.clear()
+                        }
+                    } else {
+                        val deltaY = touchPoint.offsetY(event.getY(activePointerIndex))
+                        scrollBy(0, deltaY.toInt())
+                    }
+
+                }
+            }
+            MotionEvent.ACTION_UP -> {
+                val velocityTracker = mVelocityTracker!!
+                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity.toFloat())
+                if (isHorizontal) {
+                    val velocity = velocityTracker.getXVelocity(mActivePointerId)
+                    if (Math.abs(velocity) > mMinimumVelocity) {
+                        mTouchState = TOUCH_STATE_FLING
+                        scroller.fling(
+                            scrollX, scrollY,
+                            -velocity.roundToInt(), 0,
+                            minScrollPosition, maxScrollPosition,
+                            0, 0,
+                            MAX_OVER_SCROLL_EDGE, MAX_OVER_SCROLL_EDGE
+                        )
+                        ViewCompat.postInvalidateOnAnimation(this)
+                    } else if (scroller.springBack(scrollX, scrollY, minScrollPosition, maxScrollPosition, 0, 0)) {
+                        mTouchState = TOUCH_STATE_REST
+                        ViewCompat.postInvalidateOnAnimation(this)
+                    } else {
+                        mTouchState = TOUCH_STATE_REST
+                        scrollToNearByValue()
+                    }
+                } else {
+                    val velocity = velocityTracker.getYVelocity(mActivePointerId)
+                    if (Math.abs(velocity) > mMinimumVelocity) {
+                        scroller.fling(
+                            scrollX, scrollY,
+                            0, -velocity.roundToInt(),
+                            0, 0,
+                            minScrollPosition, maxScrollPosition,
+                            MAX_OVER_SCROLL_EDGE, MAX_OVER_SCROLL_EDGE
+                        )
+                        mTouchState = TOUCH_STATE_FLING
+                    } else if (scroller.springBack(scrollX, scrollY, 0, 0, minScrollPosition, maxScrollPosition)) {
+                        ViewCompat.postInvalidateOnAnimation(this)
+                        mTouchState = TOUCH_STATE_REST
+                    } else {
+                        mTouchState = TOUCH_STATE_REST
+                        scrollToNearByValue()
+                    }
+                }
+
+                // release parent scroll event
+                requestDisallowInterceptTouchEvent(false)
+
+                recycleTouchPoint()
+
+                mActivePointerId = INVALID_POINTER
+                return false
+            }
+            MotionEvent.ACTION_CANCEL -> {
+
+                // release parent scroll event
+                requestDisallowInterceptTouchEvent(false)
+
+                recycleTouchPoint()
+
+                mTouchState = TOUCH_STATE_REST
+                mActivePointerId = INVALID_POINTER
+                return false
+            }
         }
+
+        return true
     }
 
 
-    private var mLastTouchPoint: FSize? = null
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        val isHorizontal = origintation == HORIZONTAL
-        return event?.run {
-            val lastPoint = (mLastTouchPoint ?: FSize.obtain(x, y)).apply {
-                mLastTouchPoint = this
-            }
+    private var currentScaleValue: Int = 0
 
+    fun getCurrentScaleValue(): Int {
+        return currentScaleValue
+    }
 
-            when (action) {
-                MotionEvent.ACTION_DOWN -> {
-                    abortScrollAnimation()
-                    // disable parent scroll event
-                    parent?.requestDisallowInterceptTouchEvent(true)
-                }
+    fun setCurrentScaleValue(value: Int) {
+        currentScaleValue = value.coerceIn(axis.minValue, axis.maxValue)
+        scrollToValue()
+    }
 
-                MotionEvent.ACTION_MOVE -> {
-                    if (isHorizontal) {
-                        val offsetX = lastPoint.offsetX(x)
-                        overScrollBy(-offsetX.roundToInt(), 0)
-                    } else {
-                        val offsetY = lastPoint.offsetY(y)
-                        scrollBy(0, offsetY.toInt())
-                    }
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // release parent scroll event
-                    parent?.requestDisallowInterceptTouchEvent(false)
+    private var firstLayout: Boolean = true
+    private fun scrollToValue() {
+        if (width == 0 || height == 0 || mTouchState != TOUCH_STATE_INIT) {
+            return
+        }
 
-                    recycleTouchPoint()
+        var dx = minScrollPosition
+        var dy = minScrollPosition
+        if (currentScaleValue != axis.minValue) {
+            val pts = transformer.generateValueToPixel(currentScaleValue)
+            dx = (pts.x + minScrollPosition).roundToInt()
+            dy = (pts.y + minScrollPosition).roundToInt()
+            pts.recycle()
+        }
 
-                    scrollToNearByValue()
-                }
-            }
-            true
-        } ?: super.onTouchEvent(event)
+        if (isHorizontal) {
+            dy = 0
+        } else {
+            dx = 0
+        }
+
+        if (firstLayout) {
+            firstLayout = false
+            scrollTo(dx, dy)
+        } else {
+            scroller.startScroll(
+                scrollX, scrollY,
+                dx - scrollX,
+                dy - scrollY
+            )
+
+            ViewCompat.postInvalidateOnAnimation(this)
+        }
     }
 
 
     private fun scrollToNearByValue() {
-        var dx = 0
-        var dy = 0
+        val canScrollHorizontal =
+            overScrollMode != OVER_SCROLL_NEVER && computeHorizontalScrollRange() > computeHorizontalScrollExtent()
+        val canScrollVertical =
+            overScrollMode != OVER_SCROLL_NEVER && computeVerticalScrollRange() > computeVerticalScrollExtent()
 
-        var isDirty = false
-        if (origintation == HORIZONTAL) {
-            if (scrollX < minScrollPosition) {
-                isDirty = true
-                dx = minScrollPosition
-            } else if (scrollX > maxScrollPosition) {
-                isDirty = true
-                dx = maxScrollPosition
+
+        var dx = minScrollPosition
+        var dy = minScrollPosition
+
+        if (currentScaleValue != axis.minValue) {
+            val pts = transformer.generateValueToPixel(currentScaleValue)
+            dx = pts.x.roundToInt().coerceIn(minScrollPosition, maxScrollPosition) + minScrollPosition
+            dy = pts.y.roundToInt().coerceIn(minScrollPosition, maxScrollPosition) + minScrollPosition
+            pts.recycle()
+        }
+
+
+        val isDirty: Boolean = when {
+            canScrollHorizontal -> {
+                dy = 0
+                dx != scrollX
             }
-            dy = 0
-        } else {
-            // TODO 竖排模式回弹
+            canScrollVertical -> {
+                dx = 0
+                dy != scrollY
+            }
+            else -> false
         }
 
         if (isDirty) {
@@ -254,13 +396,12 @@ class RulerView @JvmOverloads constructor(
                 scrollY,
                 dx - scrollX,
                 dy - scrollY
-
             )
-            invalidate()
-        }
+            ViewCompat.postInvalidateOnAnimation(this)
 
-        // TODO 滑动结束移动到最近一项
+        }
     }
+
 
     private fun recycleTouchPoint() {
         mLastTouchPoint?.recycle()
@@ -271,18 +412,21 @@ class RulerView @JvmOverloads constructor(
         if (scroller.computeScrollOffset()) {
             scrollTo(scroller.currX, scroller.currY)
             invalidate()
+        } else if (mTouchState == TOUCH_STATE_REST || mTouchState == TOUCH_STATE_FLING) {
+            mTouchState = TOUCH_STATE_INIT
+            scrollToNearByValue()
         }
     }
 
 
-    fun abortScrollAnimation() {
+    private fun abortScrollAnimation() {
         if (!scroller.isFinished) {
             scroller.abortAnimation()
         }
     }
 
 
-    private fun overScrollBy(x: Int, y: Int): Boolean {
+    private fun overScrollByCompat(x: Int, y: Int): Boolean {
         val canScrollHorizontal =
             overScrollMode != OVER_SCROLL_NEVER && computeHorizontalScrollRange() > computeHorizontalScrollExtent()
         val canScrollVertical =
@@ -337,17 +481,47 @@ class RulerView @JvmOverloads constructor(
         }
 
         onOverScrolled(newScrollX, newScrollY, clampedX, clampedY)
-
         return clampedX || clampedY
     }
-
 
     override fun onOverScrolled(scrollX: Int, scrollY: Int, clampedX: Boolean, clampedY: Boolean) {
         scrollTo(scrollX, scrollY)
     }
 
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+
+        val pts = FSize.obtain(l - minScrollPosition, t - minScrollPosition)
+        transformer.invertPixelToValue(pts)
+
+        val value = if (isHorizontal) {
+            pts.x.roundToInt()
+        } else {
+            pts.y.roundToInt()
+        }
+
+        pts.recycle()
+
+        if (axis.minValue.rangeTo(axis.maxValue).contains(value)) {
+            currentScaleValue = value
+        }
+
+    }
+
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        computeXAxisSize()
+    }
 
     private fun computeXAxisSize() {
+        viewPort.setDimens(
+            paddingLeft.toFloat(),
+            paddingTop.toFloat(),
+            measuredWidth.toFloat() - paddingRight,
+            measuredHeight.toFloat() - paddingBottom
+        )
+
         val minValue = axis.minValue.toFloat()
         val maxValue = axis.maxValue.toFloat()
 
@@ -364,35 +538,73 @@ class RulerView @JvmOverloads constructor(
         transformer.pointValuesToPixel(maxScrollValuePts)
         transformer.pointValuesToPixel(minxScrollValuePts)
 
-        if (origintation == HORIZONTAL) {
-            minScrollPosition = (minxScrollValuePts.x - viewPort.offsetLeft).roundToInt()
-            maxScrollPosition =
-                (maxScrollValuePts.x - width + axis.scaleLineOptions.widthNeeded + viewPort.offsetRight).roundToInt()
-
-            scrollX = minScrollPosition
-
-            totalScrollRangeX = maxScrollPosition - minScrollPosition
+        if (isHorizontal) {
+            minScrollPosition = (minxScrollValuePts.x - width / 2).roundToInt()
+            maxScrollPosition = (maxScrollValuePts.x + axis.scaleLineOptions.widthNeeded).roundToInt()
         } else {
-
-            minScrollPosition = minxScrollValuePts.y.roundToInt()
-            maxScrollPosition = maxScrollValuePts.y.roundToInt() - height
-
-            scrollY = minScrollPosition
-
-            totalScrollRangeY = maxScrollPosition - minScrollPosition
+            minScrollPosition = minxScrollValuePts.y.roundToInt() - height / 2
+            maxScrollPosition = maxScrollValuePts.y.roundToInt() - height / 2
         }
-
 
         maxScrollValuePts.recycle()
         minxScrollValuePts.recycle()
+
+
+        val screenPts = FSize.obtain(width.toFloat(), height.toFloat())
+        transformer.invertPixelToValue(screenPts)
+
+        scaleValueRangePerScreen = if (isHorizontal) {
+            screenPts.x.roundToInt() - axis.minValue
+        } else {
+            screenPts.y.roundToInt() - axis.minValue
+        }.apply {
+            screenPts.recycle()
+        }
+
+        // reset value
+        setCurrentScaleValue(currentScaleValue)
     }
 
     override fun computeHorizontalScrollRange(): Int {
-        return totalScrollRangeX
+        return if (isHorizontal) {
+            maxScrollPosition - minScrollPosition
+        } else {
+            0
+        }
     }
 
     override fun computeVerticalScrollRange(): Int {
-        return totalScrollRangeY
+        return if (isHorizontal) {
+            0
+        } else {
+            maxScrollPosition - minScrollPosition
+        }
+    }
+
+    private fun initOrResetVelocityTracker() {
+        mVelocityTracker?.run {
+            clear()
+        } ?: run {
+            mVelocityTracker = VelocityTracker.obtain()
+        }
+    }
+
+    private fun initVelocityTrackerIfNotExists() {
+        if (mVelocityTracker == null) {
+            mVelocityTracker = VelocityTracker.obtain()
+        }
+    }
+
+    private fun recycleVelocityTracker() {
+        mVelocityTracker?.recycle()
+        mVelocityTracker = null
+    }
+
+    private fun requestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
+        if (!disallowIntercept) {
+            recycleVelocityTracker()
+        }
+        parent?.requestDisallowInterceptTouchEvent(disallowIntercept)
     }
 
 } 

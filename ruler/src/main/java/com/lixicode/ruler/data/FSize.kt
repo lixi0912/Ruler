@@ -18,6 +18,13 @@ class FSize {
         private val sPool = Pools.SimplePool<FSize>(5)
 
 
+        fun obtain(x: Int, y: Int): FSize {
+            return (sPool.acquire() ?: FSize()).apply {
+                this.x = x.toFloat()
+                this.y = y.toFloat()
+            }
+        }
+
         fun obtain(x: Float, y: Float): FSize {
             return (sPool.acquire() ?: FSize()).apply {
                 this.x = x
