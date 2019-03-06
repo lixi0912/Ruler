@@ -139,17 +139,22 @@ class RulerView @JvmOverloads constructor(
 
     fun getLongestMeasuredText(): String {
         return if (TextUtils.isEmpty(axis.labelOptions.longestLabelText)) {
-            var longestLength = 0
-            var longestString = ""
-            for (index in 0..axis.range) {
-                val formatted = valueFormatter.formatValue((axis.minValue + (index * axis.scaleLineStep)).toFloat())
-                if (formatted.length > longestLength) {
-                    longestString = formatted
-                    longestLength = formatted.length
+            if (axis.labelOptions.identicalLengthOfLabel) {
+                valueFormatter.formatValue(axis.minValue.toFloat())
+            } else {
+                var longestString = ""
+                var longestLength = 0
+                for (index in 0..axis.range) {
+                    val formatted = valueFormatter.formatValue((axis.minValue + (index * axis.scaleLineStep)).toFloat())
+                    if (formatted.length > longestLength) {
+                        longestString = formatted
+                        longestLength = formatted.length
+                    }
                 }
+                longestString
+            }.apply {
+                axis.labelOptions.longestLabelText = this
             }
-            axis.labelOptions.longestLabelText = longestString
-            longestString
         } else {
             axis.labelOptions.longestLabelText
         }
@@ -364,7 +369,8 @@ class RulerView @JvmOverloads constructor(
 
         if (origintation == HORIZONTAL) {
             minScrollPosition = (minxScrollValuePts.x - viewPort.offsetLeft).roundToInt()
-            maxScrollPosition = (maxScrollValuePts.x - width + axis.scaleLineOptions.widthNeeded + viewPort.offsetRight).roundToInt()
+            maxScrollPosition =
+                (maxScrollValuePts.x - width + axis.scaleLineOptions.widthNeeded + viewPort.offsetRight).roundToInt()
 
             scrollX = minScrollPosition
 

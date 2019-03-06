@@ -21,6 +21,8 @@ class LabelOptions(
 
     var longestLabelText: String = "",
 
+    var identicalLengthOfLabel: Boolean = true,
+
     val fiducialTextSize: Float = Utils.spToPx(1)
 
 ) {
