@@ -113,9 +113,6 @@ class RulerView @JvmOverloads constructor(
         val startTimeMillis = System.currentTimeMillis()
 
         canvas?.run {
-            // 不显示屏幕之外的内容
-            // TODO 临时注释
-//            clipRect(0, 0, widthNeeded, height)
 
             axisRenderer.draw(this, transformer)
             if (axis.repeat) {
