@@ -18,7 +18,8 @@ class LabelOptions(
     var size: Float = Utils.spToPx(Constants.LABEL_TEXT_SIZE),
 
     var textMode: Int = ALIGIN_RIGHT,
-    val measuredText: String = "10",
+
+    var longestLabelText: String = "",
 
     val textSizeFiducial: Float = Utils.spToPx(1)
 
@@ -50,21 +51,21 @@ fun LabelOptions.createPaint(): Paint {
     return paint
 }
 
-fun LabelOptions.measureLongestTextWidth(): Float {
+fun LabelOptions.measureLongestTextWidth(measuredText: String): Float {
     return paint.measureText(measuredText)
 }
 
-fun LabelOptions.calcTextHeight(): Int {
+fun LabelOptions.calcTextHeight(measuredText: String): Int {
     val r = textRect
     r.set(0, 0, 0, 0)
     paint.getTextBounds(measuredText, 0, measuredText.length, r)
     return r.height()
 }
 
-fun LabelOptions.autoTextSize(specWidth: Float) {
+fun LabelOptions.autoTextSize(measuredText: String, specWidth: Float) {
     val specTextWidth = paint.measureText(measuredText)
     if (specWidth < specTextWidth) {
         paint.textSize -= textSizeFiducial
-        autoTextSize(specWidth)
+        autoTextSize(measuredText, specWidth)
     }
 }

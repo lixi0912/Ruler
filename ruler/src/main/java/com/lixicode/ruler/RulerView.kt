@@ -50,7 +50,6 @@ class RulerView @JvmOverloads constructor(
     private var totalScrollRangeX: Int = 0
     private var totalScrollRangeY: Int = 0
 
-
     private val transformer: Transformer
 
     init {
@@ -133,6 +132,39 @@ class RulerView @JvmOverloads constructor(
 
         Log.e(RulerView::class.java.simpleName, "cost $usedTimeMillis milliseconds on draw event")
 
+    }
+
+    fun getCurrentScaleValue(): Int {
+        val scrollPts = FSize.obtain(scrollX.toFloat(), scrollY.toFloat())
+        transformer.invertPixelToValue(scrollPts)
+        return if (origintation == RulerView.HORIZONTAL) {
+            when {
+                scrollPts.x < axis.minValue -> axis.minValue
+                scrollPts.x > axis.maxValue -> axis.maxValue
+                else -> scrollPts.x.roundToInt()
+            }
+        } else {
+            when {
+                scrollPts.y < axis.minValue -> axis.minValue
+                scrollPts.y > axis.maxValue -> axis.maxValue
+                else -> scrollPts.y.roundToInt()
+            }
+        }.apply {
+            scrollPts.recycle()
+        }
+    }
+
+
+    fun getScaleValueRangePerScreen(): Int {
+        val scrollPts = FSize.obtain(width.toFloat(), height.toFloat())
+        transformer.invertPixelToValue(scrollPts)
+        return if (origintation == RulerView.HORIZONTAL) {
+            scrollPts.x.roundToInt() - axis.minValue
+        } else {
+            scrollPts.y.roundToInt() - axis.minValue
+        }.apply {
+            scrollPts.recycle()
+        }
     }
 
 
@@ -292,14 +324,17 @@ class RulerView @JvmOverloads constructor(
 
 
     private fun computeXAxisSize() {
+        val minValue = axis.minValue.toFloat()
+        val maxValue = axis.maxValue.toFloat()
+
         transformer.prepareMatrixValuePx(
-            axis.minValue.toFloat(),
-            axis.visibleDividerLineSpacingCount,
+            minValue,
+            axis.visibleDividerLineCount,
             0F, 3
         )
 
-        val maxScrollValuePts = FSize.obtain(axis.maxValue.toFloat(), axis.maxValue.toFloat())
-        val minxScrollValuePts = FSize.obtain(axis.minValue.toFloat(), axis.minValue.toFloat())
+        val maxScrollValuePts = FSize.obtain(maxValue, maxValue)
+        val minxScrollValuePts = FSize.obtain(minValue, minValue)
 
 
         transformer.pointValuesToPixel(maxScrollValuePts)
@@ -327,8 +362,6 @@ class RulerView @JvmOverloads constructor(
 
         maxScrollValuePts.recycle()
         minxScrollValuePts.recycle()
-
-
     }
 
     override fun computeHorizontalScrollRange(): Int {

@@ -7,6 +7,7 @@ import com.lixicode.ruler.Constants.Companion.VISIBLE_RANGE_MAXIMUN
 import com.lixicode.ruler.data.LabelOptions
 import com.lixicode.ruler.data.LineOptions
 import com.lixicode.ruler.utils.Utils
+import kotlin.math.roundToInt
 
 /**
  * <>
@@ -25,9 +26,13 @@ abstract class Axis {
         get() = maxValue - minValue
 
 
-    var scaleLineStep: Int = 3
+    var scaleLineStep: Int = 5
 
 
+    /**
+     * 是否突出显示中间刻度
+     */
+    var enableSignificantBetweenScaleLine = true
 
     /**
      * 最小可见刻度的个数

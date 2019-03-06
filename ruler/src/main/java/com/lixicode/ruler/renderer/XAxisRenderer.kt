@@ -8,7 +8,7 @@ import com.lixicode.ruler.data.offset
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.RulerView
 import kotlin.math.max
-import kotlin.math.roundToInt
+import kotlin.math.min
 
 /**
  * <>
@@ -124,23 +124,17 @@ class XAxisRenderer(view: RulerView) : Renderer(view) {
         }
 
 
-        // TODO 处理起始数据绘制问题
-        val scrollPts = FSize.obtain(view.scrollX.toFloat(), view.scrollY.toFloat())
-        transformer.invertPixelToValue(scrollPts)
+        //
+        val significantBetweenScaleLine = xAxis.enableSignificantBetweenScaleLine && xAxis.scaleLineStep / 2 == 1
+        val startValue = view.getCurrentScaleValue()
+        val endValue = min(startValue + view.getScaleValueRangePerScreen(), xAxis.maxValue)
 
-        val startX = scrollPts.x.roundToInt()
+        for (x in startValue until endValue) {
 
-        scrollPts.recycle()
-
-
-        val bulgeCenterStep = xAxis.scaleLineStep / 2 == 1
-
-        for (x in xAxis.minValue until xAxis.maxValue) {
-
-            val remainder = x % xAxis.scaleLineStep
+            val remainder = (x - xAxis.minValue).rem(xAxis.scaleLineStep)
             val y = when {
                 remainder == 0 || remainder == xAxis.scaleLineStep -> 1F
-                bulgeCenterStep -> xAxis.dividerLineOptions.ratioOfParent + 0.1F
+                significantBetweenScaleLine -> xAxis.dividerLineOptions.ratioOfParent + 0.1F
                 else -> xAxis.dividerLineOptions.ratioOfParent
             }
 
