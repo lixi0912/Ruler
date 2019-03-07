@@ -1,6 +1,7 @@
 package com.lixicode.ruler.data
 
 import android.graphics.drawable.Drawable
+import kotlin.math.roundToInt
 
 /**
  * <>
@@ -24,6 +25,8 @@ open class Options<T : Drawable>(
      */
     var spacing: Int = 0,
 
+    var inset: Boolean = true,
+
     /**
      * 是否显示
      */
@@ -36,7 +39,6 @@ open class Options<T : Drawable>(
             if (!enable || null == drawable) {
                 return 0
             }
-
             return drawable!!.intrinsicWidth
         }
 
@@ -45,9 +47,12 @@ open class Options<T : Drawable>(
             if (!enable || null == drawable) {
                 return 0
             }
-
             return drawable!!.intrinsicHeight
         }
+
+    fun setDrawable(drawable: T?) {
+        this.drawable = drawable
+    }
 
     fun getDrawable(): T? {
         return if (enable) {
@@ -63,4 +68,29 @@ open class Options<T : Drawable>(
 
     }
 
+}
+
+fun Options<*>.setBounds(x: Float, y: Float) {
+    setBounds(x.roundToInt(), y.roundToInt())
+}
+
+fun Options<*>.setBounds(x: Int, y: Int) {
+    setBounds(x, y, x, y)
+}
+
+
+fun Options<*>.setBounds(left: Float, top: Float, right: Float, bottom: Float) {
+    setBounds(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
+}
+
+fun Options<*>.setBounds(left: Int, top: Int, right: Int, bottom: Int) {
+    getDrawable()?.apply {
+        setBounds(left, top, right, bottom)
+        if (inset) {
+            bounds.inset(
+                intrinsicWidth shr 1,
+                intrinsicHeight shr 1
+            )
+        }
+    }
 }

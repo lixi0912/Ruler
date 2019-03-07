@@ -7,6 +7,8 @@ import android.graphics.drawable.Drawable
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.TypedValue
+import androidx.core.widget.TextViewCompat
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.FSize
@@ -26,25 +28,37 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
         private const val MONOSPACE = 3
     }
 
-    val labelOptions = Options(drawable = TextDrawable(getLongestLabel))
+    val labelOptions = Options(TextDrawable(getLongestLabel))
 
-    fun loadFromAttributes(context: Context, attrs: AttributeSet?, defStyleAttr: Int) {
+    fun loadFromAttributes(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int,
+        defStyleRes: Int
+    ) {
         val a = context.obtainStyledAttributes(
             attrs,
-            R.styleable.RulerView, defStyleAttr, 0
+            R.styleable.RulerView, defStyleAttr, defStyleRes
         )
-        val weightOfLabel = a.getFloat(R.styleable.RulerView_weightOfLabel, 1F)
         val textColor = a.getColorStateList(R.styleable.RulerView_android_textColor)
-        val textSize = a.getDimensionPixelSize(R.styleable.RulerView_android_textSize, 0).toFloat()
+        val textSize = a.getDimensionPixelSize(
+            R.styleable.RulerView_android_textSize,
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14F, context.resources.displayMetrics).roundToInt()
+        ).toFloat()
         val textAlign = Paint.Align.values()[a.getInt(
             R.styleable.RulerView_textAlign,
             Paint.Align.LEFT.ordinal
         )]
-
         val typeface = getTypefaceAndStyle(a)
+
+        OptionsHelper.applyAttributes(context, a.getResourceId(R.styleable.RulerView_labelOptions, -1), labelOptions)
+
         a.recycle()
 
-        labelOptions.weight = weightOfLabel
+
+        // do not inset label drawable
+        labelOptions.inset = false
+
         labelOptions.getDrawable()
             ?.updatePaintInfo {
                 var updated = false

@@ -8,8 +8,6 @@ import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
 import android.widget.OverScroller
-import androidx.core.view.ViewCompat
-import androidx.customview.widget.ViewDragHelper.INVALID_POINTER
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
@@ -23,10 +21,13 @@ import kotlin.math.roundToInt
  * @date 2019/2/27
  */
 class RulerView @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0, defStyleRes: Int = R.style.RulerView
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
+
+        const val INVALID_POINTER = -1
+
         const val HORIZONTAL = 0
         const val VERTICAL = 1
 
@@ -60,7 +61,7 @@ class RulerView @JvmOverloads constructor(
 
     init {
         Utils.init(context)
-        helper.loadFromAttributes(context, attrs, defStyleAttr)
+        helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
 
     }
@@ -167,10 +168,10 @@ class RulerView @JvmOverloads constructor(
                             0, 0,
                             MAX_OVER_SCROLL_EDGE, MAX_OVER_SCROLL_EDGE
                         )
-                        ViewCompat.postInvalidateOnAnimation(this)
+                        helper.postInvalidateOnAnimation(this)
                     } else if (scroller.springBack(scrollX, scrollY, minScrollPosition, maxScrollPosition, 0, 0)) {
                         mTouchState = TOUCH_STATE_REST
-                        ViewCompat.postInvalidateOnAnimation(this)
+                        helper.postInvalidateOnAnimation(this)
                     } else {
                         mTouchState = TOUCH_STATE_REST
                         scrollToNearByValue()
@@ -187,7 +188,7 @@ class RulerView @JvmOverloads constructor(
                         )
                         mTouchState = TOUCH_STATE_FLING
                     } else if (scroller.springBack(scrollX, scrollY, 0, 0, minScrollPosition, maxScrollPosition)) {
-                        ViewCompat.postInvalidateOnAnimation(this)
+                        helper.postInvalidateOnAnimation(this)
                         mTouchState = TOUCH_STATE_REST
                     } else {
                         mTouchState = TOUCH_STATE_REST
@@ -262,7 +263,7 @@ class RulerView @JvmOverloads constructor(
                 dy - scrollY
             )
 
-            ViewCompat.postInvalidateOnAnimation(this)
+            helper.postInvalidateOnAnimation(this)
         }
     }
 
@@ -304,7 +305,7 @@ class RulerView @JvmOverloads constructor(
                 dx - scrollX,
                 dy - scrollY
             )
-            ViewCompat.postInvalidateOnAnimation(this)
+            helper.postInvalidateOnAnimation(this)
 
         }
     }

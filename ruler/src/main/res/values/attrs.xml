@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <declare-styleable name="Options">
+        <attr name="drawable" format="reference"/>
+        <attr name="spacing" format="dimension"/>
+        <attr name="weight" format="float"/>
+        <attr name="enable" format="boolean"/>
+        <attr name="inset" format="boolean"/>
+    </declare-styleable>
+
 
     <declare-styleable name="RulerView">
 
@@ -22,6 +30,31 @@
         <!-- 界面上显示刻度的个数 -->
         <attr name="visibleCountOfTick" format="integer"/>
 
+
+        <!--             -->
+        <!-- 标尺 相关配置 -->
+        <!--             -->
+        <!-- 刻度显示方向 -->
+        <attr name="orientation" format="enum">
+            <enum name="horizontal" value="0"/>
+            <enum name="vertical" value="1"/>
+        </attr>
+
+        <!-- 镜像绘制刻度 -->
+        <attr name="enableMirrorTick" format="boolean"/>
+
+        <!-- 绘制刻度的方向，当 enableMirrorTick = true 时无效 -->
+        <attr name="gravityOfTick" format="enum">
+            <enum name="start" value="0"/>
+            <enum name="end" value="1"/>
+        </attr>
+
+
+        <attr name="labelOptions" format="reference"/>
+        <attr name="tickOptions" format="reference"/>
+        <attr name="baseLineOptions" format="reference"/>
+        <attr name="dividerTickOptions" format="reference"/>
+        <attr name="cursorOptions" format="reference"/>
 
         <!--               -->
         <!-- Label 相关配置 -->
@@ -51,30 +84,10 @@
         <!-- 所有文本的长度是否一致，如果一致则取值第一个格式化，否则格式化所有值 -->
         <attr name="sameLengthOfLabel" format="string"/>
 
-        <!--             -->
-        <!-- 标尺 相关配置 -->
-        <!--             -->
-        <!-- 刻度显示方向 -->
-        <attr name="orientation" format="enum">
-            <enum name="horizontal" value="0"/>
-            <enum name="vertical" value="1"/>
-        </attr>
-
-        <!-- 镜像绘制刻度 -->
-        <attr name="enableMirrorTick" format="boolean"/>
-
-        <!-- 绘制刻度的方向，当 enableMirrorTick = true 时无效 -->
-        <attr name="gravityOfTick" format="enum">
-            <enum name="start" value="0"/>
-            <enum name="end" value="1"/>
-        </attr>
-
 
         <!-- label 和 tick 的权重，当 enableMirrorTick = true 时，总权重应该是 label + tick * 2 -->
-        <attr name="weightOfLabel" format="float"/>
-        <attr name="weightOfTick" format="float"/>
-
-
+        <!--<attr name="weightOfLabel" format="float"/>-->
     </declare-styleable>
+
 
 </resources>

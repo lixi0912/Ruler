@@ -6,12 +6,14 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewConfiguration
+import androidx.core.view.ViewCompat
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.FSize
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
@@ -131,10 +133,15 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
 
-    fun loadFromAttributes(context: Context, attrs: AttributeSet?, defStyleAttr: Int) {
+    fun loadFromAttributes(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int,
+        defStyleRes: Int
+    ) {
         val a = context.obtainStyledAttributes(
             attrs, R.styleable.RulerView,
-            defStyleAttr, 0
+            defStyleAttr, defStyleRes
         )
 
         val minimumOfTicks = a.getInt(R.styleable.RulerView_minimumOfTicks, minimumOfTicks)
@@ -145,13 +152,10 @@ internal class RulerViewHelper(private val view: RulerView) {
         val longestLabel = a.getString(R.styleable.RulerView_longestLabel)
         val orientation = a.getInt(R.styleable.RulerView_orientation, orientation)
         val gravityOfTick = a.getInt(R.styleable.RulerView_gravityOfTick, gravityOfTick)
-        val visibleCountOfTick = a.getInt(R.styleable.RulerView_weightOfTick, visibleCountOfTick)
+        val visibleCountOfTick = a.getInt(R.styleable.RulerView_visibleCountOfTick, visibleCountOfTick)
 
         val tick = a.getInt(R.styleable.RulerView_tick, 0)
         a.recycle()
-
-        labelHelper.loadFromAttributes(context, attrs, defStyleAttr)
-        tickHelper.loadFromAttributes(context, attrs, defStyleAttr)
 
         this.visibleCountOfTick = visibleCountOfTick
         this.gravityOfTick = gravityOfTick
@@ -163,6 +167,10 @@ internal class RulerViewHelper(private val view: RulerView) {
 
 
         setLongestLabel(longestLabel, sameLengthOfLabel)
+
+        labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
+        tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
+
         setTickValue(tick)
     }
 
@@ -259,7 +267,7 @@ internal class RulerViewHelper(private val view: RulerView) {
             else -> {
                 val visibleTextWidth = labelHelper.visibleWidthNeeded(visibleCountOfTick)
                 val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
-                visibleTextWidth.coerceAtMost(visibleTickWidth)
+                max(visibleTextWidth, visibleTickWidth)
             }
         }
 
@@ -364,6 +372,10 @@ internal class RulerViewHelper(private val view: RulerView) {
 
         // draw label
         labelHelper.onDraw(canvas)
+    }
+
+    fun postInvalidateOnAnimation(rulerView: RulerView) {
+        ViewCompat.postInvalidateOnAnimation(rulerView)
     }
 
 

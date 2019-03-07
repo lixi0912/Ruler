@@ -8,6 +8,7 @@ import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.FSize
 import com.lixicode.ruler.data.Options
+import com.lixicode.ruler.data.setBounds
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.roundToInt
 
@@ -19,24 +20,40 @@ import kotlin.math.roundToInt
 internal class TickHelper(val view: RulerView) {
 
 
-    val baseLineOptions: Options<Drawable> = Options()
-
     val tickOptions: Options<Drawable> = Options()
 
-    val dividerTickOptions: Options<Drawable> = Options()
+    private val baseLineOptions: Options<Drawable> = Options()
 
-    val cursorOptions: Options<Drawable> = Options()
+    private val dividerTickOptions: Options<Drawable> = Options()
+
+    private val cursorOptions: Options<Drawable> = Options()
 
 
-    fun loadFromAttributes(context: Context, attrs: AttributeSet?, defStyleAttr: Int) {
+    fun loadFromAttributes(
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int,
+        defStyleRes: Int
+    ) {
         val a = context.obtainStyledAttributes(
             attrs, R.styleable.RulerView,
-            defStyleAttr, 0
+            defStyleAttr, defStyleRes
         )
-        val weightOfTick = a.getFloat(R.styleable.RulerView_weightOfTick, 1F)
+        OptionsHelper.applyAttributes(context, a.getResourceId(R.styleable.RulerView_tickOptions, -1), tickOptions)
+        OptionsHelper.applyAttributes(
+            context,
+            a.getResourceId(R.styleable.RulerView_dividerTickOptions, -1),
+            dividerTickOptions
+        )
+        OptionsHelper.applyAttributes(context, a.getResourceId(R.styleable.RulerView_cursorOptions, -1), cursorOptions)
+        OptionsHelper.applyAttributes(
+            context,
+            a.getResourceId(R.styleable.RulerView_baseLineOptions, -1),
+            baseLineOptions
+        )
+
         a.recycle()
 
-        tickOptions.weight = weightOfTick
     }
 
 
@@ -77,6 +94,19 @@ internal class TickHelper(val view: RulerView) {
 
     fun onDraw(canvas: Canvas) {
         val helper = view.helper
+
+
+        baseLineOptions.getDrawable()?.run {
+            // 绘制基准线
+            val x = view.scrollX + view.paddingLeft
+            val yPx = helper.viewPort.contentTop.roundToInt()
+
+            baseLineOptions.setBounds(x, yPx, x + view.width - view.paddingRight, yPx)
+
+
+            // draw
+            draw(canvas)
+        }
 
         // TODO need to fix significantBetweenScaleLine
         val significantBetweenScaleLine: Boolean = helper.stepOfTicks.rem(2) == 1

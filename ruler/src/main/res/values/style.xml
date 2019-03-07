@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="RulerView">
+        <item name="tickOptions">@style/RulerViewOptions.Tick</item>
+        <item name="labelOptions">@style/RulerViewOptions.Label</item>
+        <item name="baseLineOptions">@style/RulerViewOptions.BaseLine</item>
+        <item name="dividerTickOptions">@style/RulerViewOptions.Divider</item>
+        <item name="cursorOptions">@style/RulerViewOptions.Course</item>
+    </style>
+
+    <style name="RulerViewOptions">
+        <item name="weight">1</item>
+        <item name="enable">true</item>
+        <item name="inset">true</item>
+        <item name="spacing">1dp</item>
+        <item name="drawable">@null</item>
+    </style>
+
+    <style name="RulerViewOptions.Tick" parent="RulerViewOptions">
+        <item name="drawable">@drawable/simple_tick</item>
+    </style>
+    <style name="RulerViewOptions.BaseLine" parent="RulerViewOptions">
+        <item name="drawable">@drawable/simple_tick</item>
+    </style>
+    <style name="RulerViewOptions.Divider" parent="RulerViewOptions">
+        <item name="drawable">@drawable/simple_tick</item>
+    </style>
+    <style name="RulerViewOptions.Course" parent="RulerViewOptions">
+        <item name="drawable">@drawable/simple_tick</item>
+    </style>
+
+
+    <style name="RulerViewOptions.Label" parent="RulerViewOptions">
+
+
+    </style>
+
+
+</resources>
