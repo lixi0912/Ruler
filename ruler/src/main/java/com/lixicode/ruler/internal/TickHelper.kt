@@ -3,6 +3,7 @@ package com.lixicode.ruler.internal
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
@@ -103,7 +104,6 @@ internal class TickHelper(val view: RulerView) {
 
             baseLineOptions.setBounds(x, yPx, x + view.width - view.paddingRight, yPx)
 
-
             // draw
             draw(canvas)
         }
@@ -126,10 +126,10 @@ internal class TickHelper(val view: RulerView) {
                 .also {
                     val isDividerLine = y != tickOptions.weight
                     if (isDividerLine) {
-                        dividerTickOptions.getDrawable()
+                        dividerTickOptions
                     } else {
-                        tickOptions.getDrawable()
-                    }?.run {
+                        tickOptions
+                    }.run {
 
                         // bounds
                         setBounds(
@@ -140,7 +140,7 @@ internal class TickHelper(val view: RulerView) {
                         )
 
                         // draw
-                        draw(canvas)
+                        getDrawable()?.draw(canvas)
                     }
                 }.also {
                     it.recycle()

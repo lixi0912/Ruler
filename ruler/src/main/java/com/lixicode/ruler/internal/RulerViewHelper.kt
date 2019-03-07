@@ -188,7 +188,7 @@ internal class RulerViewHelper(private val view: RulerView) {
                 }
             }
 
-        val endValue = (startValue + visibleTickCount).coerceAtLeast(maximumOfTicks)
+        val endValue = (startValue + visibleTickCount).coerceAtMost(maximumOfTicks)
         return startValue..endValue
     }
 
@@ -256,6 +256,10 @@ internal class RulerViewHelper(private val view: RulerView) {
         widthMeasureSpec: Int,
         heightMeasureSpec: Int
     ): FSize {
+
+        // 计算所需要的偏移值
+        tickHelper.computeHorizontalOffset(viewPort)
+
         val width = when {
             View.MeasureSpec.getMode(widthMeasureSpec) == View.MeasureSpec.EXACTLY -> {
                 View.MeasureSpec.getSize(
@@ -286,8 +290,6 @@ internal class RulerViewHelper(private val view: RulerView) {
             }
         }
 
-        // 计算所需要的偏移值
-        tickHelper.computeHorizontalOffset(viewPort)
 
         return FSize.obtain(width, height)
     }
