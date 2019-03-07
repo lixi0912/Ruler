@@ -2,26 +2,18 @@ package com.lixicode.ruler
 
 import android.content.Context
 import android.graphics.Canvas
-import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
-import android.view.ViewConfiguration
-import android.widget.LinearLayout
 import android.widget.OverScroller
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper.INVALID_POINTER
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.formatter.ValueFormatter
-import com.lixicode.ruler.renderer.CursorRenderer
-import com.lixicode.ruler.renderer.LabelRenderer
-import com.lixicode.ruler.renderer.Renderer
-import com.lixicode.ruler.renderer.XAxisRenderer
-import com.lixicode.ruler.utils.Transformer
+import com.lixicode.ruler.internal.RulerViewHelper
 import com.lixicode.ruler.utils.Utils
-import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -35,8 +27,11 @@ class RulerView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        const val HORIZONTAL = LinearLayout.HORIZONTAL
-        const val VERTICAL = LinearLayout.VERTICAL
+        const val HORIZONTAL = 0
+        const val VERTICAL = 1
+
+        const val GRAVITY_START = 0
+        const val GRAVITY_END = 1
 
         const val MAX_OVER_SCROLL_EDGE = 100
 
@@ -48,76 +43,46 @@ class RulerView @JvmOverloads constructor(
 
     }
 
-    var axis: Axis
-    var axisRenderer: Renderer
-    var cursorRenderer: Renderer
-    var origintation = HORIZONTAL
-
-    val viewPort = ViewPortHandler()
-    val labelRenderer: Renderer
-
-    val scroller: OverScroller = OverScroller(context)
+    internal val helper by lazy {
+        RulerViewHelper(this)
+    }
 
 
-    private var minScrollPosition: Int = 0
-    private var maxScrollPosition: Int = 0
+    private val scroller: OverScroller = OverScroller(context)
 
 
-    private val transformer: Transformer
+    var minScrollPosition: Int = 0
+    var maxScrollPosition: Int = 0
+
+
     var valueFormatter: ValueFormatter = object : ValueFormatter {}
 
 
-    private val mTouchSlop: Int
-    private val mMinimumVelocity: Int
-    private val mMaximumVelocity: Int
-
     init {
         Utils.init(context)
+        helper.loadFromAttributes(context, attrs, defStyleAttr)
 
-        val configuration = ViewConfiguration.get(getContext())
-        mTouchSlop = configuration.scaledTouchSlop
-        mMinimumVelocity = configuration.scaledMinimumFlingVelocity
-        mMaximumVelocity = configuration.scaledMaximumFlingVelocity
-
-        this.transformer = Transformer(viewPort)
-
-
-        val xAxis = XAxis()
-        this.axis = xAxis
-
-        xAxis.labelOptions = LabelOptions()
-        xAxis.baselineOptions = LineOptions()
-        xAxis.scaleLineOptions = LineOptions()
-        xAxis.dividerLineOptions = LineOptions()
-
-
-        this.labelRenderer = LabelRenderer(this)
-        this.axisRenderer = XAxisRenderer(this)
-        this.cursorRenderer = CursorRenderer(this, CursorOptions(null))
 
     }
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // reset offset
-        viewPort.offsetRect.setEmpty()
+        helper.computeMeasureSize(widthMeasureSpec, heightMeasureSpec)
+            .also {
+                setMeasuredDimension(
+                    resolveSize(
+                        max(suggestedMinimumWidth, it.x.toInt())
+                        , widthMeasureSpec
+                    ), resolveSize(
+                        max(suggestedMinimumHeight, it.y.toInt())
+                        , heightMeasureSpec
+                    )
+                )
+            }.run {
+                recycle()
+            }
 
-        val labelSize = labelRenderer.computeSize(widthMeasureSpec, 0F, heightMeasureSpec, 0F)
-        val axisSize = axisRenderer.computeSize(widthMeasureSpec, labelSize.x, heightMeasureSpec, labelSize.y)
-        labelSize.recycle()
-
-        setMeasuredDimension(
-            resolveSize(
-                max(suggestedMinimumWidth, axisSize.x.toInt())
-                , widthMeasureSpec
-            ), resolveSize(
-                max(suggestedMinimumHeight, axisSize.y.toInt())
-                , heightMeasureSpec
-            )
-        )
-        axisSize.recycle()
-
-        computeXAxisSize()
+        helper.onSizeChanged(measuredWidth, measuredHeight)
     }
 
 
@@ -133,20 +98,7 @@ class RulerView @JvmOverloads constructor(
             scrollY + height
         )
 
-        axisRenderer.draw(canvas, transformer)
-        cursorRenderer.draw(canvas, transformer)
-
-        if (axis.repeat) {
-            val saveId = canvas.save()
-            canvas.scale(1F, -1F)
-            canvas.translate(0F, -height.toFloat())
-            axisRenderer.draw(canvas, transformer)
-            cursorRenderer.draw(canvas, transformer)
-            canvas.restoreToCount(saveId)
-        }
-
-        labelRenderer.draw(canvas, transformer)
-
+        helper.onDraw(canvas)
 
         val endTimeMillis = System.currentTimeMillis()
         val usedTimeMillis = endTimeMillis - startTimeMillis
@@ -154,51 +106,6 @@ class RulerView @JvmOverloads constructor(
         Log.e(RulerView::class.java.simpleName, "cost $usedTimeMillis milliseconds on draw event")
 
     }
-
-    fun getLongestMeasuredText(): String {
-        return if (TextUtils.isEmpty(axis.labelOptions.longestLabelText)) {
-            if (axis.labelOptions.identicalLengthOfLabel) {
-                valueFormatter.formatValue(axis.minValue.toFloat())
-            } else {
-                var longestString = ""
-                var longestLength = 0
-                for (index in 0..axis.range) {
-                    val formatted = valueFormatter.formatValue((axis.minValue + (index * axis.scaleLineStep)).toFloat())
-                    if (formatted.length > longestLength) {
-                        longestString = formatted
-                        longestLength = formatted.length
-                    }
-                }
-                longestString
-            }.apply {
-                axis.labelOptions.longestLabelText = this
-            }
-        } else {
-            axis.labelOptions.longestLabelText
-        }
-    }
-
-    internal fun getStartScaleValue(): Int {
-        val scrollPts = FSize.obtain(scrollX.toFloat(), scrollY.toFloat())
-        transformer.invertPixelToValue(scrollPts)
-        return if (isHorizontal) {
-            scrollPts.x.roundToInt().coerceIn(axis.minValue, axis.maxValue)
-        } else {
-            scrollPts.y.roundToInt().coerceIn(axis.minValue, axis.maxValue)
-        }.apply {
-            scrollPts.recycle()
-        }
-    }
-
-
-    private var scaleValueRangePerScreen: Int = 0
-
-    fun getScaleValueRangePerScreen(): Int {
-        return scaleValueRangePerScreen
-    }
-
-    val isHorizontal
-        get() = origintation == HORIZONTAL
 
 
     private var mActivePointerId = INVALID_POINTER
@@ -234,7 +141,7 @@ class RulerView @JvmOverloads constructor(
                 val activePointerIndex = event.findPointerIndex(mActivePointerId)
                 if (activePointerIndex != -1) {
                     mTouchState = TOUCH_STATE_MOVING
-                    if (isHorizontal) {
+                    if (helper.isHorizontal) {
                         val deltaX = touchPoint.offsetX(event.getX(activePointerIndex))
                         if (overScrollByCompat(-deltaX.roundToInt(), 0)) {
                             velocityTracker.clear()
@@ -248,10 +155,10 @@ class RulerView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP -> {
                 val velocityTracker = mVelocityTracker!!
-                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity.toFloat())
-                if (isHorizontal) {
+                velocityTracker.computeCurrentVelocity(1000, helper.maximumVelocity.toFloat())
+                if (helper.isHorizontal) {
                     val velocity = velocityTracker.getXVelocity(mActivePointerId)
-                    if (Math.abs(velocity) > mMinimumVelocity) {
+                    if (Math.abs(velocity) > helper.minimumVelocity) {
                         mTouchState = TOUCH_STATE_FLING
                         scroller.fling(
                             scrollX, scrollY,
@@ -270,7 +177,7 @@ class RulerView @JvmOverloads constructor(
                     }
                 } else {
                     val velocity = velocityTracker.getYVelocity(mActivePointerId)
-                    if (Math.abs(velocity) > mMinimumVelocity) {
+                    if (Math.abs(velocity) > helper.minimumVelocity) {
                         scroller.fling(
                             scrollX, scrollY,
                             0, -velocity.roundToInt(),
@@ -313,14 +220,14 @@ class RulerView @JvmOverloads constructor(
     }
 
 
-    private var currentScaleValue: Int = 0
+    private var currentTickValue: Int = 0
 
     fun getCurrentScaleValue(): Int {
-        return currentScaleValue
+        return currentTickValue
     }
 
-    fun setCurrentScaleValue(value: Int) {
-        currentScaleValue = value.coerceIn(axis.minValue, axis.maxValue)
+    fun setTickValue(value: Int) {
+        currentTickValue = helper.coerceInTicks(value)
         scrollToValue()
     }
 
@@ -332,14 +239,14 @@ class RulerView @JvmOverloads constructor(
 
         var dx = minScrollPosition
         var dy = minScrollPosition
-        if (currentScaleValue != axis.minValue) {
-            val pts = transformer.generateValueToPixel(currentScaleValue)
+        if (currentTickValue != helper.minimumOfTicks) {
+            val pts = helper.transformer.generateValueToPixel(currentTickValue)
             dx = (pts.x + minScrollPosition).roundToInt()
             dy = (pts.y + minScrollPosition).roundToInt()
             pts.recycle()
         }
 
-        if (isHorizontal) {
+        if (helper.isHorizontal) {
             dy = 0
         } else {
             dx = 0
@@ -370,8 +277,8 @@ class RulerView @JvmOverloads constructor(
         var dx = minScrollPosition
         var dy = minScrollPosition
 
-        if (currentScaleValue != axis.minValue) {
-            val pts = transformer.generateValueToPixel(currentScaleValue)
+        if (currentTickValue != helper.minimumOfTicks) {
+            val pts = helper.transformer.generateValueToPixel(currentTickValue)
             dx = pts.x.roundToInt().coerceIn(minScrollPosition, maxScrollPosition) + minScrollPosition
             dy = pts.y.roundToInt().coerceIn(minScrollPosition, maxScrollPosition) + minScrollPosition
             pts.recycle()
@@ -490,20 +397,24 @@ class RulerView @JvmOverloads constructor(
 
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
+        val value = FSize.obtain(l - minScrollPosition, t - minScrollPosition)
+            .also {
+                helper.transformer.invertPixelToValue(it)
+            }.let {
+                try {
+                    if (helper.isHorizontal) {
+                        it.x.roundToInt()
+                    } else {
+                        it.y.roundToInt()
+                    }
+                } finally {
+                    it.recycle()
+                }
+            }
 
-        val pts = FSize.obtain(l - minScrollPosition, t - minScrollPosition)
-        transformer.invertPixelToValue(pts)
 
-        val value = if (isHorizontal) {
-            pts.x.roundToInt()
-        } else {
-            pts.y.roundToInt()
-        }
-
-        pts.recycle()
-
-        if (axis.minValue.rangeTo(axis.maxValue).contains(value)) {
-            currentScaleValue = value
+        if (helper.minimumOfTicks.rangeTo(helper.maximumOfTicks).contains(value)) {
+            currentTickValue = value
         }
 
     }
@@ -511,62 +422,12 @@ class RulerView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        computeXAxisSize()
+        helper.onSizeChanged(w, h)
     }
 
-    private fun computeXAxisSize() {
-        viewPort.setDimens(
-            paddingLeft.toFloat(),
-            paddingTop.toFloat(),
-            measuredWidth.toFloat() - paddingRight,
-            measuredHeight.toFloat() - paddingBottom
-        )
-
-        val minValue = axis.minValue.toFloat()
-        val maxValue = axis.maxValue.toFloat()
-
-        transformer.prepareMatrixValuePx(
-            minValue,
-            axis.visibleDividerLineCount,
-            0F, 3
-        )
-
-        val maxScrollValuePts = FSize.obtain(maxValue, maxValue)
-        val minxScrollValuePts = FSize.obtain(minValue, minValue)
-
-
-        transformer.pointValuesToPixel(maxScrollValuePts)
-        transformer.pointValuesToPixel(minxScrollValuePts)
-
-        if (isHorizontal) {
-            minScrollPosition = (minxScrollValuePts.x - width / 2).roundToInt()
-            maxScrollPosition = (maxScrollValuePts.x + axis.scaleLineOptions.widthNeeded).roundToInt()
-        } else {
-            minScrollPosition = minxScrollValuePts.y.roundToInt() - height / 2
-            maxScrollPosition = maxScrollValuePts.y.roundToInt() - height / 2
-        }
-
-        maxScrollValuePts.recycle()
-        minxScrollValuePts.recycle()
-
-
-        val screenPts = FSize.obtain(width.toFloat(), height.toFloat())
-        transformer.invertPixelToValue(screenPts)
-
-        scaleValueRangePerScreen = if (isHorizontal) {
-            screenPts.x.roundToInt() - axis.minValue
-        } else {
-            screenPts.y.roundToInt() - axis.minValue
-        }.apply {
-            screenPts.recycle()
-        }
-
-        // reset value
-        setCurrentScaleValue(currentScaleValue)
-    }
 
     override fun computeHorizontalScrollRange(): Int {
-        return if (isHorizontal) {
+        return if (helper.isHorizontal) {
             maxScrollPosition - minScrollPosition
         } else {
             0
@@ -574,7 +435,7 @@ class RulerView @JvmOverloads constructor(
     }
 
     override fun computeVerticalScrollRange(): Int {
-        return if (isHorizontal) {
+        return if (helper.isHorizontal) {
             0
         } else {
             maxScrollPosition - minScrollPosition

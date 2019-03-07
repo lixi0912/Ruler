@@ -19,6 +19,8 @@ class LabelOptions(
 
     var textMode: Int = ALIGN_CENTER,
 
+    var weight: Float = 1F,
+
     var longestLabelText: String = "",
 
     var identicalLengthOfLabel: Boolean = true,

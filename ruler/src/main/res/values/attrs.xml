@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <declare-styleable name="RulerView">
+
+        <!--             -->
+        <!-- 标尺 基本配置 -->
+        <!--             -->
+        <!-- 最小刻度值 -->
+        <attr name="minimumOfTicks" format="integer"/>
+
+        <!-- 最大刻度值 -->
+        <attr name="maximumOfTicks" format="integer"/>
+
+        <!-- 两个刻度间隔的步骤 -->
+        <attr name="stepOfTicks" format="integer"/>
+
+        <!-- 当前的刻度 -->
+        <attr name="tick" format="integer"/>
+
+        <!-- 界面上显示刻度的个数 -->
+        <attr name="visibleCountOfTick" format="integer"/>
+
+
+        <!--               -->
+        <!-- Label 相关配置 -->
+        <!--               -->
+        <attr name="android:textSize"/>
+        <attr name="android:textColor"/>
+        <attr name="android:textStyle"/>
+        <attr name="android:typeface"/>
+        <attr name="android:fontFamily"/>
+
+        <!--    文字对齐样式    -->
+        <!--                  -->
+        <!--         |LEFT    -->
+        <!--    RIGHT|        -->
+        <!--      CEN|TER     -->
+        <!--                  -->
+        <attr name="textAlign" format="enum">
+            <enum name="LEFT" value="0"/>
+            <enum name="CENTER" value="1"/>
+            <enum name="RIGHT" value="2"/>
+        </attr>
+
+        <!-- 最长的文本，如果没有设置该值 -->
+        <attr name="longestLabel" format="string"/>
+
+        <!-- 如果设置 longestLabel，则该值无效 -->
+        <!-- 所有文本的长度是否一致，如果一致则取值第一个格式化，否则格式化所有值 -->
+        <attr name="sameLengthOfLabel" format="string"/>
+
+        <!--             -->
+        <!-- 标尺 相关配置 -->
+        <!--             -->
+        <!-- 刻度显示方向 -->
+        <attr name="orientation" format="enum">
+            <enum name="horizontal" value="0"/>
+            <enum name="vertical" value="1"/>
+        </attr>
+
+        <!-- 镜像绘制刻度 -->
+        <attr name="enableMirrorTick" format="boolean"/>
+
+        <!-- 绘制刻度的方向，当 enableMirrorTick = true 时无效 -->
+        <attr name="gravityOfTick" format="enum">
+            <enum name="start" value="0"/>
+            <enum name="end" value="1"/>
+        </attr>
+
+
+        <!-- label 和 tick 的权重，当 enableMirrorTick = true 时，总权重应该是 label + tick * 2 -->
+        <attr name="weightOfLabel" format="float"/>
+        <attr name="weightOfTick" format="float"/>
+
+
+    </declare-styleable>
+
+</resources>

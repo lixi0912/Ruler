@@ -1,7 +1,6 @@
 package com.lixicode.rulerdemo
 
 import android.os.Bundle
-import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity;
 import com.lixicode.ruler.RulerView
@@ -24,7 +23,7 @@ class MainActivity : AppCompatActivity() {
                 "current scale value: ${rulerView.getCurrentScaleValue()}  scrollX: ${rulerView.scrollX}",
                 Snackbar.LENGTH_LONG
             ).setAction("Action") {
-                rulerView.setCurrentScaleValue(rulerView.getCurrentScaleValue() + 1)
+                rulerView.setTickValue(rulerView.getCurrentScaleValue() + 1)
             }.show()
         }
     }
