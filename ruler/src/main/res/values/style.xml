@@ -9,7 +9,7 @@
         <item name="cursorOptions">@style/RulerView.Options.Course</item>
     </style>
 
-    <style name="RulerView.Options" >
+    <style name="RulerView.Options">
         <item name="weight">1</item>
         <item name="enable">true</item>
         <item name="inset">true</item>
@@ -31,9 +31,16 @@
     </style>
 
     <style name="RulerView.Options.Label" parent="RulerView.Options">
-        <item name="android:textStyle">italic</item>
+        <item name="weight">2</item>
+
+        <item name="android:typeface">sans</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textColor">@android:color/holo_blue_light</item>
         <item name="android:textSize">18sp</item>
+
+        <item name="textAlign">CENTER</item>
+        <item name="longestLabel">@null</item>
+        <item name="sameLengthOfLabel">true</item>
     </style>
 
 
