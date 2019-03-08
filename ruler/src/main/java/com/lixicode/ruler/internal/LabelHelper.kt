@@ -212,10 +212,14 @@ internal class LabelHelper(val view: RulerView) {
 
                 val textDrawable = labelOptions.getDrawable()
                 textDrawable?.text = view.valueFormatter.formatValue(x.toFloat())
-                FSize.obtain(x.toFloat(), 2F).also {
+
+                // 计算标题居中显示所需 y 坐标起点
+                val y = (helper.weightOfTick + helper.weightOfLabel).div(2)
+
+                FSize.obtain(x.toFloat(), y).also {
                     helper.transformer.pointValuesToPixel(it)
                 }.also {
-                    labelOptions.setBounds(it.x, it.y)
+                    labelOptions.setBounds(it.x, it.y + labelOptions.heightNeeded)
                 }.also {
                     it.recycle()
                 }
@@ -246,18 +250,6 @@ internal class LabelHelper(val view: RulerView) {
                 this.textWidthNeeded = paint.measureText(longestText).roundToInt()
                 this.textHeightNeeded = calcTextHeight(longestText)
             }
-        }
-
-        override fun onBoundsChange(bounds: Rect?) {
-            offsetTextBounds(bounds)
-        }
-
-
-        /**
-         * 注意，由于 [calcTextHeight] 测量的高度为文本实际高度，所以在绘制的时候，应该将绘制文本的 baseline 下降到文本框的底部
-         */
-        private fun offsetTextBounds(bounds: Rect?) {
-            bounds?.offset(0, paint.fontMetrics.descent.roundToInt())
         }
 
         /**

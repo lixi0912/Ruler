@@ -31,7 +31,7 @@
     </style>
 
     <style name="RulerView.Options.Label" parent="RulerView.Options">
-        <item name="weight">2</item>
+        <item name="weight">3</item>
 
         <item name="android:typeface">sans</item>
         <item name="android:textStyle">normal</item>
