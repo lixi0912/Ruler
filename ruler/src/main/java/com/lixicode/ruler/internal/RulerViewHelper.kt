@@ -31,11 +31,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     /**
      * 所有刻度中最长的文本
      */
-    private var longestLabel: String = ""
-    private val labelHelper = LabelHelper(view) {
-        longestLabel
-    }
-
+    private val labelHelper = LabelHelper(view)
 
     val touchSlop: Int
     val minimumVelocity: Int
@@ -148,8 +144,6 @@ internal class RulerViewHelper(private val view: RulerView) {
         val maximumOfTicks = a.getInt(R.styleable.RulerView_maximumOfTicks, maximumOfTicks)
         val stepOfTicks = a.getInt(R.styleable.RulerView_stepOfTicks, stepOfTicks)
         val enableMirrorTick = a.getBoolean(R.styleable.RulerView_enableMirrorTick, enableMirrorTick)
-        val sameLengthOfLabel = a.getBoolean(R.styleable.RulerView_sameLengthOfLabel, false)
-        val longestLabel = a.getString(R.styleable.RulerView_longestLabel)
         val orientation = a.getInt(R.styleable.RulerView_orientation, orientation)
         val gravityOfTick = a.getInt(R.styleable.RulerView_gravityOfTick, gravityOfTick)
         val visibleCountOfTick = a.getInt(R.styleable.RulerView_visibleCountOfTick, visibleCountOfTick)
@@ -165,8 +159,6 @@ internal class RulerViewHelper(private val view: RulerView) {
         this.maximumOfTicks = maximumOfTicks
         this.enableMirrorTick = enableMirrorTick
 
-
-        setLongestLabel(longestLabel, sameLengthOfLabel)
 
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
@@ -210,22 +202,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
     fun setLongestLabel(label: String?, sameLengthOfLabel: Boolean) {
-        if (!TextUtils.isEmpty(label)) {
-            this.longestLabel = label!!
-        } else if (sameLengthOfLabel) {
-            this.longestLabel = valueFormatter.formatValue(minimumOfTicks.toFloat())
-        } else {
-            var tempString = longestLabel
-            var tempLength = tempString.length
-            for (index in minimumOfTicks..maximumOfTicks step stepOfTicks) {
-                val formatted = valueFormatter.formatValue(index.toFloat())
-                if (formatted.length > tempLength) {
-                    tempString = formatted
-                    tempLength = formatted.length
-                }
-            }
-            this.longestLabel = tempString
-        }
+        labelHelper.setLongestLabel(label, sameLengthOfLabel)
     }
 
 
@@ -285,8 +262,7 @@ internal class RulerViewHelper(private val view: RulerView) {
             }
             else -> {
                 labelHelper.visibleHeightNeeded()
-                    .div(deltaLabelWeightOfView)
-                    .roundToInt()
+                    .times(weightOfView)
             }
         }
 

@@ -21,7 +21,7 @@ import kotlin.math.roundToInt
  * @author 陈晓辉
  * @date 2019/3/7
  */
-internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
+internal class LabelHelper(val view: RulerView) {
 
     companion object {
         private const val SANS = 1
@@ -33,7 +33,9 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
         var textSize: Float = 0F,
         var textColor: ColorStateList? = null,
         var textAlign: Paint.Align = Paint.Align.LEFT,
-        var typeface: Typeface = Typeface.DEFAULT
+        var typeface: Typeface = Typeface.DEFAULT,
+        var sameLengthOfLabel: Boolean = false,
+        var longestLabel: String = ""
     ) {
 
 
@@ -48,11 +50,18 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
             }
 
             if (a.hasValue(R.styleable.RulerView_textAlign)) {
-                textAlign = Paint.Align.values()[a.getInt(R.styleable.RulerView_textAlign, Paint.Align.LEFT.ordinal)]
+                textAlign = Paint.Align.values()[a.getInt(R.styleable.RulerView_textAlign, textAlign.ordinal)]
+            }
+
+            if (a.hasValue(R.styleable.RulerView_sameLengthOfLabel)) {
+                sameLengthOfLabel = a.getBoolean(R.styleable.RulerView_sameLengthOfLabel, sameLengthOfLabel)
+            }
+
+            if (a.hasValue(R.styleable.RulerView_longestLabel)) {
+                longestLabel = a.getString(R.styleable.RulerView_longestLabel) ?: longestLabel
             }
 
             readTypefaceAndStyle(a)
-
         }
 
         private fun readTypefaceAndStyle(a: TypedArray) {
@@ -83,7 +92,10 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
 
     }
 
-    val labelOptions = Options(TextDrawable(getLongestLabel))
+    private var longestLabel: String = ""
+    val labelOptions = Options(TextDrawable {
+        longestLabel
+    })
 
     fun loadFromAttributes(
         context: Context,
@@ -117,6 +129,8 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
         a.recycle()
 
 
+        setLongestLabel(attributes.longestLabel, attributes.sameLengthOfLabel, false)
+
         // do not inset label drawable
         labelOptions.inset = false
 
@@ -139,9 +153,30 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
             }
     }
 
-    fun notifyLongestTextChange() {
-        labelOptions.getDrawable()
-            ?.updatePaintInfo { true }
+
+    fun setLongestLabel(label: String?, sameLengthOfLabel: Boolean, notifyChange: Boolean = true) {
+
+        val helper = view.helper
+        if (!TextUtils.isEmpty(label)) {
+            this.longestLabel = label!!
+        } else if (sameLengthOfLabel) {
+            this.longestLabel = helper.valueFormatter.formatValue(helper.maximumOfTicks.toFloat())
+        } else {
+            var tempString = longestLabel
+            var tempLength = tempString.length
+            for (index in helper.minimumOfTicks..helper.maximumOfTicks step helper.stepOfTicks) {
+                val formatted = helper.valueFormatter.formatValue(index.toFloat())
+                if (formatted.length > tempLength) {
+                    tempString = formatted
+                    tempLength = formatted.length
+                }
+            }
+            this.longestLabel = tempString
+        }
+
+        if (notifyChange) {
+            labelOptions.getDrawable()?.updatePaintInfo { true }
+        }
     }
 
 
