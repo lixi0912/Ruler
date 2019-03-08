@@ -73,10 +73,13 @@ internal class TickHelper(val view: RulerView) {
 
 
     fun visibleWidthNeeded(visibleCountOfTick: Int, stepOfTicks: Int): Int {
-        val visibleTickWidthNeeded = visibleCountOfTick.times(tickOptions.widthNeeded)
-        val dividerWidthNeeded = dividerTickOptions.widthNeeded
-        val visibleDividerSpacingNeeded = stepOfTicks.plus(1).times(dividerTickOptions.spacing)
-        val visibleDividerWidthNeeded = stepOfTicks.times(dividerWidthNeeded)
+        val spacingCount = stepOfTicks.plus(1)
+        val visibleDividerSpacingNeeded = spacingCount.times(dividerTickOptions.spacing)
+            .times(visibleCountOfTick).times(stepOfTicks)
+
+        val visibleDividerWidthNeeded = stepOfTicks.times(dividerTickOptions.widthNeeded)
+
+        val visibleTickWidthNeeded = tickOptions.widthNeeded.times(visibleCountOfTick)
         return visibleTickWidthNeeded.plus(visibleDividerSpacingNeeded).plus(visibleDividerWidthNeeded)
     }
 

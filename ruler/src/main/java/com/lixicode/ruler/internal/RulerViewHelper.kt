@@ -2,7 +2,6 @@ package com.lixicode.ruler.internal
 
 import android.content.Context
 import android.graphics.Canvas
-import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewConfiguration
@@ -23,7 +22,7 @@ import kotlin.math.roundToInt
  */
 internal class RulerViewHelper(private val view: RulerView) {
 
-    private val tickHelper = TickHelper(view)
+    internal val tickHelper = TickHelper(view)
     internal val viewPort = ViewPortHandler()
     internal val transformer: Transformer = Transformer(viewPort)
 
@@ -31,7 +30,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     /**
      * 所有刻度中最长的文本
      */
-    private val labelHelper = LabelHelper(view)
+    internal val labelHelper = LabelHelper(view)
 
     val touchSlop: Int
     val minimumVelocity: Int
@@ -276,7 +275,7 @@ internal class RulerViewHelper(private val view: RulerView) {
                 }
             }
             else -> {
-                val visibleTextWidth = labelHelper.visibleWidthNeeded(visibleCountOfTick)
+                val visibleTextWidth = labelHelper.visibleWidthNeeded(visibleCountOfTick,stepOfTicks)
                 val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
                 max(visibleTextWidth, visibleTickWidth)
             }
