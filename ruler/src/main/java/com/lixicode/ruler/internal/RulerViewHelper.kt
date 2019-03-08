@@ -275,11 +275,11 @@ internal class RulerViewHelper(private val view: RulerView) {
                 }
             }
             else -> {
-                val visibleTextWidth = labelHelper.visibleWidthNeeded(visibleCountOfTick,stepOfTicks)
+                val visibleTextWidth = labelHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
                 val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
                 max(visibleTextWidth, visibleTickWidth)
             }
-        }
+        }.plus(view.paddingLeft).plus(view.paddingRight)
 
         val height = when {
             View.MeasureSpec.getMode(heightMeasureSpec) == View.MeasureSpec.EXACTLY -> {
@@ -293,7 +293,7 @@ internal class RulerViewHelper(private val view: RulerView) {
                 labelHelper.visibleHeightNeeded()
                     .times(weightOfView)
             }
-        }
+        }.plus(view.paddingTop).plus(view.paddingBottom)
 
 
         return FSize.obtain(width, height)
