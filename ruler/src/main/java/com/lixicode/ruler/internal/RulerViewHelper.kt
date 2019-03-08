@@ -206,11 +206,41 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
 
-    fun drawOnMirrorTick(canvas: Canvas, drawMirror: (Canvas) -> Unit) {
+    private fun computeCanvasPaddingByHorizontal(): Int {
+        return view.paddingBottom.minus(view.paddingTop)
+            .takeIf {
+                it > 0
+            } ?: 0
+    }
+
+
+    private fun computeCanvasPaddingByVertical(): Int {
+        return view.paddingRight.minus(view.paddingLeft)
+            .takeIf {
+                it > 0
+            } ?: 0
+    }
+
+    private fun drawOnMirrorTick(canvas: Canvas, drawMirror: (Canvas) -> Unit) {
         if (enableMirrorTick) {
             val saveId = canvas.save()
-            canvas.scale(1F, -1F)
-            canvas.translate(0F, -view.height.toFloat())
+            if (isHorizontal) {
+                canvas.scale(1F, -1F)
+
+                val deltaY = (-view.height).plus(computeCanvasPaddingByHorizontal())
+                    .toFloat()
+
+                canvas.translate(0F, deltaY)
+            } else {
+                // TODO fix me
+                canvas.scale(-1F, 1F)
+
+                val deltaX = (-view.width).plus(computeCanvasPaddingByVertical())
+                    .toFloat()
+
+                canvas.translate(0F, 0F)
+            }
+
             drawMirror(canvas)
             canvas.restoreToCount(saveId)
         }
@@ -345,6 +375,7 @@ internal class RulerViewHelper(private val view: RulerView) {
 
         // draw on mirror  
         drawOnMirrorTick(canvas) {
+
             tickHelper.onDraw(it)
         }
 

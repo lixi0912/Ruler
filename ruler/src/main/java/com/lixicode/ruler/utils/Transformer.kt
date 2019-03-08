@@ -47,6 +47,13 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         matrix.reset()
         matrix.postTranslate(-xMinimum, -yMinimun)
         matrix.postScale(scaleX, scaleY)
+
+        if (helper.isHorizontal) {
+            matrix.postTranslate(0F, viewPort.contentTop)
+        } else {
+            matrix.postTranslate(viewPort.contentLeft, 0F)
+        }
+
         matrix.invert(mMatrixPxToValue)
     }
 

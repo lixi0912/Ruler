@@ -139,10 +139,10 @@ internal class TickHelper(val view: RulerView) {
             return
         }
         // 绘制基准线
-        val x = view.scrollX + view.paddingLeft
+        val x = view.scrollX
         val yPx = helper.viewPort.contentTop.roundToInt()
 
-        baseLineOptions.setBounds(x, yPx, x + view.width - view.paddingRight, yPx)
+        baseLineOptions.setBounds(x + view.paddingLeft, yPx, x + view.width - view.paddingRight, yPx)
 
         // draw
         baseLineOptions.getDrawable()?.draw(canvas)

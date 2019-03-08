@@ -93,10 +93,10 @@ class RulerView @JvmOverloads constructor(
 
         val startTimeMillis = System.currentTimeMillis()
         canvas.clipRect(
-            scrollX,
-            scrollY,
-            scrollX + width,
-            scrollY + height
+            scrollX + paddingLeft,
+            scrollY + paddingTop,
+            scrollX + width - paddingRight,
+            scrollY + height - paddingBottom
         )
 
         helper.onDraw(canvas)
@@ -107,7 +107,6 @@ class RulerView @JvmOverloads constructor(
         Log.e(RulerView::class.java.simpleName, "cost $usedTimeMillis milliseconds on draw event")
 
     }
-
 
     private var mActivePointerId = INVALID_POINTER
     private var mVelocityTracker: VelocityTracker? = null
@@ -398,7 +397,24 @@ class RulerView @JvmOverloads constructor(
 
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt)
-        val value = FSize.obtain(l - minScrollPosition, t - minScrollPosition)
+
+        val x: Int
+        val y: Int
+        if (helper.isHorizontal) {
+            x = when (l) {
+                0 -> minScrollPosition
+                else -> l - minScrollPosition
+            }
+            y = t
+        } else {
+            y = when (t) {
+                0 -> minScrollPosition
+                else -> t - minScrollPosition
+            }
+            x = l
+        }
+
+        val value = FSize.obtain(x, y)
             .also {
                 helper.transformer.invertPixelToValue(it)
             }.let {
