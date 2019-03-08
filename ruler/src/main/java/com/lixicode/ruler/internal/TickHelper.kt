@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
+import android.util.Half.toFloat
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.FSize
@@ -91,8 +92,8 @@ internal class TickHelper(val view: RulerView) {
      * 计算横向时, 所需要的偏移值
      */
     fun computeHorizontalOffset(viewPort: ViewPortHandler) {
-        val width = baseLineOptions.widthNeeded.toFloat()
-        val height = baseLineOptions.heightNeeded.toFloat()
+        val width = baseLineOptions.widthNeeded.times(2).toFloat()
+        val height = baseLineOptions.heightNeeded.times(2).toFloat()
 
         viewPort.offsetRect.set(width, height, width, height)
     }
@@ -106,20 +107,20 @@ internal class TickHelper(val view: RulerView) {
      * 计算横向时, 所需要的偏移值
      */
     fun computeVerticalOffset(viewPort: ViewPortHandler) {
-        val width = baseLineOptions.widthNeeded.toFloat()
+        val width = baseLineOptions.widthNeeded.times(2).toFloat()
         viewPort.offsetRect.set(width, width, width, width)
     }
 
     fun onDraw(canvas: Canvas) {
         val helper = view.helper
         if (helper.isHorizontal) {
-            drawHorizontalBaseLine(helper, canvas)
             drawHorizontalTick(helper, canvas)
             drawHorizontalCursor(helper, canvas)
+            drawHorizontalBaseLine(helper, canvas)
         } else {
-            drawVerticalBaseLine(helper, canvas)
             drawVerticalTick(helper, canvas)
             drawVerticalCursor(helper, canvas)
+            drawVerticalBaseLine(helper, canvas)
         }
     }
 
@@ -143,7 +144,7 @@ internal class TickHelper(val view: RulerView) {
         }
         // 绘制基准线
         val x = view.scrollX
-        val yPx = helper.viewPort.contentTop.roundToInt()
+        val yPx = helper.viewPort.contentRect.top.roundToInt() + baseLineOptions.heightNeeded
 
         baseLineOptions.setBounds(x + view.paddingLeft, yPx, x + view.width - view.paddingRight, yPx)
 

@@ -87,14 +87,8 @@ fun Options<*>.setBounds(left: Int, top: Int, right: Int, bottom: Int) {
     getDrawable()?.apply {
         setBounds(left, top, right, bottom)
         if (inset) {
-
-            val insetHorizontal: Int = (intrinsicWidth shr 1).negativeIf {
-                left == right
-            }
-
-            val insetVertical: Int = (intrinsicHeight shr 1).negativeIf {
-                top == bottom
-            }
+            val insetHorizontal: Int = -(intrinsicWidth shr 1)
+            val insetVertical: Int = -(intrinsicHeight shr 1)
 
 
             bounds.inset(

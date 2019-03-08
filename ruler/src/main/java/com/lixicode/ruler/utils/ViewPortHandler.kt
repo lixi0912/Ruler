@@ -27,6 +27,11 @@ class ViewPortHandler {
     val offsetBottom
         get() = offsetRect.bottom
 
+    val offsetVertical
+        get() = offsetTop + offsetBottom
+
+    val offsetHorizontal
+        get() = offsetLeft + offsetRight
 
     val contentLeft
         get() = contentRect.left + offsetLeft

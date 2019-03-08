@@ -31,7 +31,7 @@
         <item name="drawable">@drawable/simple_tick</item>
     </style>
     <style name="RulerView.Options.Course" parent="RulerView.Options">
-        <item name="drawable">@drawable/simple_tick</item>
+        <item name="drawable">@drawable/simple_course</item>
     </style>
 
     <style name="RulerView.Options.Label" parent="RulerView.Options">
