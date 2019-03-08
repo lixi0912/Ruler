@@ -59,9 +59,9 @@
         <!--               -->
         <!-- Label 相关配置 -->
         <!--               -->
-        <attr name="android:textSize" format="dimension"/>
-        <attr name="android:textColor" format="color|reference"/>
-        <attr name="android:textStyle" format="reference"/>
+        <attr name="android:textSize"/>
+        <attr name="android:textColor"/>
+        <attr name="android:textStyle"/>
         <attr name="android:typeface"/>
         <attr name="android:fontFamily"/>
 
@@ -82,7 +82,7 @@
 
         <!-- 如果设置 longestLabel，则该值无效 -->
         <!-- 所有文本的长度是否一致，如果一致则取值第一个格式化，否则格式化所有值 -->
-        <attr name="sameLengthOfLabel" format="string"/>
+        <attr name="sameLengthOfLabel" format="boolean"/>
 
     </declare-styleable>
 
