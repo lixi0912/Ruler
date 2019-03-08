@@ -40,13 +40,21 @@ internal class TickHelper(val view: RulerView) {
             attrs, R.styleable.RulerView,
             defStyleAttr, defStyleRes
         )
-        OptionsHelper.applyAttributes(context, a.getResourceId(R.styleable.RulerView_tickOptions, -1), tickOptions)
+        OptionsHelper.applyAttributes(
+            context,
+            a.getResourceId(R.styleable.RulerView_tickOptions, -1),
+            tickOptions
+        )
         OptionsHelper.applyAttributes(
             context,
             a.getResourceId(R.styleable.RulerView_dividerTickOptions, -1),
             dividerTickOptions
         )
-        OptionsHelper.applyAttributes(context, a.getResourceId(R.styleable.RulerView_cursorOptions, -1), cursorOptions)
+        OptionsHelper.applyAttributes(
+            context,
+            a.getResourceId(R.styleable.RulerView_cursorOptions, -1),
+            cursorOptions
+        )
         OptionsHelper.applyAttributes(
             context,
             a.getResourceId(R.styleable.RulerView_baseLineOptions, -1),
@@ -54,6 +62,12 @@ internal class TickHelper(val view: RulerView) {
         )
 
         a.recycle()
+
+
+        // overrider dividerTick weight
+        if (tickOptions.weight == dividerTickOptions.weight) {
+            dividerTickOptions.weight = dividerTickOptions.weight.div(2)
+        }
 
     }
 
@@ -95,19 +109,49 @@ internal class TickHelper(val view: RulerView) {
 
     fun onDraw(canvas: Canvas) {
         val helper = view.helper
-
-
-        baseLineOptions.getDrawable()?.run {
-            // 绘制基准线
-            val x = view.scrollX + view.paddingLeft
-            val yPx = helper.viewPort.contentTop.roundToInt()
-
-            baseLineOptions.setBounds(x, yPx, x + view.width - view.paddingRight, yPx)
-
-            // draw
-            draw(canvas)
+        if (helper.isHorizontal) {
+            drawHorizontalBaseLine(helper, canvas)
+            drawHorizontalTick(helper, canvas)
+            drawHorizontalCursor(helper, canvas)
+        } else {
+            drawVerticalBaseLine(helper, canvas)
+            drawVerticalTick(helper, canvas)
+            drawVerticalCursor(helper, canvas)
         }
+    }
 
+
+    private fun drawVerticalBaseLine(helper: RulerViewHelper, canvas: Canvas) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private fun drawVerticalTick(helper: RulerViewHelper, canvas: Canvas) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private fun drawVerticalCursor(helper: RulerViewHelper, canvas: Canvas) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+
+    private fun drawHorizontalBaseLine(helper: RulerViewHelper, canvas: Canvas) {
+        if (!baseLineOptions.enable) {
+            return
+        }
+        // 绘制基准线
+        val x = view.scrollX + view.paddingLeft
+        val yPx = helper.viewPort.contentTop.roundToInt()
+
+        baseLineOptions.setBounds(x, yPx, x + view.width - view.paddingRight, yPx)
+
+        // draw
+        baseLineOptions.getDrawable()?.draw(canvas)
+    }
+
+    private fun drawHorizontalTick(helper: RulerViewHelper, canvas: Canvas) {
+        if (!tickOptions.enable) {
+            return
+        }
         // TODO need to fix significantBetweenScaleLine
         val significantBetweenScaleLine: Boolean = helper.stepOfTicks.rem(2) == 1
 
@@ -146,31 +190,32 @@ internal class TickHelper(val view: RulerView) {
                     it.recycle()
                 }
         }
-
-        cursorOptions.getDrawable()?.run {
-            FSize.obtain(view.getCurrentScaleValue().toFloat(), tickOptions.weight)
-                .also {
-                    helper.transformer.pointValuesToPixel(it)
-                }.also {
-                    it.x = (view.scrollX + view.width.div(2)).toFloat()
-                }.also {
-                    // bounds
-                    setBounds(
-                        it.x.roundToInt(),
-                        helper.viewPort.contentTop.roundToInt(),
-                        it.x.roundToInt(),
-                        it.y.roundToInt()
-                    )
-
-                    // draw
-                    draw(canvas)
-                }.run {
-                    recycle()
-                }
-        }
-
-        // TODO draw event on vertical mode
-
     }
+
+    private fun drawHorizontalCursor(helper: RulerViewHelper, canvas: Canvas) {
+        if (!cursorOptions.enable) {
+            return
+        }
+        FSize.obtain(view.getCurrentScaleValue().toFloat(), tickOptions.weight)
+            .also {
+                helper.transformer.pointValuesToPixel(it)
+            }.also {
+                it.x = (view.scrollX + view.width.div(2)).toFloat()
+            }.also {
+                // bounds
+                cursorOptions.setBounds(
+                    it.x.roundToInt(),
+                    helper.viewPort.contentTop.roundToInt(),
+                    it.x.roundToInt(),
+                    it.y.roundToInt()
+                )
+
+                // draw
+                cursorOptions.getDrawable()?.draw(canvas)
+            }.run {
+                recycle()
+            }
+    }
+
 
 }

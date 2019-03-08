@@ -1,6 +1,7 @@
 package com.lixicode.ruler.internal
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.TypedArray
 import android.graphics.*
 import android.graphics.drawable.Drawable
@@ -8,11 +9,11 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
-import androidx.core.widget.TextViewCompat
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.FSize
 import com.lixicode.ruler.data.Options
+import com.lixicode.ruler.data.setBounds
 import kotlin.math.roundToInt
 
 /**
@@ -28,6 +29,60 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
         private const val MONOSPACE = 3
     }
 
+    inner class Attributes(
+        var textSize: Float = 0F,
+        var textColor: ColorStateList? = null,
+        var textAlign: Paint.Align = Paint.Align.LEFT,
+        var typeface: Typeface = Typeface.DEFAULT
+    ) {
+
+
+        fun readAttributes(a: TypedArray) {
+
+            if (a.hasValue(R.styleable.RulerView_android_textColor)) {
+                textColor = a.getColorStateList(R.styleable.RulerView_android_textColor)
+            }
+
+            if (a.hasValue(R.styleable.RulerView_android_textSize)) {
+                textSize = a.getDimensionPixelSize(R.styleable.RulerView_android_textSize, -1).toFloat()
+            }
+
+            if (a.hasValue(R.styleable.RulerView_textAlign)) {
+                textAlign = Paint.Align.values()[a.getInt(R.styleable.RulerView_textAlign, Paint.Align.LEFT.ordinal)]
+            }
+
+            readTypefaceAndStyle(a)
+
+        }
+
+        private fun readTypefaceAndStyle(a: TypedArray) {
+            val textStyle = a.getInt(R.styleable.RulerView_android_textStyle, Typeface.NORMAL)
+            if (a.hasValue(R.styleable.RulerView_android_fontFamily)) {
+                // Try with String. This is done by TextView JB+, but fails in ICS
+                val fontFamilyName = a.getString(R.styleable.RulerView_android_fontFamily)
+                if (fontFamilyName != null) {
+                    this.typeface = Typeface.create(fontFamilyName, textStyle)
+                    return
+                }
+            }
+            if (a.hasValue(R.styleable.RulerView_android_typeface)) {
+                val typeface = when (a.getInt(
+                    R.styleable.RulerView_android_typeface,
+                    SANS
+                )) {
+                    SANS -> Typeface.SANS_SERIF
+                    SERIF -> Typeface.SERIF
+                    MONOSPACE -> Typeface.MONOSPACE
+                    else -> Typeface.DEFAULT
+                }
+                this.typeface = Typeface.create(typeface, textStyle)
+            } else if (textStyle != Typeface.NORMAL) {
+                this.typeface = Typeface.defaultFromStyle(textStyle)
+            }
+        }
+
+    }
+
     val labelOptions = Options(TextDrawable(getLongestLabel))
 
     fun loadFromAttributes(
@@ -36,23 +91,29 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
         defStyleAttr: Int,
         defStyleRes: Int
     ) {
+
+        val defaultTextSize = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP,
+            14F, context.resources.displayMetrics
+        )
+        val attributes = Attributes(textSize = defaultTextSize)
+
         val a = context.obtainStyledAttributes(
             attrs,
             R.styleable.RulerView, defStyleAttr, defStyleRes
         )
-        val textColor = a.getColorStateList(R.styleable.RulerView_android_textColor)
-        val textSize = a.getDimensionPixelSize(
-            R.styleable.RulerView_android_textSize,
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14F, context.resources.displayMetrics).roundToInt()
-        ).toFloat()
-        val textAlign = Paint.Align.values()[a.getInt(
-            R.styleable.RulerView_textAlign,
-            Paint.Align.LEFT.ordinal
-        )]
-        val typeface = getTypefaceAndStyle(a)
+        attributes.readAttributes(a)
 
-        OptionsHelper.applyAttributes(context, a.getResourceId(R.styleable.RulerView_labelOptions, -1), labelOptions)
+        OptionsHelper.applyAttributes(
+            context,
+            a.getResourceId(R.styleable.RulerView_labelOptions, -1), labelOptions
+        ) {
 
+            val typeAttributes = context.obtainStyledAttributes(it, R.styleable.RulerView)
+            attributes.readAttributes(typeAttributes)
+            typeAttributes.recycle()
+
+        }
         a.recycle()
 
 
@@ -62,19 +123,18 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
         labelOptions.getDrawable()
             ?.updatePaintInfo {
                 var updated = false
-                if (it.typeface != typeface) {
-                    it.typeface = typeface
+                if (it.typeface != attributes.typeface) {
+                    it.typeface = attributes.typeface
                     updated = true
                 }
 
-                if (it.textSize != textSize) {
-                    it.textSize = textSize
+                if (it.textSize != attributes.textSize) {
+                    it.textSize = attributes.textSize
                     updated = true
                 }
 
-                it.textAlign = textAlign
-
-                it.color = textColor?.defaultColor ?: it.color
+                it.textAlign = attributes.textAlign
+                it.color = attributes.textColor?.defaultColor ?: it.color
                 updated
             }
     }
@@ -85,26 +145,6 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
     }
 
 
-    private fun getTypefaceAndStyle(a: TypedArray): Typeface {
-        val textStyle = a.getInt(R.styleable.RulerView_android_textStyle, Typeface.NORMAL)
-        if (a.hasValue(R.styleable.RulerView_android_fontFamily)) {
-            // Try with String. This is done by TextView JB+, but fails in ICS
-            val fontFamilyName = a.getString(R.styleable.RulerView_android_fontFamily)
-            if (fontFamilyName != null) {
-                return Typeface.create(fontFamilyName, textStyle)
-            }
-        }
-        return when (a.getInt(
-            R.styleable.RulerView_android_typeface,
-            SANS
-        )) {
-            SANS -> Typeface.SANS_SERIF
-            SERIF -> Typeface.SERIF
-            MONOSPACE -> Typeface.MONOSPACE
-            else -> Typeface.defaultFromStyle(textStyle)
-        }
-    }
-
     fun visibleWidthNeeded(visibleCountOfTick: Int): Int {
         return labelOptions.widthNeeded.times(visibleCountOfTick)
     }
@@ -114,30 +154,39 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
     }
 
     fun onDraw(canvas: Canvas) {
-        labelOptions.getDrawable()?.run {
-            val helper = view.helper
-            for (x in helper.rangeOfTickWithScrollOffset()) {
-                if (helper.remOfTick(x)) {
-                    // 说明当前为起始刻度
+        val helper = view.helper
+        if (helper.isHorizontal) {
+            drawHorizontalLabel(helper, canvas)
+        } else {
+            drawVerticalLabel(helper, canvas)
+        }
+    }
 
-                    text = view.valueFormatter.formatValue(x.toFloat())
+    private fun drawVerticalLabel(helper: RulerViewHelper, canvas: Canvas) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
-                    FSize.obtain(x.toFloat(), 2F).also {
-                        helper.transformer.pointValuesToPixel(it)
-                    }.also {
-                        val intX = it.x.roundToInt()
-                        val intY = it.y.roundToInt()
-                        setBounds(intX, intY, intX, intY)
-                    }.also {
-                        it.recycle()
-                    }
-
-                    draw(canvas)
-                }
-            }
+    private fun drawHorizontalLabel(helper: RulerViewHelper, canvas: Canvas) {
+        if (!labelOptions.enable) {
+            return
         }
 
-        // TODO draw event on vertical mode
+        for (x in helper.rangeOfTickWithScrollOffset()) {
+            if (helper.remOfTick(x)) {
+                // 说明当前为起始刻度
+
+                val textDrawable = labelOptions.getDrawable()
+                textDrawable?.text = view.valueFormatter.formatValue(x.toFloat())
+                FSize.obtain(x.toFloat(), 2F).also {
+                    helper.transformer.pointValuesToPixel(it)
+                }.also {
+                    labelOptions.setBounds(it.x, it.y)
+                }.also {
+                    it.recycle()
+                }
+                textDrawable?.draw(canvas)
+            }
+        }
     }
 
 
@@ -164,6 +213,27 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
             }
         }
 
+        override fun onBoundsChange(bounds: Rect?) {
+            offsetTextBounds(bounds)
+        }
+
+
+        /**
+         * 注意，由于 [calcTextHeight] 测量的高度为文本实际高度，所以在绘制的时候，应该将绘制文本的 baseline 下降到文本框的底部
+         */
+        private fun offsetTextBounds(bounds: Rect?) {
+            bounds?.offset(0, paint.fontMetrics.descent.roundToInt())
+        }
+
+        /**
+         * @return 文本实际高度
+         */
+        private fun calcTextHeight(measuredText: String): Int {
+            val r = textRect
+            r.set(0, 0, 0, 0)
+            paint.getTextBounds(measuredText, 0, measuredText.length, r)
+            return r.height()
+        }
 
         override fun draw(canvas: Canvas) {
             if (TextUtils.isEmpty(text)) {
@@ -190,14 +260,6 @@ internal class LabelHelper(val view: RulerView, getLongestLabel: () -> String) {
 
         override fun getIntrinsicHeight(): Int {
             return textHeightNeeded
-        }
-
-
-        private fun calcTextHeight(measuredText: String): Int {
-            val r = textRect
-            r.set(0, 0, 0, 0)
-            paint.getTextBounds(measuredText, 0, measuredText.length, r)
-            return r.height()
         }
 
 

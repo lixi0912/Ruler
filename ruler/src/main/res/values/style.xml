@@ -2,14 +2,14 @@
 <resources>
 
     <style name="RulerView">
-        <item name="tickOptions">@style/RulerViewOptions.Tick</item>
-        <item name="labelOptions">@style/RulerViewOptions.Label</item>
-        <item name="baseLineOptions">@style/RulerViewOptions.BaseLine</item>
-        <item name="dividerTickOptions">@style/RulerViewOptions.Divider</item>
-        <item name="cursorOptions">@style/RulerViewOptions.Course</item>
+        <item name="tickOptions">@style/RulerView.Options.Tick</item>
+        <item name="labelOptions">@style/RulerView.Options.Label</item>
+        <item name="baseLineOptions">@style/RulerView.Options.BaseLine</item>
+        <item name="dividerTickOptions">@style/RulerView.Options.Divider</item>
+        <item name="cursorOptions">@style/RulerView.Options.Course</item>
     </style>
 
-    <style name="RulerViewOptions">
+    <style name="RulerView.Options" >
         <item name="weight">1</item>
         <item name="enable">true</item>
         <item name="inset">true</item>
@@ -17,23 +17,23 @@
         <item name="drawable">@null</item>
     </style>
 
-    <style name="RulerViewOptions.Tick" parent="RulerViewOptions">
+    <style name="RulerView.Options.Tick" parent="RulerView.Options">
         <item name="drawable">@drawable/simple_tick</item>
     </style>
-    <style name="RulerViewOptions.BaseLine" parent="RulerViewOptions">
+    <style name="RulerView.Options.BaseLine" parent="RulerView.Options">
         <item name="drawable">@drawable/simple_tick</item>
     </style>
-    <style name="RulerViewOptions.Divider" parent="RulerViewOptions">
+    <style name="RulerView.Options.Divider" parent="RulerView.Options">
         <item name="drawable">@drawable/simple_tick</item>
     </style>
-    <style name="RulerViewOptions.Course" parent="RulerViewOptions">
+    <style name="RulerView.Options.Course" parent="RulerView.Options">
         <item name="drawable">@drawable/simple_tick</item>
     </style>
 
-
-    <style name="RulerViewOptions.Label" parent="RulerViewOptions">
-
-
+    <style name="RulerView.Options.Label" parent="RulerView.Options">
+        <item name="android:textStyle">italic</item>
+        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:textSize">18sp</item>
     </style>
 
 
