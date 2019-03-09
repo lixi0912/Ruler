@@ -3,9 +3,7 @@ package com.lixicode.ruler.internal
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
-import android.util.Half.toFloat
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.FSize
@@ -200,7 +198,7 @@ internal class TickHelper(val view: RulerView) {
         if (!cursorOptions.enable) {
             return
         }
-        FSize.obtain(view.getCurrentScaleValue().toFloat(), tickOptions.weight)
+        FSize.obtain(view.tick.toFloat(), tickOptions.weight)
             .also {
                 helper.transformer.pointValuesToPixel(it)
             }.also {

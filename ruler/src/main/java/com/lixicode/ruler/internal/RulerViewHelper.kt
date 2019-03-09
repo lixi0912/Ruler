@@ -22,7 +22,7 @@ import kotlin.math.roundToInt
  */
 internal class RulerViewHelper(private val view: RulerView) {
 
-    internal val tickHelper = TickHelper(view)
+    private val tickHelper = TickHelper(view)
     internal val viewPort = ViewPortHandler()
     internal val transformer: Transformer = Transformer(viewPort)
 
@@ -30,12 +30,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     /**
      * 所有刻度中最长的文本
      */
-    internal val labelHelper = LabelHelper(view)
-
-    val touchSlop: Int
-    val minimumVelocity: Int
-    val maximumVelocity: Int
-
+    private val labelHelper = LabelHelper(view)
 
     /**
      * 最小刻度
@@ -118,14 +113,11 @@ internal class RulerViewHelper(private val view: RulerView) {
     /**
      * 每次绘制的刻度数
      */
-    private var visibleTickCount: Int = 0
+    var visibleTickCount: Int = 0
 
-    init {
-        val configuration = ViewConfiguration.get(view.context)
-        this.touchSlop = configuration.scaledTouchSlop
-        this.minimumVelocity = configuration.scaledMinimumFlingVelocity
-        this.maximumVelocity = configuration.scaledMaximumFlingVelocity
-    }
+
+    var horizontalScrollRange: Int = 0
+    var verticalScrollRange: Int = 0
 
 
     fun loadFromAttributes(
@@ -197,7 +189,7 @@ internal class RulerViewHelper(private val view: RulerView) {
 
 
     private fun setTickValue(tick: Int) {
-        this.view.setTickValue(tick)
+        this.view.tick = tick
     }
 
     fun setLongestLabel(label: String?, sameLengthOfLabel: Boolean) {
@@ -308,20 +300,15 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
     fun onSizeChanged(w: Int, h: Int) {
-        viewPort.setDimens(
-            view.paddingLeft.toFloat(),
-            view.paddingTop.toFloat(),
-            w.toFloat() - view.paddingRight,
-            h.toFloat() - view.paddingBottom
-        )
+        val left = view.paddingLeft.toFloat()
+        val top = view.paddingTop.toFloat()
+        val right = w.toFloat() - view.paddingRight
+        val bottom = h.toFloat() - view.paddingBottom
+
+        viewPort.setDimens(left, top, right, bottom)
 
         transformer.prepareMatrixValuePx(this)
 
-
-        prepareToRefresh(w, h)
-    }
-
-    private fun prepareToRefresh(w: Int, h: Int) {
         this.visibleTickCount = FSize.obtain(w.toFloat(), h.toFloat())
             .also {
                 transformer.invertPixelToValue(it)
@@ -334,38 +321,8 @@ internal class RulerViewHelper(private val view: RulerView) {
                     it.recycle()
                 }
             }
-
-
-
-        view.minScrollPosition = transformer.generateValueToPixel(minimumOfTicks)
-            .let {
-                if (isHorizontal) {
-                    (it.x - w / 2).roundToInt()
-                } else {
-                    it.y.roundToInt() - h / 2
-                }.apply {
-                    it.recycle()
-                }
-            }
-
-        view.maxScrollPosition = transformer.generateValueToPixel(maximumOfTicks)
-            .let {
-                if (isHorizontal) {
-                    it.x.roundToInt()
-                } else {
-                    it.y.roundToInt() - h / 2
-                }.apply {
-                    it.recycle()
-                }
-            }
-
-        // reset scroll value
-        view.scrollTo(0, 0)
-
-        // reset value
-        view.setTickValue(view.getCurrentScaleValue())
-
     }
+
 
     fun onDraw(canvas: Canvas) {
 
@@ -382,8 +339,13 @@ internal class RulerViewHelper(private val view: RulerView) {
         labelHelper.onDraw(canvas)
     }
 
-    fun postInvalidateOnAnimation(rulerView: RulerView) {
-        ViewCompat.postInvalidateOnAnimation(rulerView)
+
+    fun generateValueToPixel(value: Int): FSize {
+        return transformer.generateValueToPixel(value)
+    }
+
+    fun invertPixelToValue(x: Int, y: Int): FSize {
+        return transformer.invertPixelToValue(x, y)
     }
 
 

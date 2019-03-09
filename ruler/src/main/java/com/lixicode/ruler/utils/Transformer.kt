@@ -23,7 +23,7 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val yMinimun: Float
         if (helper.isHorizontal) {
 
-            val deltaX =  helper.visibleCountOfTick * helper.stepOfTicks
+            val deltaX = helper.visibleCountOfTick * helper.stepOfTicks
             val deltaY = helper.deltaTickWeightOfView
 
             scaleX = (viewPort.contentWidth / deltaX).letFinite()
@@ -69,6 +69,12 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
 
     fun invertPixelToValue(pts: FSize) {
         mMatrixPxToValue.mapPoints(pts)
+    }
+
+    fun invertPixelToValue(x: Int, y: Int): FSize {
+        val pts = FSize.obtain(x, y)
+        invertPixelToValue(pts)
+        return pts
     }
 
 

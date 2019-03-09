@@ -20,10 +20,10 @@ class MainActivity : AppCompatActivity() {
 
             Snackbar.make(
                 view,
-                "current scale value: ${rulerView.getCurrentScaleValue()}  scrollX: ${rulerView.scrollX}",
+                "current scale value: ${rulerView.tick}  scrollX: ${rulerView.scrollX}",
                 Snackbar.LENGTH_LONG
             ).setAction("Action") {
-                rulerView.setTickValue(rulerView.getCurrentScaleValue() + 1)
+                rulerView.tick++
             }.show()
         }
     }
