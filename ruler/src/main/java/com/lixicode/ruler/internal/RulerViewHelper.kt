@@ -213,7 +213,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
     private fun drawOnMirrorTick(canvas: Canvas, drawMirror: (Canvas) -> Unit) {
-        if (enableMirrorTick) {
+        if (enableMirrorTick || gravityOfTick == RulerView.GRAVITY_END) {
             val saveId = canvas.save()
             if (isHorizontal) {
                 canvas.scale(1F, -1F)
@@ -327,7 +327,9 @@ internal class RulerViewHelper(private val view: RulerView) {
     fun onDraw(canvas: Canvas) {
 
         // draw tick
-        tickHelper.onDraw(canvas)
+        if (gravityOfTick == RulerView.GRAVITY_START || enableMirrorTick) {
+            tickHelper.onDraw(canvas)
+        }
 
         // draw on mirror  
         drawOnMirrorTick(canvas) {

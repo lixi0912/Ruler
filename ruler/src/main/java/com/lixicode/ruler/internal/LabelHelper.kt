@@ -219,7 +219,12 @@ internal class LabelHelper(val view: RulerView) {
                 textDrawable?.text = view.valueFormatter.formatValue(x.toFloat())
 
                 // 计算标题居中显示所需 y 坐标起点
-                val y = (helper.weightOfTick + helper.weightOfLabel).div(2)
+                val y = if (view.helper.gravityOfTick == RulerView.GRAVITY_START || view.helper.enableMirrorTick) {
+                    helper.weightOfLabel.plus(helper.weightOfTick).div(2)
+                } else {
+                    helper.weightOfLabel.minus(helper.weightOfTick).div(2)
+                }
+
 
                 FSize.obtain(x.toFloat(), y).also {
                     helper.transformer.pointValuesToPixel(it)

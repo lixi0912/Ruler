@@ -12,6 +12,8 @@
         <item name="minimumOfTicks">100</item>
         <item name="maximumOfTicks">500</item>
         <item name="tick">100</item>
+        <item name="enableMirrorTick">true</item>
+        <item name="gravityOfTick">end</item>
     </style>
 
     <style name="RulerView.Options">
