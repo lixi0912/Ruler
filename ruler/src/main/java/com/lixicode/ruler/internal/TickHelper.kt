@@ -20,11 +20,11 @@ import kotlin.math.roundToInt
 internal class TickHelper(val view: RulerView) {
 
 
-    val tickOptions: Options<Drawable> = Options()
+    internal val tickOptions: Options<Drawable> = Options()
 
     private val baseLineOptions: Options<Drawable> = Options()
 
-    private val dividerTickOptions: Options<Drawable> = Options()
+    internal val dividerTickOptions: Options<Drawable> = Options()
 
     private val cursorOptions: Options<Drawable> = Options()
 
@@ -154,17 +154,20 @@ internal class TickHelper(val view: RulerView) {
         if (!tickOptions.enable) {
             return
         }
-        // TODO need to fix significantBetweenScaleLine
-        val significantBetweenScaleLine: Boolean = helper.stepOfTicks.rem(2) == 1
+
+        val enableSignificantTick = helper.stepOfTicks.rem(2) == 0
+        val halfOfStep = helper.stepOfTicks.div(2)
 
         for (x in helper.rangeOfTickWithScrollOffset()) {
             val remainderOfTick = helper.remOfTick(x)
 
+            val significantBetweenTick = enableSignificantTick && remainderOfTick == halfOfStep
             val y = when {
-                remainderOfTick -> tickOptions.weight
-                significantBetweenScaleLine -> dividerTickOptions.weight + 0.1F
+                remainderOfTick == 0 -> tickOptions.weight
+                significantBetweenTick -> helper.significantTickWeight
                 else -> dividerTickOptions.weight
             }
+
             FSize.obtain(x.toFloat(), y)
                 .also {
                     helper.transformer.pointValuesToPixel(it)

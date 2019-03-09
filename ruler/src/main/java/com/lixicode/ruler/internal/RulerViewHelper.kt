@@ -4,8 +4,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewConfiguration
-import androidx.core.view.ViewCompat
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.FSize
@@ -82,6 +80,8 @@ internal class RulerViewHelper(private val view: RulerView) {
             return tickHelper.tickOptions.weight
         }
 
+    var significantTickWeight: Float = 0F
+
 
     /**
      *  tick 相对于 [weightOfView] 的权重占比
@@ -138,6 +138,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         val orientation = a.getInt(R.styleable.RulerView_orientation, orientation)
         val gravityOfTick = a.getInt(R.styleable.RulerView_gravityOfTick, gravityOfTick)
         val visibleCountOfTick = a.getInt(R.styleable.RulerView_visibleCountOfTick, visibleCountOfTick)
+        val significantTickWeight = a.getFloat(R.styleable.RulerView_significantTickWeight, significantTickWeight)
 
         val tick = a.getInt(R.styleable.RulerView_tick, 0)
         a.recycle()
@@ -153,6 +154,10 @@ internal class RulerViewHelper(private val view: RulerView) {
 
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
+
+        this.significantTickWeight =
+            significantTickWeight.coerceIn(tickHelper.dividerTickOptions.weight, tickHelper.tickOptions.weight)
+
 
         setTickValue(tick)
     }
@@ -178,9 +183,9 @@ internal class RulerViewHelper(private val view: RulerView) {
     /**
      * @return true [tick] is remainder of ticks
      */
-    fun remOfTick(tick: Int): Boolean {
+    fun remOfTick(tick: Int): Int {
         val tickIndex = coerceInTicks(tick).minus(minimumOfTicks)
-        return tickIndex.rem(stepOfTicks) == 0
+        return tickIndex.rem(stepOfTicks)
     }
 
     fun coerceInTicks(value: Int): Int {

@@ -8,6 +8,8 @@
         <item name="dividerTickOptions">@style/RulerView.Options.Divider</item>
         <item name="cursorOptions">@style/RulerView.Options.Course</item>
 
+        <item name="significantTickWeight">1.5</item>
+        <item name="visibleCountOfTick">5</item>
         <item name="stepOfTicks">5</item>
         <item name="minimumOfTicks">100</item>
         <item name="maximumOfTicks">500</item>

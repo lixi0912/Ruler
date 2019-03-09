@@ -212,7 +212,7 @@ internal class LabelHelper(val view: RulerView) {
         }
 
         for (x in helper.rangeOfTickWithScrollOffset()) {
-            if (helper.remOfTick(x)) {
+            if (helper.remOfTick(x) == 0) {
                 // 说明当前为起始刻度
 
                 val textDrawable = labelOptions.getDrawable()

@@ -30,6 +30,14 @@
         <!-- 界面上显示刻度的个数 -->
         <attr name="visibleCountOfTick" format="integer"/>
 
+        <!-- 两个大刻度中间的小刻度，相较于小刻度与大刻度的权重值 -->
+        <!--            -->
+        <!--  ┆       ┆ -->
+        <!--  ┆   |   ┆ -->
+        <!--  ┆ | | | ┆ -->
+        <!--      o     -->
+        <attr name="significantTickWeight" format="float"/>
+
 
         <!--             -->
         <!-- 标尺 相关配置 -->
