@@ -188,6 +188,11 @@ internal class RulerViewHelper(private val view: RulerView) {
         return tickIndex.rem(stepOfTicks)
     }
 
+    fun tickIndex(tick: Int): Int {
+        return coerceInTicks(tick).minus(minimumOfTicks)
+    }
+
+
     fun coerceInTicks(value: Int): Int {
         return value.coerceIn(minimumOfTicks, maximumOfTicks)
     }

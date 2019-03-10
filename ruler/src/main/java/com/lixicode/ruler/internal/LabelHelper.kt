@@ -269,12 +269,6 @@ internal class LabelHelper(val view: RulerView) {
                 textDrawable.draw(canvas)
             }
         }
-
-        canvas.drawLine(
-            view.scrollX.toFloat(), view.height.div(2).toFloat(), view.scaleX + view.width,
-            view.height.div(2).toFloat(), textDrawable.paint
-        )
-
     }
 
 

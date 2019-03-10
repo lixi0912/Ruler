@@ -19,6 +19,8 @@
             android:layout_gravity="center"
             android:orientation="horizontal"
             app:ruler_enableMirrorTick="true"
+            app:ruler_sameLengthOfLabel="false"
+            app:ruler_longestLabel="@null"
             android:layerType="software"/>
 
 </FrameLayout>

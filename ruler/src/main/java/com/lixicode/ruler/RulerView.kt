@@ -59,6 +59,10 @@ class RulerView @JvmOverloads constructor(
         helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
     }
 
+    fun tickIndex(tick: Int): Int {
+        return helper.tickIndex(tick)
+    }
+
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         helper.computeMeasureSize(widthMeasureSpec, heightMeasureSpec)
