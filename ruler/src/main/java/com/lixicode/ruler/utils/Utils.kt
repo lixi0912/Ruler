@@ -9,39 +9,10 @@ import android.util.TypedValue
  * @author 陈晓辉
  * @date 2019/2/27
  */
-class Utils {
-
-
-    companion object {
-        private lateinit var metrics: DisplayMetrics
-
-
-        public fun init(context: Context) {
-            metrics = context.resources.displayMetrics
-        }
-
-        fun dpToPx(dip: Int): Float {
-            return TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dip.toFloat(), metrics
-            )
-        }
-
-        fun spToPx(sp: Int): Float {
-            return TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP,
-                sp.toFloat(), metrics
-            )
-        }
-
-    }
-
-}
 
 /**
  * 确保数据是有限的
  */
-
 fun Float.letFinite(): Float =
     if (isFinite()) {
         this

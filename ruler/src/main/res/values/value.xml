@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <color name="ruler_baseline">#C7B299</color>
+    <color name="ruler_cursor">@android:color/holo_green_light</color>
+    <color name="ruler_tick">@android:color/holo_green_light</color>
+
+</resources>

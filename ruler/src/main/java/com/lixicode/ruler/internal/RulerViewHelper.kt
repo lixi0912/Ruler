@@ -131,16 +131,16 @@ internal class RulerViewHelper(private val view: RulerView) {
             defStyleAttr, defStyleRes
         )
 
-        val minimumOfTicks = a.getInt(R.styleable.RulerView_minimumOfTicks, minimumOfTicks)
-        val maximumOfTicks = a.getInt(R.styleable.RulerView_maximumOfTicks, maximumOfTicks)
-        val stepOfTicks = a.getInt(R.styleable.RulerView_stepOfTicks, stepOfTicks)
-        val enableMirrorTick = a.getBoolean(R.styleable.RulerView_enableMirrorTick, enableMirrorTick)
+        val minimumOfTicks = a.getInt(R.styleable.RulerView_ruler_minimumOfTicks, minimumOfTicks)
+        val maximumOfTicks = a.getInt(R.styleable.RulerView_ruler_maximumOfTicks, maximumOfTicks)
+        val stepOfTicks = a.getInt(R.styleable.RulerView_ruler_stepOfTicks, stepOfTicks)
+        val enableMirrorTick = a.getBoolean(R.styleable.RulerView_ruler_enableMirrorTick, enableMirrorTick)
         val orientation = a.getInt(R.styleable.RulerView_android_orientation, orientation)
-        val gravityOfTick = a.getInt(R.styleable.RulerView_gravityOfTick, gravityOfTick)
-        val visibleCountOfTick = a.getInt(R.styleable.RulerView_visibleCountOfTick, visibleCountOfTick)
-        val significantTickWeight = a.getFloat(R.styleable.RulerView_significantTickWeight, significantTickWeight)
+        val gravityOfTick = a.getInt(R.styleable.RulerView_ruler_gravityOfTick, gravityOfTick)
+        val visibleCountOfTick = a.getInt(R.styleable.RulerView_ruler_visibleCountOfTick, visibleCountOfTick)
+        val significantTickWeight = a.getFloat(R.styleable.RulerView_ruler_significantTickWeight, significantTickWeight)
 
-        val tick = a.getInt(R.styleable.RulerView_tick, 0)
+        val tick = a.getInt(R.styleable.RulerView_ruler_tick, 0)
         a.recycle()
 
         this.visibleCountOfTick = visibleCountOfTick

@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
-import com.lixicode.ruler.utils.Utils
 import kotlin.math.max
 
 /**
@@ -32,12 +31,6 @@ class RulerView @JvmOverloads constructor(
         const val GRAVITY_END = 1
 
         const val MAX_OVER_SCROLL_EDGE = 100
-
-
-        const val TOUCH_STATE_INIT = 0
-        const val TOUCH_STATE_MOVING = 1
-        const val TOUCH_STATE_FLING = 2
-        const val TOUCH_STATE_REST = 3
 
     }
 
@@ -63,7 +56,6 @@ class RulerView @JvmOverloads constructor(
         }
 
     init {
-        Utils.init(context)
         helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
     }
 

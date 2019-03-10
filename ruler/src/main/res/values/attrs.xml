@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="Options">
-        <attr name="drawable" format="reference"/>
-        <attr name="spacing" format="dimension"/>
-        <attr name="weight" format="float"/>
-        <attr name="enable" format="boolean"/>
-        <attr name="inset" format="boolean"/>
+    <declare-styleable name="RulerView.Options">
+        <attr name="ruler_drawable" format="reference"/>
+        <attr name="ruler_spacing" format="dimension"/>
+        <attr name="ruler_weight" format="float"/>
+        <attr name="ruler_enable" format="boolean"/>
+        <attr name="ruler_inset" format="boolean"/>
     </declare-styleable>
 
 
@@ -16,19 +16,19 @@
         <!-- 标尺 基本配置 -->
         <!--             -->
         <!-- 最小刻度值 -->
-        <attr name="minimumOfTicks" format="integer"/>
+        <attr name="ruler_minimumOfTicks" format="integer"/>
 
         <!-- 最大刻度值 -->
-        <attr name="maximumOfTicks" format="integer"/>
+        <attr name="ruler_maximumOfTicks" format="integer"/>
 
         <!-- 两个刻度间隔的步骤 -->
-        <attr name="stepOfTicks" format="integer"/>
+        <attr name="ruler_stepOfTicks" format="integer"/>
 
         <!-- 当前的刻度 -->
-        <attr name="tick" format="integer"/>
+        <attr name="ruler_tick" format="integer"/>
 
         <!-- 界面上显示刻度的个数 -->
-        <attr name="visibleCountOfTick" format="integer"/>
+        <attr name="ruler_visibleCountOfTick" format="integer"/>
 
         <!-- 两个大刻度中间的小刻度，相较于小刻度与大刻度的权重值 -->
         <!--            -->
@@ -36,7 +36,7 @@
         <!--  ┆   |   ┆ -->
         <!--  ┆ | | | ┆ -->
         <!--      o     -->
-        <attr name="significantTickWeight" format="float"/>
+        <attr name="ruler_significantTickWeight" format="float"/>
 
 
         <!--             -->
@@ -46,20 +46,20 @@
         <attr name="android:orientation"/>
 
         <!-- 镜像绘制刻度 -->
-        <attr name="enableMirrorTick" format="boolean"/>
+        <attr name="ruler_enableMirrorTick" format="boolean"/>
 
         <!-- 绘制刻度的方向，当 enableMirrorTick = true 时无效 -->
-        <attr name="gravityOfTick" format="enum">
+        <attr name="ruler_gravityOfTick" format="enum">
             <enum name="start" value="0"/>
             <enum name="end" value="1"/>
         </attr>
 
 
-        <attr name="labelOptions" format="reference"/>
-        <attr name="tickOptions" format="reference"/>
-        <attr name="baseLineOptions" format="reference"/>
-        <attr name="dividerTickOptions" format="reference"/>
-        <attr name="cursorOptions" format="reference"/>
+        <attr name="ruler_labelOptions" format="reference"/>
+        <attr name="ruler_tickOptions" format="reference"/>
+        <attr name="ruler_baseLineOptions" format="reference"/>
+        <attr name="ruler_dividerTickOptions" format="reference"/>
+        <attr name="ruler_cursorOptions" format="reference"/>
 
         <!--               -->
         <!-- Label 相关配置 -->
@@ -76,18 +76,18 @@
         <!--    RIGHT|        -->
         <!--      CEN|TER     -->
         <!--                  -->
-        <attr name="textAlign" format="enum">
+        <attr name="ruler_textAlign" format="enum">
             <enum name="LEFT" value="0"/>
             <enum name="CENTER" value="1"/>
             <enum name="RIGHT" value="2"/>
         </attr>
 
         <!-- 最长的文本，如果没有设置该值 -->
-        <attr name="longestLabel" format="string"/>
+        <attr name="ruler_longestLabel" format="string"/>
 
         <!-- 如果设置 longestLabel，则该值无效 -->
         <!-- 所有文本的长度是否一致，如果一致则取值第一个格式化，否则格式化所有值 -->
-        <attr name="sameLengthOfLabel" format="boolean"/>
+        <attr name="ruler_sameLengthOfLabel" format="boolean"/>
 
     </declare-styleable>
 

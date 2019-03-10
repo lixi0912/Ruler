@@ -26,12 +26,12 @@ internal class OptionsHelper {
                 return
             }
 
-            val a = context.obtainStyledAttributes(resourceId, R.styleable.Options)
-            val enable = a.getBoolean(R.styleable.Options_enable, options.enable)
-            val inset = a.getBoolean(R.styleable.Options_inset, options.inset)
-            val spacing = a.getDimensionPixelSize(R.styleable.Options_spacing, options.spacing)
-            val weight = a.getFloat(R.styleable.Options_weight, options.weight)
-            val drawable = a.getDrawable(R.styleable.Options_drawable)
+            val a = context.obtainStyledAttributes(resourceId, R.styleable.RulerView_Options)
+            val enable = a.getBoolean(R.styleable.RulerView_Options_ruler_enable, options.enable)
+            val inset = a.getBoolean(R.styleable.RulerView_Options_ruler_inset, options.inset)
+            val spacing = a.getDimensionPixelSize(R.styleable.RulerView_Options_ruler_spacing, options.spacing)
+            val weight = a.getFloat(R.styleable.RulerView_Options_ruler_weight, options.weight)
+            val drawable = a.getDrawable(R.styleable.RulerView_Options_ruler_drawable)
             a.recycle()
 
 

@@ -41,22 +41,22 @@ internal class TickHelper(val view: RulerView) {
         )
         OptionsHelper.applyAttributes(
             context,
-            a.getResourceId(R.styleable.RulerView_tickOptions, -1),
+            a.getResourceId(R.styleable.RulerView_ruler_tickOptions, -1),
             tickOptions
         )
         OptionsHelper.applyAttributes(
             context,
-            a.getResourceId(R.styleable.RulerView_dividerTickOptions, -1),
+            a.getResourceId(R.styleable.RulerView_ruler_dividerTickOptions, -1),
             dividerTickOptions
         )
         OptionsHelper.applyAttributes(
             context,
-            a.getResourceId(R.styleable.RulerView_cursorOptions, -1),
+            a.getResourceId(R.styleable.RulerView_ruler_cursorOptions, -1),
             cursorOptions
         )
         OptionsHelper.applyAttributes(
             context,
-            a.getResourceId(R.styleable.RulerView_baseLineOptions, -1),
+            a.getResourceId(R.styleable.RulerView_ruler_baseLineOptions, -1),
             baseLineOptions
         )
 
