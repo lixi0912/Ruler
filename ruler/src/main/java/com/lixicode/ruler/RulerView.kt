@@ -86,20 +86,15 @@ class RulerView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val startTimeMillis = System.currentTimeMillis()
-//        canvas.clipRect(
-//            scrollX + paddingLeft,
-//            scrollY + paddingTop,
-//            scrollX + width - paddingRight,
-//            scrollY + height - paddingBottom
-//        )
+        canvas.clipRect(
+            scrollX + paddingLeft,
+            scrollY + paddingTop,
+            scrollX + width - paddingRight,
+            scrollY + height - paddingBottom
+        )
 
         helper.onDraw(canvas)
 
-        val endTimeMillis = System.currentTimeMillis()
-        val usedTimeMillis = endTimeMillis - startTimeMillis
-
-        Log.e(RulerView::class.java.simpleName, "cost $usedTimeMillis milliseconds on draw event")
     }
 
     override fun onAttachedToWindow() {
