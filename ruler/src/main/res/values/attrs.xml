@@ -43,10 +43,7 @@
         <!-- 标尺 相关配置 -->
         <!--             -->
         <!-- 刻度显示方向 -->
-        <attr name="orientation" format="enum">
-            <enum name="horizontal" value="0"/>
-            <enum name="vertical" value="1"/>
-        </attr>
+        <attr name="android:orientation"/>
 
         <!-- 镜像绘制刻度 -->
         <attr name="enableMirrorTick" format="boolean"/>

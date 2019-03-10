@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
 
             Snackbar.make(
                 view,
-                "current scale value: ${rulerView.tick}  scrollX: ${rulerView.scrollX}",
+                "current scale value: ${rulerView.tick}  scrollX: ${rulerView.scrollX}, scrollY: ${rulerView.scrollY}",
                 Snackbar.LENGTH_LONG
             ).setAction("Action") {
                 rulerView.tick++

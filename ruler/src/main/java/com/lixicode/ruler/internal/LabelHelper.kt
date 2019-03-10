@@ -32,7 +32,7 @@ internal class LabelHelper(val view: RulerView) {
     inner class Attributes(
         var textSize: Float = 0F,
         var textColor: ColorStateList? = null,
-        var textAlign: Paint.Align = Paint.Align.LEFT,
+        var textAlign: Paint.Align = Paint.Align.CENTER,
         var typeface: Typeface = Typeface.DEFAULT,
         var sameLengthOfLabel: Boolean = false,
         var longestLabel: String = ""
@@ -203,7 +203,38 @@ internal class LabelHelper(val view: RulerView) {
     }
 
     private fun drawVerticalLabel(helper: RulerViewHelper, canvas: Canvas) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!labelOptions.enable) {
+            return
+        }
+
+        val textDrawable = labelOptions.getDrawable()!!
+
+        val halfTextHeight = labelOptions.heightNeeded.minus(textDrawable.fontMetricsDescent()).div(2)
+        for (y in helper.rangeOfTickWithScrollOffset()) {
+            if (helper.remOfTick(y) == 0) {
+                // 说明当前为起始刻度
+
+                textDrawable.text = view.valueFormatter.formatValue(y.toFloat())
+
+                // 计算标题居中显示所需 y 坐标起点
+                val x = if (view.helper.gravityOfTick == RulerView.GRAVITY_START || view.helper.enableMirrorTick) {
+                    helper.weightOfLabel.div(2).plus(helper.weightOfTick.coerceAtLeast(1F))
+                } else {
+                    helper.weightOfLabel.div(2)
+                }
+
+
+                FSize.obtain(x, y.toFloat()).also {
+                    helper.transformer.pointValuesToPixel(it)
+                }.also {
+                    labelOptions.setBounds(it.x, it.y + halfTextHeight)
+                }.also {
+                    it.recycle()
+                }
+                textDrawable.draw(canvas)
+            }
+        }
+
     }
 
     private fun drawHorizontalLabel(helper: RulerViewHelper, canvas: Canvas) {
@@ -297,6 +328,10 @@ internal class LabelHelper(val view: RulerView) {
 
         override fun getIntrinsicHeight(): Int {
             return textHeightNeeded
+        }
+
+        fun fontMetricsDescent(): Float {
+            return paint.fontMetrics.descent
         }
 
 

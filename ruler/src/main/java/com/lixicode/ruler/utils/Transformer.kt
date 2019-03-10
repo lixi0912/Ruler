@@ -32,10 +32,10 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
             xMinimum = helper.minimumOfTicks.toFloat()
             yMinimun = 0F
         } else {
-            val deltaX = helper.deltaTickWeightOfView
+            val deltaX = helper.weightOfView
             val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
 
-            scaleX = (viewPort.contentWidth * deltaX).letFinite()
+            scaleX = (viewPort.contentWidth / deltaX).letFinite()
             scaleY = (viewPort.contentHeight / deltaY).letFinite()
 
             xMinimum = 0F

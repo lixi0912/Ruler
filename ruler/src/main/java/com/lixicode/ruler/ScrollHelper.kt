@@ -106,12 +106,12 @@ internal class ScrollHelper(
         when {
             firstLayout -> {
                 firstLayout = false
-                view.scrollBy(dx, 0)
+                view.scrollBy(dx, dy)
             }
             else -> {
                 scroller.startScroll(
                     view.scrollX, view.scrollY,
-                    dx, 0
+                    dx, dy
                 )
                 ViewCompat.postInvalidateOnAnimation(view)
             }

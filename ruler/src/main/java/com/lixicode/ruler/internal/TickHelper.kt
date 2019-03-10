@@ -124,15 +124,96 @@ internal class TickHelper(val view: RulerView) {
 
 
     private fun drawVerticalBaseLine(helper: RulerViewHelper, canvas: Canvas) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!baseLineOptions.enable) {
+            return
+        }
+        // 绘制基准线
+        val yPx = view.scrollY + view.paddingTop
+        val xPx = helper.viewPort.contentRect.left.roundToInt()
+
+        baseLineOptions.setBounds(
+            xPx,
+            yPx,
+            xPx + baseLineOptions.widthNeeded,
+            yPx + view.height - view.paddingBottom
+        )
+
+        // draw
+        baseLineOptions.getDrawable()?.draw(canvas)
+
     }
 
     private fun drawVerticalTick(helper: RulerViewHelper, canvas: Canvas) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!tickOptions.enable) {
+            return
+        }
+
+        val enableSignificantTick = helper.stepOfTicks.rem(2) == 0
+        val halfOfStep = helper.stepOfTicks.div(2)
+
+        for (y in helper.rangeOfTickWithScrollOffset()) {
+            val remainderOfTick = helper.remOfTick(y)
+
+            val significantBetweenTick = enableSignificantTick && remainderOfTick == halfOfStep
+            val x = when {
+                remainderOfTick == 0 -> tickOptions.weight
+                significantBetweenTick -> helper.significantTickWeight
+                else -> dividerTickOptions.weight
+            }
+
+            FSize.obtain(x, y.toFloat())
+                .also {
+                    helper.transformer.pointValuesToPixel(it)
+                }
+                .also {
+                    val isDividerLine = x != tickOptions.weight
+                    if (isDividerLine) {
+                        dividerTickOptions
+                    } else {
+                        tickOptions
+                    }.run {
+
+                        // bounds
+                        setBounds(
+                            helper.viewPort.contentLeft.roundToInt(),
+                            it.y.roundToInt(),
+                            it.x.minus(helper.viewPort.contentLeft).roundToInt(),
+                            it.y.roundToInt()
+                        )
+
+                        // draw
+                        getDrawable()?.draw(canvas)
+                    }
+                }.also {
+                    it.recycle()
+                }
+        }
+
     }
 
     private fun drawVerticalCursor(helper: RulerViewHelper, canvas: Canvas) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!cursorOptions.enable) {
+            return
+        }
+        FSize.obtain(tickOptions.weight, view.tick.toFloat())
+            .also {
+                helper.transformer.pointValuesToPixel(it)
+            }.also {
+                it.y = (view.scrollY + view.height.div(2)).toFloat()
+            }.also {
+                // bounds
+                cursorOptions.setBounds(
+                    helper.viewPort.contentLeft.roundToInt(),
+                    it.y.roundToInt(),
+                    it.x.minus(helper.viewPort.contentLeft).roundToInt(),
+                    it.y.roundToInt()
+                )
+
+                // draw
+                cursorOptions.getDrawable()?.draw(canvas)
+            }.run {
+                recycle()
+            }
     }
 
 
@@ -185,7 +266,7 @@ internal class TickHelper(val view: RulerView) {
                             it.x.roundToInt(),
                             helper.viewPort.contentTop.roundToInt(),
                             it.x.roundToInt(),
-                            it.y.roundToInt()
+                            it.y.minus(helper.viewPort.contentTop).roundToInt()
                         )
 
                         // draw
@@ -212,7 +293,7 @@ internal class TickHelper(val view: RulerView) {
                     it.x.roundToInt(),
                     helper.viewPort.contentTop.roundToInt(),
                     it.x.roundToInt(),
-                    it.y.roundToInt()
+                    it.y.minus(helper.viewPort.contentTop).roundToInt()
                 )
 
                 // draw

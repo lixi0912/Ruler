@@ -28,7 +28,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     /**
      * 所有刻度中最长的文本
      */
-    private val labelHelper = LabelHelper(view)
+    internal val labelHelper = LabelHelper(view)
 
     /**
      * 最小刻度
@@ -135,7 +135,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         val maximumOfTicks = a.getInt(R.styleable.RulerView_maximumOfTicks, maximumOfTicks)
         val stepOfTicks = a.getInt(R.styleable.RulerView_stepOfTicks, stepOfTicks)
         val enableMirrorTick = a.getBoolean(R.styleable.RulerView_enableMirrorTick, enableMirrorTick)
-        val orientation = a.getInt(R.styleable.RulerView_orientation, orientation)
+        val orientation = a.getInt(R.styleable.RulerView_android_orientation, orientation)
         val gravityOfTick = a.getInt(R.styleable.RulerView_gravityOfTick, gravityOfTick)
         val visibleCountOfTick = a.getInt(R.styleable.RulerView_visibleCountOfTick, visibleCountOfTick)
         val significantTickWeight = a.getFloat(R.styleable.RulerView_significantTickWeight, significantTickWeight)
@@ -234,7 +234,7 @@ internal class RulerViewHelper(private val view: RulerView) {
                 val deltaX = (-view.width).plus(computeCanvasPaddingByVertical())
                     .toFloat()
 
-                canvas.translate(0F, 0F)
+                canvas.translate(deltaX, 0F)
             }
 
             drawMirror(canvas)
@@ -301,7 +301,43 @@ internal class RulerViewHelper(private val view: RulerView) {
         widthMeasureSpec: Int,
         heightMeasureSpec: Int
     ): FSize {
-        TODO("not implemented")
+        // 计算所需要的偏移值
+        tickHelper.computeVerticalOffset(viewPort)
+
+        val width = when {
+            View.MeasureSpec.getMode(widthMeasureSpec) == View.MeasureSpec.EXACTLY -> {
+                View.MeasureSpec.getSize(
+                    widthMeasureSpec
+                ).apply {
+                    TODO("auto text size if need")
+                }
+            }
+            else -> {
+                labelHelper.labelOptions.widthNeeded.times(weightOfView)
+                    .plus(labelHelper.labelOptions.spacing.times(2))
+            }
+        }.plus(view.paddingLeft).plus(view.paddingRight)
+
+        val height = when {
+            View.MeasureSpec.getMode(heightMeasureSpec) == View.MeasureSpec.EXACTLY -> {
+                View.MeasureSpec.getSize(
+                    heightMeasureSpec
+                ).apply {
+                    TODO("auto text size if need")
+                }
+            }
+            else -> {
+                val visibleTextHeight = labelHelper.visibleHeightNeeded() * visibleCountOfTick
+
+                val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
+                max(visibleTextHeight, visibleTickWidth)
+
+
+            }
+        }.plus(view.paddingTop).plus(view.paddingBottom)
+
+
+        return FSize.obtain(width, height)
     }
 
     fun onSizeChanged(w: Int, h: Int) {
@@ -321,7 +357,7 @@ internal class RulerViewHelper(private val view: RulerView) {
                 if (isHorizontal) {
                     it.x.roundToInt() - minimumOfTicks
                 } else {
-                    it.y.roundToInt() - maximumOfTicks
+                    it.y.roundToInt() - minimumOfTicks
                 }.apply {
                     it.recycle()
                 }

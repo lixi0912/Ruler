@@ -14,8 +14,9 @@
         <item name="minimumOfTicks">100</item>
         <item name="maximumOfTicks">500</item>
         <item name="tick">100</item>
-        <item name="enableMirrorTick">true</item>
-        <item name="gravityOfTick">end</item>
+        <item name="enableMirrorTick">false</item>
+        <item name="android:orientation">vertical</item>
+        <item name="gravityOfTick">start</item>
     </style>
 
     <style name="RulerView.Options">
@@ -27,20 +28,23 @@
     </style>
 
     <style name="RulerView.Options.Tick" parent="RulerView.Options">
+        <item name="weight">0.8</item>
         <item name="drawable">@drawable/simple_tick</item>
     </style>
     <style name="RulerView.Options.BaseLine" parent="RulerView.Options">
         <item name="drawable">@drawable/simple_baseline</item>
     </style>
     <style name="RulerView.Options.Divider" parent="RulerView.Options">
+        <item name="weight">0.5</item>
         <item name="drawable">@drawable/simple_tick</item>
     </style>
     <style name="RulerView.Options.Course" parent="RulerView.Options">
+        <item name="weight">0.8</item>
         <item name="drawable">@drawable/simple_course</item>
     </style>
 
     <style name="RulerView.Options.Label" parent="RulerView.Options">
-        <item name="weight">3</item>
+        <item name="weight">2</item>
         <item name="spacing">3dp</item>
 
         <item name="android:typeface">sans</item>

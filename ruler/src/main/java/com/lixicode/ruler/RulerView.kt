@@ -95,12 +95,12 @@ class RulerView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val startTimeMillis = System.currentTimeMillis()
-        canvas.clipRect(
-            scrollX + paddingLeft,
-            scrollY + paddingTop,
-            scrollX + width - paddingRight,
-            scrollY + height - paddingBottom
-        )
+//        canvas.clipRect(
+//            scrollX + paddingLeft,
+//            scrollY + paddingTop,
+//            scrollX + width - paddingRight,
+//            scrollY + height - paddingBottom
+//        )
 
         helper.onDraw(canvas)
 
