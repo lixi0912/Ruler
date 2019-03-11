@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.lixicode.ruler.data.Options
@@ -36,6 +35,10 @@ class RulerView @JvmOverloads constructor(
 
     }
 
+    interface OnTickChangedListener {
+        fun onTickChanged(value: Float)
+    }
+
 
     internal val helper by lazy {
         RulerViewHelper(this)
@@ -46,6 +49,7 @@ class RulerView @JvmOverloads constructor(
         ScrollHelper(this, helper)
     }
 
+    var tickChangeListener: OnTickChangedListener? = null
 
     /**
      * 当前显示样式

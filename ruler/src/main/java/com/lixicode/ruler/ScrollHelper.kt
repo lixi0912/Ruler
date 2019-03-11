@@ -303,10 +303,11 @@ internal class ScrollHelper(
             it.recycle()
         }
 
-
         view.tick = tick
 
         setScrollState(SCROLL_STATE_IDLE)
+
+        view.tickChangeListener?.onTickChanged(tick.toFloat())
     }
 
     private fun setScrollState(state: Int) {
