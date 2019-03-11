@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">RulerDemo</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="horizontal">horizontal</string>
+    <string name="vertical">vertical</string>
+    <string name="dotted_line">Dotted Line</string>
+    <string name="solid_line">Solid Line</string>
+    <string name="not_support_xml">not support dotted line for xml</string>
+    <string name="mirror">Mirror Display</string>
+    <string name="gravity_start">Gravity Start</string>
+    <string name="gravity_end">Gravity End</string>
+    <string name="gravity_invalid">Gravity Invalid</string>
 </resources>

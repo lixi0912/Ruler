@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="line">
+
+
+    <solid android:color="@color/ruler_baseline"/>
+
+    <size android:width="2dp" android:height="2dp"/>
+
+    <stroke android:color="@color/ruler_baseline"
+            android:width="1dp"
+            android:dashWidth="10dp"
+            android:dashGap="3dp"/>
+
+
+</shape>
