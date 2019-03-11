@@ -1,7 +1,7 @@
 package com.lixicode.ruler.utils
 
 import android.graphics.Matrix
-import com.lixicode.ruler.data.FSize
+import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.internal.RulerViewHelper
 
 /**
@@ -57,22 +57,22 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         matrix.invert(mMatrixPxToValue)
     }
 
-    fun generateValueToPixel(value: Int): FSize {
-        val pts = FSize.obtain(value, value)
+    fun generateValueToPixel(value: Int): PointF {
+        val pts = PointF.obtain(value, value)
         mMatrixValueToPx.mapPoints(pts)
         return pts
     }
 
-    fun pointValuesToPixel(pts: FSize) {
+    fun pointValuesToPixel(pts: PointF) {
         mMatrixValueToPx.mapPoints(pts)
     }
 
-    fun invertPixelToValue(pts: FSize) {
+    fun invertPixelToValue(pts: PointF) {
         mMatrixPxToValue.mapPoints(pts)
     }
 
-    fun invertPixelToValue(x: Int, y: Int): FSize {
-        val pts = FSize.obtain(x, y)
+    fun invertPixelToValue(x: Int, y: Int): PointF {
+        val pts = PointF.obtain(x, y)
         invertPixelToValue(pts)
         return pts
     }
@@ -81,6 +81,6 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
 }
 
 
-internal fun Matrix.mapPoints(pts: FSize) {
+internal fun Matrix.mapPoints(pts: PointF) {
     mapPoints(pts.array)
 }

@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.FSize
+import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
@@ -163,7 +163,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
     fun rangeOfTickWithScrollOffset(): IntRange {
-        val startValue = FSize.obtain(view.scrollX.toFloat(), view.scrollY.toFloat())
+        val startValue = PointF.obtain(view.scrollX.toFloat(), view.scrollY.toFloat())
             .also {
                 transformer.invertPixelToValue(it)
             }.let {
@@ -247,7 +247,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         }
     }
 
-    fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): FSize {
+    fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): PointF {
         // reset offset
         viewPort.offsetRect.setEmpty()
 
@@ -263,7 +263,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         viewPort: ViewPortHandler,
         widthMeasureSpec: Int,
         heightMeasureSpec: Int
-    ): FSize {
+    ): PointF {
 
         // 计算所需要的偏移值
         tickHelper.computeHorizontalOffset(viewPort)
@@ -298,14 +298,14 @@ internal class RulerViewHelper(private val view: RulerView) {
         }.plus(view.paddingTop).plus(view.paddingBottom)
 
 
-        return FSize.obtain(width, height)
+        return PointF.obtain(width, height)
     }
 
     private fun computeVerticalSize(
         viewPort: ViewPortHandler,
         widthMeasureSpec: Int,
         heightMeasureSpec: Int
-    ): FSize {
+    ): PointF {
         // 计算所需要的偏移值
         tickHelper.computeVerticalOffset(viewPort)
 
@@ -342,7 +342,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         }.plus(view.paddingTop).plus(view.paddingBottom)
 
 
-        return FSize.obtain(width, height)
+        return PointF.obtain(width, height)
     }
 
     fun onSizeChanged(w: Int, h: Int) {
@@ -355,7 +355,7 @@ internal class RulerViewHelper(private val view: RulerView) {
 
         transformer.prepareMatrixValuePx(this)
 
-        this.visibleTickCount = FSize.obtain(w.toFloat(), h.toFloat())
+        this.visibleTickCount = PointF.obtain(w.toFloat(), h.toFloat())
             .also {
                 transformer.invertPixelToValue(it)
             }.let {
@@ -388,11 +388,11 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
 
-    fun generateValueToPixel(value: Int): FSize {
+    fun generateValueToPixel(value: Int): PointF {
         return transformer.generateValueToPixel(value)
     }
 
-    fun invertPixelToValue(x: Int, y: Int): FSize {
+    fun invertPixelToValue(x: Int, y: Int): PointF {
         return transformer.invertPixelToValue(x, y)
     }
 

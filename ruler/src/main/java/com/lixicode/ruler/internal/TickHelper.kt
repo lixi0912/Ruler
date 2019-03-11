@@ -6,7 +6,7 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.FSize
+import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.data.Options
 import com.lixicode.ruler.data.setBounds
 import com.lixicode.ruler.utils.ViewPortHandler
@@ -161,7 +161,7 @@ internal class TickHelper(val view: RulerView) {
                 else -> dividerTickOptions.weight
             }
 
-            FSize.obtain(x, y.toFloat())
+            PointF.obtain(x, y.toFloat())
                 .also {
                     helper.transformer.pointValuesToPixel(it)
                 }
@@ -195,7 +195,7 @@ internal class TickHelper(val view: RulerView) {
         if (!cursorOptions.visible) {
             return
         }
-        FSize.obtain(tickOptions.weight, view.tick.toFloat())
+        PointF.obtain(tickOptions.weight, view.tick.toFloat())
             .also {
                 helper.transformer.pointValuesToPixel(it)
             }.also {
@@ -249,7 +249,7 @@ internal class TickHelper(val view: RulerView) {
                 else -> dividerTickOptions.weight
             }
 
-            FSize.obtain(x.toFloat(), y)
+            PointF.obtain(x.toFloat(), y)
                 .also {
                     helper.transformer.pointValuesToPixel(it)
                 }
@@ -282,7 +282,7 @@ internal class TickHelper(val view: RulerView) {
         if (!cursorOptions.visible) {
             return
         }
-        FSize.obtain(view.tick.toFloat(), tickOptions.weight)
+        PointF.obtain(view.tick.toFloat(), tickOptions.weight)
             .also {
                 helper.transformer.pointValuesToPixel(it)
             }.also {

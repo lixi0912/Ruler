@@ -11,7 +11,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.FSize
+import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.data.Options
 import com.lixicode.ruler.data.setBounds
 import kotlin.math.roundToInt
@@ -224,7 +224,7 @@ internal class LabelHelper(val view: RulerView) {
                 }
 
 
-                FSize.obtain(x, y.toFloat()).also {
+                PointF.obtain(x, y.toFloat()).also {
                     helper.transformer.pointValuesToPixel(it)
                 }.also {
                     labelOptions.setBounds(it.x, it.y + halfTextHeight)
@@ -259,7 +259,7 @@ internal class LabelHelper(val view: RulerView) {
                 }
 
 
-                FSize.obtain(x.toFloat(), y).also {
+                PointF.obtain(x.toFloat(), y).also {
                     helper.transformer.pointValuesToPixel(it)
                 }.also {
                     labelOptions.setBounds(it.x, it.y + textDiff)

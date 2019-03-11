@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.widget.OverScroller
 import androidx.core.view.ViewCompat
-import com.lixicode.ruler.data.FSize
+import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.data.offsetX
 import com.lixicode.ruler.data.offsetY
 import com.lixicode.ruler.internal.RulerViewHelper
@@ -46,7 +46,7 @@ internal class ScrollHelper(
     private var mActivePointerId = RulerView.INVALID_POINTER
     private var mVelocityTracker: VelocityTracker? = null
     private var mScrollState: Int = 0
-    private var mLastTouchPoint: FSize? = null
+    private var mLastTouchPoint: PointF? = null
     private var isBeingDragged: Boolean = false
     private var firstLayout: Boolean = false
 
@@ -137,7 +137,7 @@ internal class ScrollHelper(
 
         when (event.action.and(MotionEvent.ACTION_MASK)) {
             MotionEvent.ACTION_DOWN -> {
-                mLastTouchPoint = FSize.obtain(event.x, event.y)
+                mLastTouchPoint = PointF.obtain(event.x, event.y)
 
                 abortScrollAnimation()
 
