@@ -10,6 +10,7 @@ import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.data.Options
 import com.lixicode.ruler.data.setBounds
 import com.lixicode.ruler.utils.ViewPortHandler
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -90,10 +91,12 @@ internal class TickHelper(val view: RulerView) {
      * 计算横向时, 所需要的偏移值
      */
     fun computeHorizontalOffset(viewPort: ViewPortHandler) {
-        val width = baseLineOptions.widthNeeded.times(2).toFloat()
-        val height = baseLineOptions.heightNeeded.times(2).toFloat()
-
-        viewPort.offsetRect.set(width, height, width, height)
+        val size: Float = if (baseLineOptions.enable) {
+            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2).toFloat()
+        } else {
+            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2).toFloat()
+        }
+        viewPort.offsetRect.set(size, size, size, size)
     }
 
     /**
@@ -105,8 +108,12 @@ internal class TickHelper(val view: RulerView) {
      * 计算横向时, 所需要的偏移值
      */
     fun computeVerticalOffset(viewPort: ViewPortHandler) {
-        val width = baseLineOptions.widthNeeded.times(2).toFloat()
-        viewPort.offsetRect.set(width, width, width, width)
+        val size: Float = if (baseLineOptions.enable) {
+            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2).toFloat()
+        } else {
+            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2).toFloat()
+        }
+        viewPort.offsetRect.set(size, size, size, size)
     }
 
     fun onDraw(canvas: Canvas) {
