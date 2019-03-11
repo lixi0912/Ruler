@@ -30,6 +30,8 @@ internal class RulerViewHelper(private val view: RulerView) {
      */
     internal val labelHelper = LabelHelper(view)
 
+    var valueFormatter = ValueFormatter.DEFAULT
+
     /**
      * 最小刻度
      */
@@ -55,8 +57,6 @@ internal class RulerViewHelper(private val view: RulerView) {
      */
     var enableMirrorTick: Boolean = true
 
-    var valueFormatter: ValueFormatter = object : ValueFormatter {}
-
 
     var orientation = RulerView.HORIZONTAL
 
@@ -80,7 +80,30 @@ internal class RulerViewHelper(private val view: RulerView) {
             return tickHelper.tickOptions.weight
         }
 
+    /**
+     * 比如
+     *
+     * [stepOfTicks] = 10
+     *
+     * [significantTickWeight] 代表中间项 5 的权重，其距离应大等于 [1..4],[6..9] 的权重，小等于 0，10 的权重
+     *      。
+     * -----------
+     * |    |    |
+     * |         |
+     * 0         10
+     *
+     *
+     * @see TickHelper.dividerTickOptions.weight
+     *
+     *
+     */
     var significantTickWeight: Float = 0F
+        set(value) {
+            field = value.coerceIn(
+                tickHelper.dividerTickOptions.weight,
+                tickHelper.tickOptions.weight
+            )
+        }
 
 
     /**
@@ -155,8 +178,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
-        this.significantTickWeight =
-            significantTickWeight.coerceIn(tickHelper.dividerTickOptions.weight, tickHelper.tickOptions.weight)
+        this.significantTickWeight = significantTickWeight
 
 
         setTickValue(tick)

@@ -12,4 +12,9 @@ interface ValueFormatter {
         return value.toString()
     }
 
+
+    companion object {
+        val DEFAULT = object : ValueFormatter {}
+    }
+
 }

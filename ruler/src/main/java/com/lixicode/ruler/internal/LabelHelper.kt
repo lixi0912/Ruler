@@ -160,12 +160,12 @@ internal class LabelHelper(val view: RulerView) {
         if (!TextUtils.isEmpty(label)) {
             this.longestLabel = label!!
         } else if (sameLengthOfLabel) {
-            this.longestLabel = helper.valueFormatter.formatValue(helper.maximumOfTicks.toFloat())
+            this.longestLabel = view.valueFormatter.formatValue(helper.maximumOfTicks.toFloat())
         } else {
             var tempString = longestLabel
             var tempLength = tempString.length
             for (index in helper.minimumOfTicks..helper.maximumOfTicks step helper.stepOfTicks) {
-                val formatted = helper.valueFormatter.formatValue(index.toFloat())
+                val formatted = view.valueFormatter.formatValue(index.toFloat())
                 if (formatted.length > tempLength) {
                     tempString = formatted
                     tempLength = formatted.length

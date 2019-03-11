@@ -36,35 +36,194 @@ class RulerView @JvmOverloads constructor(
 
     }
 
-    var valueFormatter: ValueFormatter = object : ValueFormatter {}
 
     internal val helper by lazy {
         RulerViewHelper(this)
     }
 
 
-    internal val scrollHelper by lazy {
+    private val scrollHelper by lazy {
         ScrollHelper(this, helper)
     }
 
+
+    /**
+     * 当前显示样式
+     */
     val isHorizontal: Boolean
         get() = helper.isHorizontal
 
 
+    /**
+     * 用于格式化显示的 Label
+     */
+    var valueFormatter: ValueFormatter
+        get() = helper.valueFormatter
+        set(value) {
+            helper.valueFormatter = value
+            invalidate()
+        }
+
+    /**
+     * 当前项的刻度值
+     */
     var tick: Int = 0
         set(value) {
             field = helper.coerceInTicks(value)
             scrollHelper.scrollTo(field)
         }
 
+    /**
+     * 两个刻度相距的距离
+     *
+     * @see minimumOfTicks
+     * @see maximumOfTicks
+     */
+    var stepOfTicks: Int
+        get() {
+            return helper.stepOfTicks
+        }
+        set(value) {
+            if (value != helper.stepOfTicks) {
+                helper.stepOfTicks = value
+                requestLayout()
+            }
+        }
+
+    /**
+     * 最小刻度数
+     *
+     * @see stepOfTicks
+     * @see maximumOfTicks
+     */
+    var minimumOfTicks: Int
+        get() {
+            return helper.minimumOfTicks
+        }
+        set(value) {
+            if (value != helper.minimumOfTicks) {
+                helper.minimumOfTicks = value
+                requestLayout()
+            }
+        }
+
+    /**
+     * 最大刻度数
+     *
+     * @see stepOfTicks
+     * @see minimumOfTicks
+     */
+    var maximumOfTicks: Int
+        get() {
+            return helper.maximumOfTicks
+        }
+        set(value) {
+            if (value != helper.maximumOfTicks) {
+                helper.maximumOfTicks = value
+                requestLayout()
+            }
+        }
+
+
+    /**
+     * 刻度的显示方向
+     *
+     * [HORIZONTAL]
+     * 1. [GRAVITY_START] 将会绘制顶部
+     * 2. [GRAVITY_END] 将会绘制底部
+     *
+     * [VERTICAL]
+     * 1. [GRAVITY_START] 将会绘制左边
+     * 2. [GRAVITY_END] 将会绘制右边
+     *
+     * 注意，该设置在 [enableMirrorTick] = true 下设置无效
+     *
+     * @see enableMirrorTick
+     */
+    var gravityOfTick: Int
+        get() {
+            return helper.gravityOfTick
+        }
+        set(value) {
+            if (value != helper.gravityOfTick) {
+                helper.gravityOfTick = value
+                requestLayout()
+            }
+        }
+
+    /**
+     * 当前项目的显示方向
+     *
+     * [HORIZONTAL]
+     *
+     * -----------
+     *
+     * -----------
+     *
+     * [VERTICAL]
+     *
+     * |  |
+     * |  |
+     * |  |
+     * |  |
+     *
+     * @see HORIZONTAL
+     * @see VERTICAL
+     */
+    var orientation: Int
+        get() {
+            return helper.orientation
+        }
+        set(value) {
+            if (value != helper.orientation) {
+                helper.orientation = value
+                requestLayout()
+            }
+        }
+
+    /**
+     *  是否镜像绘制刻度线，比如上下翻转，左右翻转
+     *
+     *  [enableMirrorTick] = false
+     *  -----------------------
+     *  |     |
+     *
+     *  1     5
+     *
+     *  [enableMirrorTick] = true
+     *  -----------------------
+     *  |     |
+     *
+     *  1     5
+     *
+     *  |     |
+     *  -----------------------
+     *
+     */
+    var enableMirrorTick: Boolean
+        get() {
+            return helper.enableMirrorTick
+        }
+        set(value) {
+            if (value != helper.enableMirrorTick) {
+                helper.enableMirrorTick = value
+                requestLayout()
+            }
+        }
+
+
     init {
         helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
     }
 
+
+    /**
+     * @param tick [tick]
+     * @return index of [minimumOfTicks]..[maximumOfTicks]
+     */
     fun tickIndex(tick: Int): Int {
         return helper.tickIndex(tick)
     }
-
 
     fun updateBaseLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
         if (onOptionsUpdated(helper.tickHelper.baseLineOptions)) {
