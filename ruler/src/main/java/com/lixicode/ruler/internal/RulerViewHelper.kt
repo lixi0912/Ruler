@@ -389,6 +389,9 @@ internal class RulerViewHelper(private val view: RulerView) {
                     it.recycle()
                 }
             }
+
+        // reset scroll position
+        view.scrollTo(0,0)
     }
 
 
