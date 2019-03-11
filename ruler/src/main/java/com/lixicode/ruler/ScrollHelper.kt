@@ -307,7 +307,8 @@ internal class ScrollHelper(
 
         setScrollState(SCROLL_STATE_IDLE)
 
-        view.tickChangeListener?.onTickChanged(tick.toFloat())
+        val tickValue = tick.toFloat()
+        view.tickChangeListener?.onTickChanged(tickValue,view.valueFormatter.formatValue(tickValue))
     }
 
     private fun setScrollState(state: Int) {

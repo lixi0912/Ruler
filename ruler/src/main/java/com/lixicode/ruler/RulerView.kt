@@ -36,7 +36,7 @@ class RulerView @JvmOverloads constructor(
     }
 
     interface OnTickChangedListener {
-        fun onTickChanged(value: Float)
+        fun onTickChanged(value: Float, label: String)
     }
 
 
