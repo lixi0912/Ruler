@@ -88,12 +88,12 @@ internal class ScrollHelper(
     }
 
 
-    fun scrollTo(currentTickValue: Int) {
+    fun scrollTo(tick: Int) {
         if (!scroller.isFinished || view.width == 0 || view.height == 0) {
             return
         }
 
-        val pts = helper.generateValueToPixel(currentTickValue)
+        val pts = helper.generateValueToPixel(tick)
         val dx = pts.x.plus(minScrollPosition).minus(view.scrollX).roundToInt().takeIf { helper.isHorizontal } ?: 0
         val dy = pts.y.plus(minScrollPosition).minus(view.scrollY).roundToInt().takeIf { !helper.isHorizontal } ?: 0
         pts.recycle()
@@ -107,6 +107,9 @@ internal class ScrollHelper(
             firstLayout -> {
                 firstLayout = false
                 view.scrollBy(dx, dy)
+
+                val tickValue = tick.toFloat()
+                view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
             }
             else -> {
                 scroller.startScroll(
@@ -308,7 +311,7 @@ internal class ScrollHelper(
         setScrollState(SCROLL_STATE_IDLE)
 
         val tickValue = tick.toFloat()
-        view.tickChangeListener?.onTickChanged(tickValue,view.valueFormatter.formatValue(tickValue))
+        view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
     }
 
     private fun setScrollState(state: Int) {
