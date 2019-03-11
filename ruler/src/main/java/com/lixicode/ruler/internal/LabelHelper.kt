@@ -95,7 +95,7 @@ internal class LabelHelper(val view: RulerView) {
     private var longestLabel: String = ""
     val labelOptions = Options(TextDrawable {
         longestLabel
-    })
+    }, updatable = false)
 
     fun loadFromAttributes(
         context: Context,
@@ -203,7 +203,7 @@ internal class LabelHelper(val view: RulerView) {
     }
 
     private fun drawVerticalLabel(helper: RulerViewHelper, canvas: Canvas) {
-        if (!labelOptions.enable) {
+        if (!labelOptions.visible) {
             return
         }
 
@@ -239,7 +239,7 @@ internal class LabelHelper(val view: RulerView) {
 
 
     private fun drawHorizontalLabel(helper: RulerViewHelper, canvas: Canvas) {
-        if (!labelOptions.enable) {
+        if (!labelOptions.visible) {
             return
         }
         val textDrawable = labelOptions.getDrawable()!!

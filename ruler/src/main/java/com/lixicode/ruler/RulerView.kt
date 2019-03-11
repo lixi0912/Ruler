@@ -3,10 +3,12 @@ package com.lixicode.ruler
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import com.lixicode.ruler.data.Options
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
 import kotlin.math.max
@@ -61,6 +63,39 @@ class RulerView @JvmOverloads constructor(
 
     fun tickIndex(tick: Int): Int {
         return helper.tickIndex(tick)
+    }
+
+
+    fun updateBaseLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
+        if (onOptionsUpdated(helper.tickHelper.baseLineOptions)) {
+            requestLayout()
+        } else {
+            invalidate()
+        }
+    }
+
+    fun updateTickOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
+        if (onOptionsUpdated(helper.tickHelper.tickOptions)) {
+            requestLayout()
+        } else {
+            invalidate()
+        }
+    }
+
+    fun updateDividerLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
+        if (onOptionsUpdated(helper.tickHelper.dividerTickOptions)) {
+            requestLayout()
+        } else {
+            invalidate()
+        }
+    }
+
+    fun updateLabelOptions(onOptionsUpdated: (options: Options<*>) -> Boolean) {
+        if (onOptionsUpdated(helper.labelHelper.labelOptions)) {
+            requestLayout()
+        } else {
+            invalidate()
+        }
     }
 
 
@@ -120,7 +155,6 @@ class RulerView @JvmOverloads constructor(
         super.computeScroll()
         scrollHelper.computeScroll()
     }
-
 
     override fun computeHorizontalScrollRange(): Int {
         return helper.horizontalScrollRange

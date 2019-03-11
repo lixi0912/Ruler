@@ -22,11 +22,11 @@ internal class TickHelper(val view: RulerView) {
 
     internal val tickOptions: Options<Drawable> = Options()
 
-    private val baseLineOptions: Options<Drawable> = Options()
+    internal val baseLineOptions: Options<Drawable> = Options()
 
     internal val dividerTickOptions: Options<Drawable> = Options()
 
-    private val cursorOptions: Options<Drawable> = Options()
+    internal val cursorOptions: Options<Drawable> = Options()
 
 
     fun loadFromAttributes(
@@ -124,7 +124,7 @@ internal class TickHelper(val view: RulerView) {
 
 
     private fun drawVerticalBaseLine(helper: RulerViewHelper, canvas: Canvas) {
-        if (!baseLineOptions.enable) {
+        if (!baseLineOptions.visible) {
             return
         }
         // 绘制基准线
@@ -144,7 +144,7 @@ internal class TickHelper(val view: RulerView) {
     }
 
     private fun drawVerticalTick(helper: RulerViewHelper, canvas: Canvas) {
-        if (!tickOptions.enable) {
+        if (!tickOptions.visible) {
             return
         }
 
@@ -192,7 +192,7 @@ internal class TickHelper(val view: RulerView) {
     }
 
     private fun drawVerticalCursor(helper: RulerViewHelper, canvas: Canvas) {
-        if (!cursorOptions.enable) {
+        if (!cursorOptions.visible) {
             return
         }
         FSize.obtain(tickOptions.weight, view.tick.toFloat())
@@ -218,7 +218,7 @@ internal class TickHelper(val view: RulerView) {
 
 
     private fun drawHorizontalBaseLine(helper: RulerViewHelper, canvas: Canvas) {
-        if (!baseLineOptions.enable) {
+        if (!baseLineOptions.visible) {
             return
         }
         // 绘制基准线
@@ -232,7 +232,7 @@ internal class TickHelper(val view: RulerView) {
     }
 
     private fun drawHorizontalTick(helper: RulerViewHelper, canvas: Canvas) {
-        if (!tickOptions.enable) {
+        if (!tickOptions.visible) {
             return
         }
 
@@ -279,7 +279,7 @@ internal class TickHelper(val view: RulerView) {
     }
 
     private fun drawHorizontalCursor(helper: RulerViewHelper, canvas: Canvas) {
-        if (!cursorOptions.enable) {
+        if (!cursorOptions.visible) {
             return
         }
         FSize.obtain(view.tick.toFloat(), tickOptions.weight)

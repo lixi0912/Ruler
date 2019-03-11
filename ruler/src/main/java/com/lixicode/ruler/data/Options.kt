@@ -30,7 +30,9 @@ open class Options<T : Drawable>(
     /**
      * 是否显示
      */
-    var enable: Boolean = true
+    var enable: Boolean = true,
+
+    val updatable: Boolean = true
 ) {
 
 
@@ -50,8 +52,15 @@ open class Options<T : Drawable>(
             return drawable!!.intrinsicHeight
         }
 
+    val visible: Boolean
+        get() {
+            return enable && null != drawable
+        }
+
     fun setDrawable(drawable: T?) {
-        this.drawable = drawable
+        if (updatable) {
+            this.drawable = drawable
+        }
     }
 
     fun getDrawable(): T? {

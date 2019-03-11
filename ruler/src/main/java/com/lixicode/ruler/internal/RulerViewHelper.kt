@@ -20,7 +20,7 @@ import kotlin.math.roundToInt
  */
 internal class RulerViewHelper(private val view: RulerView) {
 
-    private val tickHelper = TickHelper(view)
+    internal val tickHelper = TickHelper(view)
     internal val viewPort = ViewPortHandler()
     internal val transformer: Transformer = Transformer(viewPort)
 
