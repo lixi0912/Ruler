@@ -5,11 +5,11 @@
 
 # Setup
 
-```java
 
+```java
     implementation 'com.lixicode:ruler-ktx:${latest.version}'
+```
 
-```java
 
 [Demo Apk](/image/demo.apk)
 
