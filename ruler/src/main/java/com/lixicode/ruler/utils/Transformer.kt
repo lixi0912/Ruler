@@ -22,21 +22,29 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val xMinimum: Float
         val yMinimun: Float
         if (helper.isHorizontal) {
-
             val deltaX = helper.visibleCountOfTick * helper.stepOfTicks
             val deltaY = helper.deltaTickWeightOfView
 
-            scaleX = (viewPort.contentWidth / deltaX).letFinite()
-            scaleY = (viewPort.contentHeight * deltaY).letFinite()
+            val minimumWidth = viewPort.contentWidth.coerceAtLeast(helper.minimunMeasureWidth.toFloat())
+            val minimumHeight = viewPort.contentHeight.coerceAtLeast(helper.minimumMeasureHeight.toFloat())
+
+            scaleX = (minimumWidth / deltaX).letFinite()
+            scaleY = (minimumHeight * deltaY).letFinite()
 
             xMinimum = helper.minimumOfTicks.toFloat()
             yMinimun = 0F
         } else {
+
+            val minimumWidth = viewPort.contentWidth
+            val minimumHeight = viewPort.contentHeight.coerceAtLeast(helper.minimumMeasureHeight.toFloat())
+
+
+
             val deltaX = helper.weightOfView
             val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
 
-            scaleX = (viewPort.contentWidth / deltaX).letFinite()
-            scaleY = (viewPort.contentHeight / deltaY).letFinite()
+            scaleX = (minimumWidth/ deltaX).letFinite()
+            scaleY = (minimumHeight / deltaY).letFinite()
 
             xMinimum = 0F
             yMinimun = helper.minimumOfTicks.toFloat()
@@ -76,8 +84,6 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         invertPixelToValue(pts)
         return pts
     }
-
-
 }
 
 

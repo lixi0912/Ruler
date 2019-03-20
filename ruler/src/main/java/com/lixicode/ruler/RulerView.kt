@@ -277,6 +277,9 @@ class RulerView @JvmOverloads constructor(
             }.run {
                 recycle()
             }
+
+        helper.onSizeChanged(measuredWidth, measuredHeight)
+        scrollHelper.onSizeChanged(measuredWidth, measuredHeight)
     }
 
 

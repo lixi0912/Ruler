@@ -3,7 +3,6 @@ package com.lixicode.ruler.internal
 import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
-import android.view.View
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.PointF
@@ -269,101 +268,54 @@ internal class RulerViewHelper(private val view: RulerView) {
         }
     }
 
+    var minimunMeasureWidth = 0
+    var minimumMeasureHeight = 0
+
     fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): PointF {
         // reset offset
         viewPort.offsetRect.setEmpty()
 
         return if (isHorizontal) {
-            computeHorizontalSize(viewPort, widthMeasureSpec, heightMeasureSpec)
+            computeHorizontalSize(viewPort)
         } else {
-            computeVerticalSize(viewPort, widthMeasureSpec, heightMeasureSpec)
+            computeVerticalSize(viewPort)
         }
     }
 
 
-    private fun computeHorizontalSize(
-        viewPort: ViewPortHandler,
-        widthMeasureSpec: Int,
-        heightMeasureSpec: Int
-    ): PointF {
-
+    private fun computeHorizontalSize(viewPort: ViewPortHandler): PointF {
         // 计算所需要的偏移值
         tickHelper.computeHorizontalOffset(viewPort)
 
-        val width = when {
-            View.MeasureSpec.getMode(widthMeasureSpec) == View.MeasureSpec.EXACTLY -> {
-                View.MeasureSpec.getSize(
-                    widthMeasureSpec
-                ).apply {
-                    TODO("auto text size if need")
-                }
-            }
-            else -> {
-                val visibleTextWidth = labelHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
-                val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
-                max(visibleTextWidth, visibleTickWidth)
-            }
-        }.plus(view.paddingLeft).plus(view.paddingRight)
+        val visibleTextWidth = labelHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
+        val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
 
-        val height = when {
-            View.MeasureSpec.getMode(heightMeasureSpec) == View.MeasureSpec.EXACTLY -> {
-                View.MeasureSpec.getSize(
-                    heightMeasureSpec
-                ).apply {
-                    TODO("auto text size if need")
-                }
-            }
-            else -> {
-                labelHelper.visibleHeightNeeded()
-                    .times(weightOfView)
-            }
-        }.plus(view.paddingTop).plus(view.paddingBottom)
+        minimunMeasureWidth = max(visibleTextWidth, visibleTickWidth)
+        minimumMeasureHeight = labelHelper.visibleHeightNeeded().times(weightOfView)
 
+
+        val width = minimunMeasureWidth.plus(view.paddingLeft).plus(view.paddingRight)
+        val height = minimumMeasureHeight.plus(view.paddingTop).plus(view.paddingBottom)
 
         return PointF.obtain(width, height)
     }
 
-    private fun computeVerticalSize(
-        viewPort: ViewPortHandler,
-        widthMeasureSpec: Int,
-        heightMeasureSpec: Int
-    ): PointF {
+
+    private fun computeVerticalSize(viewPort: ViewPortHandler): PointF {
         // 计算所需要的偏移值
         tickHelper.computeVerticalOffset(viewPort)
 
-        val width = when {
-            View.MeasureSpec.getMode(widthMeasureSpec) == View.MeasureSpec.EXACTLY -> {
-                View.MeasureSpec.getSize(
-                    widthMeasureSpec
-                ).apply {
-                    TODO("auto text size if need")
-                }
-            }
-            else -> {
-                labelHelper.labelOptions.widthNeeded.times(weightOfView)
-                    .plus(labelHelper.labelOptions.spacing.times(2))
-            }
-        }.plus(view.paddingLeft).plus(view.paddingRight)
-
-        val height = when {
-            View.MeasureSpec.getMode(heightMeasureSpec) == View.MeasureSpec.EXACTLY -> {
-                View.MeasureSpec.getSize(
-                    heightMeasureSpec
-                ).apply {
-                    TODO("auto text size if need")
-                }
-            }
-            else -> {
-                val visibleTextHeight = labelHelper.visibleHeightNeeded() * visibleCountOfTick
-
-                val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
-                max(visibleTextHeight, visibleTickWidth)
+        minimunMeasureWidth = labelHelper.labelOptions.widthNeeded.times(weightOfView)
+            .plus(labelHelper.labelOptions.spacing.times(2))
 
 
-            }
-        }.plus(view.paddingTop).plus(view.paddingBottom)
+        val visibleTextHeight = labelHelper.visibleHeightNeeded() * visibleCountOfTick
+        val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
 
+        minimumMeasureHeight = max(visibleTextHeight, visibleTickWidth)
 
+        val width = minimunMeasureWidth.plus(view.paddingLeft).plus(view.paddingRight)
+        val height = minimumMeasureHeight.plus(view.paddingTop).plus(view.paddingBottom)
         return PointF.obtain(width, height)
     }
 
@@ -389,9 +341,6 @@ internal class RulerViewHelper(private val view: RulerView) {
                     it.recycle()
                 }
             }
-
-        // reset scroll position
-        view.scrollTo(0,0)
     }
 
 

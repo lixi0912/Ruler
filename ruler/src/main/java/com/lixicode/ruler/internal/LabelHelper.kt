@@ -271,7 +271,6 @@ internal class LabelHelper(val view: RulerView) {
         }
     }
 
-
     internal class TextDrawable(private val getLongestLabel: () -> String) : Drawable() {
 
 

@@ -84,6 +84,14 @@ internal class ScrollHelper(
             }
 
 
+        // cancel scroller
+        if (!scroller.isFinished) {
+            scroller.abortAnimation()
+        }
+
+        // reset scroll position
+        view.scrollTo(0, 0)
+
         scrollTo(view.tick)
     }
 
