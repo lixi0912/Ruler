@@ -1,7 +1,11 @@
 package com.lixicode.rulerdemo
 
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
+import android.widget.ProgressBar
+import android.widget.SeekBar
+import android.widget.TextView
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat
@@ -144,7 +148,57 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        val lpChip = findViewById<Chip>(R.id.ruler_lp)
 
+        val progressWidth = findViewById<SeekBar>(R.id.progress_width)
+        val progressHeight = findViewById<SeekBar>(R.id.progress_height)
+
+        lpChip.text = updateText(progressWidth, progressHeight)
+
+        progressWidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                lpChip.text = updateText(progressWidth, progressHeight)
+
+                rulerView.layoutParams.width = dpToPx(progress)
+                rulerView.requestLayout()
+            }
+        })
+
+
+        progressHeight.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                lpChip.text = updateText(progressWidth, progressHeight)
+
+                rulerView.layoutParams.height = dpToPx(progress)
+                rulerView.requestLayout()
+            }
+        })
+
+    }
+
+    private fun updateText(progressWidth: SeekBar, progressHeight: SeekBar): String {
+        return "w:${progressWidth.progress}, h:${progressHeight.progress}"
+    }
+
+
+    fun dpToPx(dp: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp.toFloat(),
+            resources.displayMetrics
+        ).roundToInt()
     }
 
 }

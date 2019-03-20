@@ -1,7 +1,6 @@
 package com.lixicode.ruler.internal
 
 import android.content.Context
-import android.graphics.Canvas
 import android.util.AttributeSet
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
@@ -19,7 +18,7 @@ import kotlin.math.roundToInt
  */
 internal class RulerViewHelper(private val view: RulerView) {
 
-    internal val tickHelper = TickHelper(view)
+    internal val tickHelper = TickHelper()
     internal val viewPort = ViewPortHandler()
     internal val transformer: Transformer = Transformer(viewPort)
 
@@ -79,31 +78,6 @@ internal class RulerViewHelper(private val view: RulerView) {
             return tickHelper.tickOptions.weight
         }
 
-    /**
-     * 比如
-     *
-     * [stepOfTicks] = 10
-     *
-     * [significantTickWeight] 代表中间项 5 的权重，其距离应大等于 [1..4],[6..9] 的权重，小等于 0，10 的权重
-     *      。
-     * -----------
-     * |    |    |
-     * |         |
-     * 0         10
-     *
-     *
-     * @see TickHelper.dividerTickOptions.weight
-     *
-     *
-     */
-    var significantTickWeight: Float = 0F
-        set(value) {
-            field = value.coerceIn(
-                tickHelper.dividerTickOptions.weight,
-                tickHelper.tickOptions.weight
-            )
-        }
-
 
     /**
      *  tick 相对于 [weightOfView] 的权重占比
@@ -123,13 +97,13 @@ internal class RulerViewHelper(private val view: RulerView) {
      *
      *  Note: 当 [enableMirrorTick] = true 时，总权重应该是 [weightOfLabel] + [weightOfTick] * 2
      */
-    val weightOfView: Int
+    val weightOfView: Float
         get() {
             val tickWeight = when {
                 enableMirrorTick -> weightOfTick.times(2)
                 else -> weightOfTick
             }
-            return weightOfLabel.plus(tickWeight).roundToInt()
+            return weightOfLabel.plus(tickWeight)
         }
 
     /**
@@ -160,7 +134,6 @@ internal class RulerViewHelper(private val view: RulerView) {
         val orientation = a.getInt(R.styleable.RulerView_android_orientation, orientation)
         val gravityOfTick = a.getInt(R.styleable.RulerView_ruler_gravityOfTick, gravityOfTick)
         val visibleCountOfTick = a.getInt(R.styleable.RulerView_ruler_visibleCountOfTick, visibleCountOfTick)
-        val significantTickWeight = a.getFloat(R.styleable.RulerView_ruler_significantTickWeight, significantTickWeight)
 
         val tick = a.getInt(R.styleable.RulerView_ruler_tick, 0)
         a.recycle()
@@ -177,7 +150,6 @@ internal class RulerViewHelper(private val view: RulerView) {
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
-        this.significantTickWeight = significantTickWeight
 
 
         setTickValue(tick)
@@ -228,52 +200,15 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
 
-    private fun computeCanvasPaddingByHorizontal(): Int {
-        return view.paddingBottom.minus(view.paddingTop)
-            .takeIf {
-                it > 0
-            } ?: 0
-    }
-
-
-    private fun computeCanvasPaddingByVertical(): Int {
-        return view.paddingRight.minus(view.paddingLeft)
-            .takeIf {
-                it > 0
-            } ?: 0
-    }
-
-    private fun drawOnMirrorTick(canvas: Canvas, drawMirror: (Canvas) -> Unit) {
-        if (enableMirrorTick || gravityOfTick == RulerView.GRAVITY_END) {
-            val saveId = canvas.save()
-            if (isHorizontal) {
-                canvas.scale(1F, -1F)
-
-                val deltaY = (-view.height).plus(computeCanvasPaddingByHorizontal())
-                    .toFloat()
-
-                canvas.translate(0F, deltaY)
-            } else {
-                // TODO fix me
-                canvas.scale(-1F, 1F)
-
-                val deltaX = (-view.width).plus(computeCanvasPaddingByVertical())
-                    .toFloat()
-
-                canvas.translate(deltaX, 0F)
-            }
-
-            drawMirror(canvas)
-            canvas.restoreToCount(saveId)
-        }
-    }
-
     var minimunMeasureWidth = 0
     var minimumMeasureHeight = 0
 
     fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): PointF {
         // reset offset
         viewPort.offsetRect.setEmpty()
+
+        // reset textSize
+        labelHelper.resetTextSize()
 
         return if (isHorizontal) {
             computeHorizontalSize(viewPort)
@@ -291,7 +226,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
 
         minimunMeasureWidth = max(visibleTextWidth, visibleTickWidth)
-        minimumMeasureHeight = labelHelper.visibleHeightNeeded().times(weightOfView)
+        minimumMeasureHeight = labelHelper.visibleHeightNeeded().times(weightOfView).roundToInt()
 
 
         val width = minimunMeasureWidth.plus(view.paddingLeft).plus(view.paddingRight)
@@ -306,7 +241,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         tickHelper.computeVerticalOffset(viewPort)
 
         minimunMeasureWidth = labelHelper.labelOptions.widthNeeded.times(weightOfView)
-            .plus(labelHelper.labelOptions.spacing.times(2))
+            .plus(labelHelper.labelOptions.spacing.times(2)).roundToInt()
 
 
         val visibleTextHeight = labelHelper.visibleHeightNeeded() * visibleCountOfTick
@@ -327,6 +262,8 @@ internal class RulerViewHelper(private val view: RulerView) {
 
         viewPort.setDimens(left, top, right, bottom)
 
+        labelHelper.autoTextSize(viewPort)
+
         transformer.prepareMatrixValuePx(this)
 
         this.visibleTickCount = PointF.obtain(w.toFloat(), h.toFloat())
@@ -341,24 +278,6 @@ internal class RulerViewHelper(private val view: RulerView) {
                     it.recycle()
                 }
             }
-    }
-
-
-    fun onDraw(canvas: Canvas) {
-
-        // draw tick
-        if (gravityOfTick == RulerView.GRAVITY_START || enableMirrorTick) {
-            tickHelper.onDraw(canvas)
-        }
-
-        // draw on mirror  
-        drawOnMirrorTick(canvas) {
-
-            tickHelper.onDraw(it)
-        }
-
-        // draw label
-        labelHelper.onDraw(canvas)
     }
 
 

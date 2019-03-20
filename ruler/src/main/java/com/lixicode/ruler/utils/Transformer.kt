@@ -12,57 +12,75 @@ import com.lixicode.ruler.internal.RulerViewHelper
 internal class Transformer(private val viewPort: ViewPortHandler) {
 
 
+    internal var labelMatrix = Matrix()
     private var mMatrixPxToValue = Matrix()
     private var mMatrixValueToPx = Matrix()
 
     fun prepareMatrixValuePx(helper: RulerViewHelper) {
-
-        val scaleX: Float
-        val scaleY: Float
-        val xMinimum: Float
-        val yMinimun: Float
         if (helper.isHorizontal) {
-            val deltaX = helper.visibleCountOfTick * helper.stepOfTicks
-            val deltaY = helper.deltaTickWeightOfView
-
-            val minimumWidth = viewPort.contentWidth.coerceAtLeast(helper.minimunMeasureWidth.toFloat())
-            val minimumHeight = viewPort.contentHeight.coerceAtLeast(helper.minimumMeasureHeight.toFloat())
-
-            scaleX = (minimumWidth / deltaX).letFinite()
-            scaleY = (minimumHeight * deltaY).letFinite()
-
-            xMinimum = helper.minimumOfTicks.toFloat()
-            yMinimun = 0F
+            prepareHorizontalMatrix(helper)
         } else {
-
-            val minimumWidth = viewPort.contentWidth
-            val minimumHeight = viewPort.contentHeight.coerceAtLeast(helper.minimumMeasureHeight.toFloat())
-
-
-
-            val deltaX = helper.weightOfView
-            val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
-
-            scaleX = (minimumWidth/ deltaX).letFinite()
-            scaleY = (minimumHeight / deltaY).letFinite()
-
-            xMinimum = 0F
-            yMinimun = helper.minimumOfTicks.toFloat()
+            prepareVerticalMatrix(helper)
         }
+    }
 
 
-        val matrix = mMatrixValueToPx
+    private fun prepareHorizontalMatrix(helper: RulerViewHelper) {
+        val deltaX = helper.visibleCountOfTick * helper.stepOfTicks
+        val deltaY = helper.weightOfView
+
+        val minimumWidth = viewPort.contentWidth.coerceAtLeast(helper.minimunMeasureWidth.toFloat())
+        val minimumHeight = viewPort.contentHeight
+
+        val scaleX = (minimumWidth / deltaX).letFinite()
+        val scaleY = (minimumHeight / deltaY).letFinite()
+
+        applyToMatrix(mMatrixValueToPx, -helper.minimumOfTicks.toFloat(), 0F, scaleX, scaleY, 0F, viewPort.contentTop)
+        mMatrixValueToPx.invert(mMatrixPxToValue)
+
+
+
+        labelMatrix.set(mMatrixValueToPx)
+//        labelMatrix.postTranslate(-helper.labelHelper.labelOptions.widthNeeded.div(2F), 0F)
+
+    }
+
+
+    private fun prepareVerticalMatrix(helper: RulerViewHelper) {
+        val minimumWidth = viewPort.contentWidth
+        val minimumHeight = viewPort.contentHeight.coerceAtLeast(helper.minimumMeasureHeight.toFloat())
+
+        val deltaX = helper.weightOfView
+        val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
+
+        val scaleX = (minimumWidth / deltaX).letFinite()
+        val scaleY = (minimumHeight / deltaY).letFinite()
+
+        applyToMatrix(mMatrixValueToPx, 0F, -helper.minimumOfTicks.toFloat(), scaleX, scaleY, viewPort.contentLeft, 0F)
+        mMatrixValueToPx.invert(mMatrixPxToValue)
+
+
+
+        labelMatrix.set(mMatrixValueToPx)
+//        labelMatrix.postTranslate(0F, -helper.labelHelper.labelOptions.heightNeeded.div(2F))
+
+    }
+
+    private fun applyToMatrix(
+        matrix: Matrix,
+        preTranslateX: Float,
+        preTranslateY: Float,
+        scaleX: Float,
+        scaleY: Float,
+        postTranslateX: Float,
+        postTranslateY: Float
+    ) {
         matrix.reset()
-        matrix.postTranslate(-xMinimum, -yMinimun)
+        matrix.postTranslate(preTranslateX, preTranslateY)
         matrix.postScale(scaleX, scaleY)
+        matrix.postTranslate(postTranslateX, postTranslateY)
 
-        if (helper.isHorizontal) {
-            matrix.postTranslate(0F, viewPort.contentTop)
-        } else {
-            matrix.postTranslate(viewPort.contentLeft, 0F)
-        }
 
-        matrix.invert(mMatrixPxToValue)
     }
 
     fun generateValueToPixel(value: Int): PointF {

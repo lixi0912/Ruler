@@ -11,9 +11,8 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.data.Options
-import com.lixicode.ruler.data.setBounds
+import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.roundToInt
 
 /**
@@ -35,7 +34,11 @@ internal class LabelHelper(val view: RulerView) {
         var textAlign: Paint.Align = Paint.Align.CENTER,
         var typeface: Typeface = Typeface.DEFAULT,
         var sameLengthOfLabel: Boolean = false,
-        var longestLabel: String = ""
+        var longestLabel: String = "",
+        var autoSizeEnable: Boolean = false,
+        var autoSizeMinTextSize: Float,
+        var autoSizeMaxTextSize: Float,
+        var autoSizeStepGranularity: Int = 10
     ) {
 
 
@@ -59,6 +62,30 @@ internal class LabelHelper(val view: RulerView) {
 
             if (a.hasValue(R.styleable.RulerView_ruler_longestLabel)) {
                 longestLabel = a.getString(R.styleable.RulerView_ruler_longestLabel) ?: longestLabel
+            }
+
+            if (a.hasValue(R.styleable.RulerView_ruler_autoSizeEnable)) {
+                autoSizeEnable = a.getBoolean(R.styleable.RulerView_ruler_autoSizeEnable, autoSizeEnable)
+            }
+
+            if (a.hasValue(R.styleable.RulerView_ruler_autoSizeMinTextSize)) {
+                autoSizeMinTextSize =
+                    a.getDimensionPixelSize(
+                        R.styleable.RulerView_ruler_autoSizeMinTextSize,
+                        autoSizeMinTextSize.roundToInt()
+                    ).toFloat()
+            }
+            if (a.hasValue(R.styleable.RulerView_ruler_autoSizeMaxTextSize)) {
+                autoSizeMaxTextSize =
+                    a.getDimensionPixelSize(R.styleable.RulerView_ruler_autoSizeMaxTextSize, textSize.roundToInt())
+                        .toFloat()
+            }
+            if (a.hasValue(R.styleable.RulerView_ruler_autoSizeStepGranularity)) {
+                autoSizeStepGranularity =
+                    a.getDimensionPixelSize(
+                        R.styleable.RulerView_ruler_autoSizeStepGranularity,
+                        autoSizeStepGranularity
+                    )
             }
 
             readTypefaceAndStyle(a)
@@ -93,6 +120,11 @@ internal class LabelHelper(val view: RulerView) {
     }
 
     private var longestLabel: String = ""
+    private var autoSizeEnable: Boolean = false
+    private var autoSizeMinTextSize: Float = Float.MAX_VALUE
+    private var autoSizeMaxTextSize: Float = Float.MIN_VALUE
+    private var autoSizeStepGranularity: Int = 1
+
     val labelOptions = Options(TextDrawable {
         longestLabel
     }, updatable = false)
@@ -108,7 +140,11 @@ internal class LabelHelper(val view: RulerView) {
             TypedValue.COMPLEX_UNIT_SP,
             14F, context.resources.displayMetrics
         )
-        val attributes = Attributes(textSize = defaultTextSize)
+        val attributes = Attributes(
+            textSize = defaultTextSize,
+            autoSizeMinTextSize = defaultTextSize,
+            autoSizeMaxTextSize = defaultTextSize
+        )
 
         val a = context.obtainStyledAttributes(
             attrs,
@@ -129,28 +165,34 @@ internal class LabelHelper(val view: RulerView) {
         a.recycle()
 
 
+        this.autoSizeEnable = attributes.autoSizeEnable
+        this.autoSizeMinTextSize = attributes.autoSizeMinTextSize
+        this.autoSizeMaxTextSize = attributes.autoSizeMaxTextSize
+        this.autoSizeStepGranularity = attributes.autoSizeStepGranularity
+
         setLongestLabel(attributes.longestLabel, attributes.sameLengthOfLabel, false)
 
         // do not inset label drawable
         labelOptions.inset = false
 
-        labelOptions.getDrawable()
-            ?.updatePaintInfo {
-                var updated = false
-                if (it.typeface != attributes.typeface) {
-                    it.typeface = attributes.typeface
-                    updated = true
-                }
-
-                if (it.textSize != attributes.textSize) {
-                    it.textSize = attributes.textSize
-                    updated = true
-                }
-
-                it.textAlign = attributes.textAlign
-                it.color = attributes.textColor?.defaultColor ?: it.color
-                updated
+        labelOptions.getDrawable()?.updatePaintInfo {
+            var updated = false
+            if (it.typeface != attributes.typeface) {
+                it.typeface = attributes.typeface
+                updated = true
             }
+
+            if (it.textSize != attributes.textSize) {
+                it.textSize = attributes.textSize.coerceAtMost(autoSizeMaxTextSize)
+                updated = true
+            }
+
+            it.textAlign = attributes.textAlign
+            it.color = attributes.textColor?.defaultColor ?: it.color
+            updated
+        }
+
+
     }
 
 
@@ -193,122 +235,80 @@ internal class LabelHelper(val view: RulerView) {
         return labelOptions.heightNeeded
     }
 
-    fun onDraw(canvas: Canvas) {
-        val helper = view.helper
-        if (helper.isHorizontal) {
-            drawHorizontalLabel(helper, canvas)
-        } else {
-            drawVerticalLabel(helper, canvas)
+
+    fun resetTextSize() {
+        labelOptions.enable = true
+        if (autoSizeEnable) {
+            labelOptions.getDrawable()?.updatePaintInfo {
+                    if (it.textSize != autoSizeMaxTextSize) {
+                        it.textSize = autoSizeMaxTextSize
+                        true
+                    } else {
+                        false
+                    }
+
+                }
         }
     }
 
-    private fun drawVerticalLabel(helper: RulerViewHelper, canvas: Canvas) {
-        if (!labelOptions.visible) {
-            return
-        }
-
-        val textDrawable = labelOptions.getDrawable()!!
-
-        val halfTextHeight = labelOptions.heightNeeded.minus(textDrawable.fontMetricsDescent()).div(2)
-        for (y in helper.rangeOfTickWithScrollOffset()) {
-            if (helper.remOfTick(y) == 0) {
-                // 说明当前为起始刻度
-
-                textDrawable.text = view.valueFormatter.formatValue(y.toFloat())
-
-                // 计算标题居中显示所需 y 坐标起点
-                val x = if (view.helper.gravityOfTick == RulerView.GRAVITY_START || view.helper.enableMirrorTick) {
-                    helper.weightOfLabel.div(2).plus(helper.weightOfTick.coerceAtLeast(1F))
-                } else {
-                    helper.weightOfLabel.div(2)
+    fun autoTextSize(viewPort: ViewPortHandler) {
+        if (autoSizeEnable) {
+            if (labelOptions.widthNeeded > viewPort.contentWidth || labelOptions.heightNeeded > viewPort.contentHeight) {
+                labelOptions.getDrawable()?.updatePaintInfo {
+                    val updateValue = it.textSize - autoSizeStepGranularity
+                    if (updateValue >= autoSizeMinTextSize) {
+                        it.textSize = updateValue
+                        true
+                    } else {
+                        labelOptions.enable = false
+                        false
+                    }
+                }?.also { updated ->
+                    if (updated) {
+                        autoTextSize(viewPort)
+                    }
                 }
-
-
-                PointF.obtain(x, y.toFloat()).also {
-                    helper.transformer.pointValuesToPixel(it)
-                }.also {
-                    labelOptions.setBounds(it.x, it.y + halfTextHeight)
-                }.also {
-                    it.recycle()
-                }
-                textDrawable.draw(canvas)
-            }
-        }
-
-    }
-
-
-    private fun drawHorizontalLabel(helper: RulerViewHelper, canvas: Canvas) {
-        if (!labelOptions.visible) {
-            return
-        }
-        val textDrawable = labelOptions.getDrawable()!!
-
-        val textDiff = labelOptions.heightNeeded - textDrawable.fontMetricsDescent().div(2)
-        for (x in helper.rangeOfTickWithScrollOffset()) {
-            if (helper.remOfTick(x) == 0) {
-                // 说明当前为起始刻度
-
-                textDrawable.text = view.valueFormatter.formatValue(x.toFloat())
-
-                // 计算标题居中显示所需 y 坐标起点
-                val y = if (view.helper.gravityOfTick == RulerView.GRAVITY_START || view.helper.enableMirrorTick) {
-                    helper.weightOfLabel.div(2).plus(helper.weightOfTick.coerceAtLeast(1F))
-                } else {
-                    helper.weightOfLabel.minus(helper.weightOfTick).div(2)
-                }
-
-
-                PointF.obtain(x.toFloat(), y).also {
-                    helper.transformer.pointValuesToPixel(it)
-                }.also {
-                    labelOptions.setBounds(it.x, it.y + textDiff)
-                }.also {
-                    it.recycle()
-                }
-                textDrawable.draw(canvas)
             }
         }
     }
+
 
     internal class TextDrawable(private val getLongestLabel: () -> String) : Drawable() {
 
 
-        private val textRect by lazy {
-            Rect()
-        }
-
-
-        val paint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
+        private val paint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
         private var textWidthNeeded = -1
         private var textHeightNeeded = -1
 
         var text: String = ""
 
-        fun updatePaintInfo(onPaintUpdate: (paint: Paint) -> Boolean) {
-            if (onPaintUpdate(paint)) {
+        fun updatePaintInfo(onPaintUpdate: (paint: Paint) -> Boolean): Boolean {
+            return if (onPaintUpdate(paint)) {
                 val longestText = getLongestLabel()
 
                 this.textWidthNeeded = paint.measureText(longestText).roundToInt()
                 this.textHeightNeeded = calcTextHeight(longestText)
-            }
+
+
+                true
+            } else false
         }
 
         /**
          * @return 文本实际高度
          */
         private fun calcTextHeight(measuredText: String): Int {
-            val r = textRect
-            r.set(0, 0, 0, 0)
-            paint.getTextBounds(measuredText, 0, measuredText.length, r)
-            return r.height()
+            bounds.setEmpty()
+            paint.getTextBounds(measuredText, 0, measuredText.length, bounds)
+            return bounds.height()
         }
 
         override fun draw(canvas: Canvas) {
             if (TextUtils.isEmpty(text)) {
                 return
             }
-            canvas.drawText(text, bounds.centerX().toFloat(), bounds.centerY().toFloat(), paint)
+
+            canvas.drawText(text, bounds.centerX().toFloat(), bounds.centerY() + textHeightNeeded.div(2F), paint)
         }
 
         override fun setAlpha(alpha: Int) {
@@ -330,11 +330,6 @@ internal class LabelHelper(val view: RulerView) {
         override fun getIntrinsicHeight(): Int {
             return textHeightNeeded
         }
-
-        fun fontMetricsDescent(): Float {
-            return paint.fontMetrics.descent
-        }
-
 
     }
 

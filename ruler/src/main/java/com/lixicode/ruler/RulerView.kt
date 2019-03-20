@@ -10,6 +10,9 @@ import android.view.View
 import com.lixicode.ruler.data.Options
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
+import com.lixicode.ruler.renderer.RulerViewRenderer
+import com.lixicode.ruler.utils.Transformer
+import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
 
 /**
@@ -40,14 +43,15 @@ class RulerView @JvmOverloads constructor(
     }
 
 
-    internal val helper by lazy {
-        RulerViewHelper(this)
-    }
+    internal val helper: RulerViewHelper = RulerViewHelper(this)
 
+    internal val transformer: Transformer
+        get() = helper.transformer
 
-    private val scrollHelper by lazy {
-        ScrollHelper(this, helper)
-    }
+    internal val viewPort: ViewPortHandler
+        get() = helper.viewPort
+
+    private val scrollHelper: ScrollHelper
 
     var tickChangeListener: OnTickChangedListener? = null
 
@@ -215,8 +219,14 @@ class RulerView @JvmOverloads constructor(
             }
         }
 
+    private val renderer: RulerViewRenderer
 
     init {
+
+        scrollHelper = ScrollHelper(this, helper)
+
+        renderer = RulerViewRenderer(helper)
+
         helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
     }
 
@@ -297,8 +307,7 @@ class RulerView @JvmOverloads constructor(
             scrollX + width - paddingRight,
             scrollY + height - paddingBottom
         )
-
-        helper.onDraw(canvas)
+        renderer.onDraw(this, canvas)
 
     }
 
@@ -330,5 +339,18 @@ class RulerView @JvmOverloads constructor(
         return helper.verticalScrollRange
     }
 
+
+    internal fun computeCanvasPaddingByHorizontal(): Int {
+        return paddingBottom.minus(paddingTop).takeIf {
+            it > 0
+        } ?: 0
+    }
+
+
+    internal fun computeCanvasPaddingByVertical(): Int {
+        return paddingRight.minus(paddingLeft).takeIf {
+            it > 0
+        } ?: 0
+    }
 
 }
