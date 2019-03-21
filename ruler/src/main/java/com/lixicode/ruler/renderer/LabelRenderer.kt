@@ -1,6 +1,7 @@
 package com.lixicode.ruler.renderer
 
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.RectF
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.*
@@ -16,8 +17,14 @@ internal class LabelRenderer(private val helper: LabelHelper) {
     private var rectF: RectF? = null
 
     fun onPreDraw(view: RulerView) {
-        val rectF = RectFPool.obtain()
+        if (helper.autoSizeMode != LabelHelper.ALWAYS) {
+            val rectF = RectFPool.obtain()
+            initTextBounds(view, rectF)
+            this.rectF = rectF
+        }
+    }
 
+    private fun initTextBounds(view: RulerView, rectF: RectF) {
         // 计算标题居中显示所需坐标起点
         val start = if (view.helper.gravityOfTick == RulerView.GRAVITY_START || view.helper.enableMirrorTick) {
             view.helper.weightOfTick
@@ -30,13 +37,16 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         } else {
             rectF.set(start, 0F, start + view.helper.weightOfLabel, 0F)
         }
-
-        this.rectF = rectF
     }
 
+
     fun finishDraw() {
-        rectF!!.recycle()
-        this.rectF = null
+        if (helper.autoSizeMode == LabelHelper.ALWAYS) {
+            helper.autoTextSize(measuredText = helper.longestLabel)
+        } else {
+            rectF?.recycle()
+            this.rectF = null
+        }
     }
 
 
@@ -53,17 +63,35 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         val textDrawable = helper.labelOptions.getDrawable()!!
 
         textDrawable.text = view.valueFormatter.formatValue(tick.toFloat())
+        if (helper.autoSizeMode == LabelHelper.ALWAYS) {
+            helper.autoTextSize(view.viewPort, textDrawable.text)
+            if (helper.shouldAutoTextSize(view.viewPort)) {
+                return
+            }
+            RectFPool.obtain()
+                .also { src ->
+                    initTextBounds(view, src)
+                    mapBoundsToDrawable(
+                        view.transformer.labelMatrix,
+                        textDrawable,
+                        src,
+                        tick.toFloat(), src.top,
+                        helper.labelOptions.widthNeeded
+                    )
+                    src.recycle()
+                }
 
-        val src = rectF!!
-        val dest = RectFPool.obtain()
-        src.offsetTo(tick.toFloat(), src.top)
-        view.transformer.labelMatrix.mapRect(dest, src)
-        dest.expand(helper.labelOptions.widthNeeded, 0)
-        dest.round(textDrawable.bounds)
-        dest.recycle()
-
-        textDrawable.draw(canvas)
-
+            textDrawable.draw(canvas)
+        } else if (!helper.shouldAutoTextSize(view.viewPort)) {
+            mapBoundsToDrawable(
+                view.transformer.labelMatrix,
+                textDrawable,
+                rectF!!,
+                tick.toFloat(), rectF!!.top,
+                helper.labelOptions.widthNeeded
+            )
+            textDrawable.draw(canvas)
+        }
     }
 
     fun onDrawVertical(
@@ -77,18 +105,51 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         }
 
         val textDrawable = helper.labelOptions.getDrawable()!!
-
         textDrawable.text = view.valueFormatter.formatValue(tick.toFloat())
 
-        val src = rectF!!
+        if (helper.autoSizeMode == LabelHelper.ALWAYS) {
+            helper.autoTextSize(view.viewPort, textDrawable.text)
+            if (helper.shouldAutoTextSize(view.viewPort)) {
+                return
+            }
+            RectFPool.obtain()
+                .also { src ->
+                    initTextBounds(view, src)
+                    mapBoundsToDrawable(
+                        view.transformer.labelMatrix, textDrawable, src,
+                        src.left, tick.toFloat(),
+                        expandHeight = helper.labelOptions.heightNeeded
+                    )
+                    src.recycle()
+                }
+
+            textDrawable.draw(canvas)
+        } else if (!helper.shouldAutoTextSize(view.viewPort)) {
+            mapBoundsToDrawable(
+                view.transformer.labelMatrix, textDrawable, rectF!!,
+                rectF!!.left, tick.toFloat(),
+                expandHeight = helper.labelOptions.heightNeeded
+            )
+            textDrawable.draw(canvas)
+        }
+    }
+
+
+    private fun mapBoundsToDrawable(
+        matrix: Matrix,
+        textDrawable: LabelHelper.TextDrawable,
+        src: RectF,
+        newLeft: Float,
+        newTop: Float,
+        expandWidth: Int = 0,
+        expandHeight: Int = 0
+    ) {
         val dest = RectFPool.obtain()
-        src.offsetTo(src.left, tick.toFloat())
-        view.transformer.labelMatrix.mapRect(dest, src)
-        dest.expand(0, helper.labelOptions.heightNeeded)
+        src.offsetTo(newLeft, newTop)
+        matrix.mapRect(dest, src)
+        dest.expand(expandWidth, expandHeight)
         dest.round(textDrawable.bounds)
         dest.recycle()
-
-        textDrawable.draw(canvas)
     }
 
 

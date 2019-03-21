@@ -47,7 +47,9 @@ internal class RulerViewRenderer(helper: RulerViewHelper) {
             labelRenderer.onDrawHorizontal(view, canvas, tick, remainderOfTick)
         }
 
-        tickRenderer.onDrawHorizontalOver(view, canvas)
+        if (helper.gravityOfTick == RulerView.GRAVITY_START || helper.enableMirrorTick) {
+            tickRenderer.onDrawHorizontalOver(view, canvas)
+        }
 
         drawOnMirrorTick(view, canvas) { _, _ ->
             tickRenderer.onDrawHorizontalOver(view, canvas)
@@ -81,8 +83,9 @@ internal class RulerViewRenderer(helper: RulerViewHelper) {
             }
             labelRenderer.onDrawVertical(view, canvas, tick, remainderOfTick)
         }
-
-        tickRenderer.onDrawVerticalOver(view, canvas)
+        if (helper.gravityOfTick == RulerView.GRAVITY_START || helper.enableMirrorTick) {
+            tickRenderer.onDrawVerticalOver(view, canvas)
+        }
 
         drawOnMirrorTick(view, canvas) { _, _ ->
             tickRenderer.onDrawVerticalOver(view, canvas)

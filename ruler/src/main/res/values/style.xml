@@ -17,8 +17,8 @@
         <item name="ruler_enableMirrorTick">false</item>
         <item name="android:orientation">vertical</item>
         <item name="ruler_gravityOfTick">start</item>
-        <item name="ruler_autoSizeEnable">true</item>
-        <item name="ruler_autoSizeMinTextSize">12sp</item>
+        <item name="ruler_autoSize">always</item>
+        <item name="ruler_autoSizeMinTextSize">8sp</item>
         <item name="ruler_autoSizeMaxTextSize">18sp</item>
         <item name="ruler_autoSizeStepGranularity">1sp</item>
     </style>

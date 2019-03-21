@@ -20,6 +20,7 @@
             app:layout_constraintTop_toTopOf="parent"
             android:orientation="horizontal"
             android:background="#FFF8E1"
+            app:ruler_autoSize="always"
             app:ruler_enableMirrorTick="true"
             app:ruler_sameLengthOfLabel="false"
             app:ruler_longestLabel="@null"
