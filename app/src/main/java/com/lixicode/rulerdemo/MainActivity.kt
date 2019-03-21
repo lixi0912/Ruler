@@ -189,7 +189,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateText(progressWidth: SeekBar, progressHeight: SeekBar): String {
-        return "w:${progressWidth.progress}, h:${progressHeight.progress}"
+        return "w: ${progressWidth.progress} dp, h: ${progressHeight.progress} dp"
     }
 
 
