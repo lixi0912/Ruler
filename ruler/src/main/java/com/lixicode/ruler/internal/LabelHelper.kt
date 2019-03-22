@@ -70,8 +70,6 @@ internal class LabelHelper(val view: RulerView) {
                 longestLabel = a.getString(R.styleable.RulerView_ruler_longestLabel) ?: longestLabel
             }
 
-            View.OVER_SCROLL_IF_CONTENT_SCROLLS
-
             if (a.hasValue(R.styleable.RulerView_ruler_autoSize)) {
                 autoSizeMode = a.getInt(R.styleable.RulerView_ruler_autoSize, autoSizeMode)
             }

@@ -14,6 +14,7 @@ import com.lixicode.ruler.renderer.RulerViewRenderer
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * <>
@@ -94,7 +95,7 @@ class RulerView @JvmOverloads constructor(
         set(value) {
             if (value != helper.stepOfTicks) {
                 helper.stepOfTicks = value
-                requestLayout()
+                requestLayoutInternal()
             }
         }
 
@@ -111,7 +112,7 @@ class RulerView @JvmOverloads constructor(
         set(value) {
             if (value != helper.minimumOfTicks) {
                 helper.minimumOfTicks = value
-                requestLayout()
+                requestLayoutInternal()
             }
         }
 
@@ -128,7 +129,7 @@ class RulerView @JvmOverloads constructor(
         set(value) {
             if (value != helper.maximumOfTicks) {
                 helper.maximumOfTicks = value
-                requestLayout()
+                requestLayoutInternal()
             }
         }
 
@@ -155,7 +156,7 @@ class RulerView @JvmOverloads constructor(
         set(value) {
             if (value != helper.gravityOfTick) {
                 helper.gravityOfTick = value
-                requestLayout()
+                requestLayoutInternal()
             }
         }
 
@@ -185,7 +186,7 @@ class RulerView @JvmOverloads constructor(
         set(value) {
             if (value != helper.orientation) {
                 helper.orientation = value
-                requestLayout()
+                requestLayoutInternal()
             }
         }
 
@@ -215,11 +216,13 @@ class RulerView @JvmOverloads constructor(
         set(value) {
             if (value != helper.enableMirrorTick) {
                 helper.enableMirrorTick = value
-                requestLayout()
+                requestLayoutInternal()
             }
         }
 
     private val renderer: RulerViewRenderer
+
+    internal var forcedRemeasure = true
 
     init {
 
@@ -241,11 +244,12 @@ class RulerView @JvmOverloads constructor(
 
     fun updateBaseLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
         if (onOptionsUpdated(helper.tickHelper.baseLineOptions)) {
-            requestLayout()
+            requestLayoutInternal()
         } else {
             invalidate()
         }
     }
+
 
     fun updateTickOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
         if (onOptionsUpdated(helper.tickHelper.tickOptions)) {
@@ -257,7 +261,7 @@ class RulerView @JvmOverloads constructor(
 
     fun updateDividerLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
         if (onOptionsUpdated(helper.tickHelper.dividerTickOptions)) {
-            requestLayout()
+            requestLayoutInternal()
         } else {
             invalidate()
         }
@@ -265,7 +269,7 @@ class RulerView @JvmOverloads constructor(
 
     fun updateLabelOptions(onOptionsUpdated: (options: Options<*>) -> Boolean) {
         if (onOptionsUpdated(helper.labelHelper.labelOptions)) {
-            requestLayout()
+            requestLayoutInternal()
         } else {
             invalidate()
         }
@@ -287,17 +291,24 @@ class RulerView @JvmOverloads constructor(
             }.run {
                 recycle()
             }
-
-        helper.onSizeChanged(measuredWidth, measuredHeight)
-        scrollHelper.onSizeChanged(measuredWidth, measuredHeight)
+        dispatchOnSizeChanged(measuredWidth, measuredHeight)
     }
 
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        helper.onSizeChanged(w, h)
-        scrollHelper.onSizeChanged(w, h)
+        dispatchOnSizeChanged(w, h)
     }
+
+
+    private fun dispatchOnSizeChanged(w: Int, h: Int) {
+        if (forcedRemeasure || w != viewPort.width.roundToInt() || h != viewPort.height.roundToInt()) {
+            forcedRemeasure = false
+            helper.onSizeChanged(w, h)
+            scrollHelper.onSizeChanged(w, h)
+        }
+    }
+
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -330,6 +341,13 @@ class RulerView @JvmOverloads constructor(
         super.computeScroll()
         scrollHelper.computeScroll()
     }
+
+    private fun requestLayoutInternal() {
+        forcedRemeasure = true
+        requestLayout()
+        invalidate()
+    }
+
 
     override fun computeHorizontalScrollRange(): Int {
         return helper.horizontalScrollRange
