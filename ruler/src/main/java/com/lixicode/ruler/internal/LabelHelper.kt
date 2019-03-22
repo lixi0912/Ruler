@@ -160,8 +160,6 @@ internal class LabelHelper(val view: RulerView) {
             attrs,
             R.styleable.RulerView, defStyleAttr, defStyleRes
         )
-        attributes.readAttributes(a)
-
         OptionsHelper.applyAttributes(
             context,
             a.getResourceId(R.styleable.RulerView_ruler_labelOptions, -1), labelOptions
@@ -172,6 +170,10 @@ internal class LabelHelper(val view: RulerView) {
             typeAttributes.recycle()
 
         }
+
+        // override attributes by root
+        attributes.readAttributes(a)
+
         a.recycle()
 
         this.sameLengthOfLabel = attributes.sameLengthOfLabel
