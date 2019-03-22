@@ -59,6 +59,8 @@ internal class ScrollHelper(
 
 
     fun onSizeChanged(w: Int, h: Int) {
+        firstLayout = true
+
         minScrollPosition = helper.generateValueToPixel(helper.minimumOfTicks)
             .let {
                 //  允许首项居中
@@ -111,21 +113,18 @@ internal class ScrollHelper(
             return
         }
 
-        when {
-            firstLayout -> {
-                firstLayout = false
-                view.scrollBy(dx, dy)
+        if (firstLayout) {
+            firstLayout = false
+            view.scrollBy(dx, dy)
 
-                val tickValue = tick.toFloat()
-                view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
-            }
-            else -> {
-                scroller.startScroll(
-                    view.scrollX, view.scrollY,
-                    dx, dy
-                )
-                ViewCompat.postInvalidateOnAnimation(view)
-            }
+            val tickValue = tick.toFloat()
+            view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
+        } else {
+            scroller.startScroll(
+                view.scrollX, view.scrollY,
+                dx, dy
+            )
+            ViewCompat.postInvalidateOnAnimation(view)
         }
     }
 
