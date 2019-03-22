@@ -70,8 +70,6 @@ internal class LabelHelper(val view: RulerView) {
                 longestLabel = a.getString(R.styleable.RulerView_ruler_longestLabel) ?: longestLabel
             }
 
-            View.OVER_SCROLL_IF_CONTENT_SCROLLS
-
             if (a.hasValue(R.styleable.RulerView_ruler_autoSize)) {
                 autoSizeMode = a.getInt(R.styleable.RulerView_ruler_autoSize, autoSizeMode)
             }
@@ -160,8 +158,6 @@ internal class LabelHelper(val view: RulerView) {
             attrs,
             R.styleable.RulerView, defStyleAttr, defStyleRes
         )
-        attributes.readAttributes(a)
-
         OptionsHelper.applyAttributes(
             context,
             a.getResourceId(R.styleable.RulerView_ruler_labelOptions, -1), labelOptions
@@ -172,6 +168,10 @@ internal class LabelHelper(val view: RulerView) {
             typeAttributes.recycle()
 
         }
+
+        // override attributes by root
+        attributes.readAttributes(a)
+
         a.recycle()
 
         this.sameLengthOfLabel = attributes.sameLengthOfLabel
