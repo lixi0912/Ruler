@@ -44,15 +44,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val valueChip = findViewById<Chip>(R.id.value)
-        rulerView.tickChangeListener = object : RulerView.OnTickChangedListener {
-            override fun onTickChanged(value: Float, label: String) {
-                val text = "tick: ${rulerView.tick},value:$value,label:$label"
-                valueChip.text = text
-                rulerView.requestLayout()
+        findViewById<Chip>(R.id.value).also { chip ->
+            rulerView.tickChangeListener = object : RulerView.OnTickChangedListener {
+                override fun onTickChanged(value: Float, label: String) {
+                    val text = "tick: ${rulerView.tick},value:$value,label:$label"
+                    chip.text = text
+                }
             }
         }
-
         val dashBaseLine = findViewById<Chip>(R.id.dash_base_line).also { chip ->
             chip.setOnCloseIconClickListener {
                 rulerView.updateBaseLineOptions {
