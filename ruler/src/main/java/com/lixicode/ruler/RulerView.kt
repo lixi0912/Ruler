@@ -222,7 +222,7 @@ class RulerView @JvmOverloads constructor(
 
     private val renderer: RulerViewRenderer
 
-    internal var forcedRemeasure = true
+    private var forcedRemeasure = false
 
     init {
 
@@ -291,22 +291,18 @@ class RulerView @JvmOverloads constructor(
             }.run {
                 recycle()
             }
-        dispatchOnSizeChanged(measuredWidth, measuredHeight)
     }
 
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        dispatchOnSizeChanged(w, h)
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        if (changed || forcedRemeasure) {
+            dispatchOnSizeChanged(width, height)
+        }
     }
-
 
     private fun dispatchOnSizeChanged(w: Int, h: Int) {
-        if (forcedRemeasure || w != viewPort.width.roundToInt() || h != viewPort.height.roundToInt()) {
-            forcedRemeasure = false
-            helper.onSizeChanged(w, h)
-            scrollHelper.onSizeChanged(w, h)
-        }
+        helper.onSizeChanged(w, h)
+        scrollHelper.onSizeChanged(w, h)
     }
 
 
