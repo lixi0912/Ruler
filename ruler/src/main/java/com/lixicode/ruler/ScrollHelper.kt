@@ -99,7 +99,7 @@ internal class ScrollHelper(
 
 
     fun scrollTo(tick: Int) {
-        if (!scroller.isFinished || view.width == 0 || view.height == 0) {
+        if (!scroller.isFinished) {
             return
         }
 

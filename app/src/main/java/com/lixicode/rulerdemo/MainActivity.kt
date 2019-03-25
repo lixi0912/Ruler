@@ -187,6 +187,11 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        findViewById<View>(R.id.dialog_button)
+            .setOnClickListener {
+                RulerDialogFragment().show(supportFragmentManager, getString(R.string.dialog_demo))
+            }
+
     }
 
     private fun updateText(progressWidth: SeekBar, progressHeight: SeekBar): String {
