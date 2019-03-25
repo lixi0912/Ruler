@@ -10,4 +10,7 @@
     <string name="gravity_start">Gravity Start</string>
     <string name="gravity_end">Gravity End</string>
     <string name="gravity_invalid">Gravity Invalid</string>
+    <string name="unit_cm">CM</string>
+    <string name="submit">submit</string>
+    <string name="dialog_demo">Dialog Demo</string>
 </resources>

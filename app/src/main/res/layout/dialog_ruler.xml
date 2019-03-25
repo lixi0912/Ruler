@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+                name="tick"
+                type="androidx.databinding.ObservableField&lt;Integer&gt;"/>
+
+    </data>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            android:background="@android:color/white">
+
+
+        <TextView
+                android:id="@+id/title_text"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginTop="12dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="#333"
+                android:text="@string/app_name"/>
+
+
+        <TextView
+                android:id="@+id/value_text"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title_text"
+                android:gravity="center"
+                android:textSize="50sp"
+                app:unitText='@{@string/unit_cm}'
+                app:unitTextSize="@{12}"
+                app:text="@{tick}"
+                android:textColor="@android:color/black"
+        />
+
+        <com.lixicode.ruler.RulerView
+                android:id="@+id/ruler"
+                android:layout_width="0dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="12dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/value_text"
+                android:orientation="horizontal"
+                app:ruler_minimumOfTicks="60"
+                app:ruler_enableMirrorTick="false"
+                app:tick="@{tick}"
+                app:ruler_baseLineOptions="@null"
+                app:ruler_autoSize="none"
+                app:ruler_autoSizeMaxTextSize="11sp"
+                app:ruler_maximumOfTicks="210"
+        />
+
+
+        <com.google.android.material.button.MaterialButton
+                style="@style/Widget.MaterialComponents.Button"
+                android:id="@+id/btn_dialog_ok"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/ruler"
+                android:insetRight="0dp"
+                android:insetLeft="0dp"
+                app:cornerRadius="0dp"
+                app:backgroundTint="@color/colorPrimary"
+                android:insetBottom="0dp"
+                android:insetTop="0dp"
+                android:text="@string/submit"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

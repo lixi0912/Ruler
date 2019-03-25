@@ -129,4 +129,14 @@
             android:progress="10"/>
 
 
+    <Button
+            android:id="@+id/dialog_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progress_height"
+            android:text="@string/dialog_demo"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
