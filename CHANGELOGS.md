@@ -1,3 +1,14 @@
+## 1.0-alpha3 (2019/03/22)
+
+### Bug Fixes
+- 修复宽高不变的情况下，由于重新触发了测量，产生不必要的界面移动动画
+- 修复首次绘制时，使用了 scroller 导致不必要的移动动画
+- 修复 xml 配置参数时，options 里的默认参数覆盖了 RulerView 的配置 
+
+### Changes
+- 宽高不变的情况下，requestLayout 内部计算类将不会重新测量，用于避免不必要的计算
+
+
 ## 1.0-alpha2 (2019/03/21)
 ### Enhancements
 - RulerView 支持固定宽高
