@@ -1,3 +1,8 @@
+## 1.0-alpha4 (2019/03/25)
+
+### Bug Fixes
+- 修复由于界面显示前，View 被多次测量，导致不必要的 dispatchOnSizeChanged 调用
+
 ## 1.0-alpha3 (2019/03/22)
 
 ### Bug Fixes
