@@ -68,20 +68,39 @@ fun Rect.recycle() {
     RectPool.recycle(this)
 }
 
-fun RectF.concat(matrix: Matrix): RectF {
-    matrix.mapRect(this)
-    return this
+
+fun Rect.rangeHorizontal(): IntRange {
+    return left..right
 }
 
-fun RectF.mapToRect(): Rect {
-    val out = RectPool.obtain()
-    round(out)
-    RectFPool.recycle(this)
-    return out
+fun Rect.rangeVertical(): IntRange {
+    return top..bottom
 }
+
+fun Rect.expand(w: Int, h: Int) {
+    val dx = w.div(-2)
+    val dy = h.div(-2)
+    inset(dx, dy)
+}
+
+
+fun Rect.coerceIn(other: Rect) {
+    left = left.coerceAtLeast(other.left)
+    top = top.coerceAtLeast(other.top)
+    right = right.coerceIn(other.left, other.right)
+    bottom = bottom.coerceIn(other.top, other.bottom)
+}
+
 
 fun Rect.set(width: Int, height: Int): Rect {
     set(width, height, width, height)
+    return this
+}
+
+// RectF
+
+fun RectF.concat(matrix: Matrix): RectF {
+    matrix.mapRect(this)
     return this
 }
 
@@ -98,18 +117,12 @@ fun RectF.set(left: Int, top: Int, right: Int, bottom: Int): RectF {
     return this
 }
 
-fun Rect.rangeHorizontal(): IntRange {
-    return left..right
-}
 
-fun Rect.rangeVertical(): IntRange {
-    return top..bottom
-}
-
-fun Rect.expand(w: Int, h: Int) {
-    val dx = w.div(-2)
-    val dy = h.div(-2)
-    inset(dx, dy)
+fun RectF.mapToRect(): Rect {
+    val out = RectPool.obtain()
+    round(out)
+    RectFPool.recycle(this)
+    return out
 }
 
 fun RectF.expand(w: Int, h: Int) {
@@ -122,6 +135,13 @@ fun RectF.expand(w: Float, h: Float) {
     inset(dx, dy)
 }
 
+
+fun RectF.coerceIn(other: RectF) {
+    left = left.coerceAtLeast(other.left)
+    top = top.coerceAtLeast(other.top)
+    right = right.coerceIn(other.left, other.right)
+    bottom = bottom.coerceIn(other.top, other.bottom)
+}
 
 fun RectF.recycle() {
     RectFPool.recycle(this)

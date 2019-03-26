@@ -95,12 +95,6 @@ internal class RulerViewHelper(private val view: RulerView) {
             return weightOfLabel.plus(tickWeight)
         }
 
-    /**
-     * 每次绘制的刻度数
-     */
-    var visibleTickCount: Int = 0
-
-
     var horizontalScrollRange: Int = 0
     var verticalScrollRange: Int = 0
 
@@ -233,28 +227,11 @@ internal class RulerViewHelper(private val view: RulerView) {
         labelHelper.autoTextSize(viewPort)
 
         transformer.prepareMatrixValuePx(this)
-
-        this.visibleTickCount = PointF.obtain(w.toFloat(), h.toFloat())
-            .also {
-                transformer.invertPixelToValue(it)
-            }.let {
-                if (isHorizontal) {
-                    it.x.roundToInt()
-                } else {
-                    it.y.roundToInt()
-                }.apply {
-                    it.recycle()
-                }
-            }
     }
 
 
     fun generateValueToPixel(value: Int): PointF {
         return transformer.generateValueToPixel(value)
-    }
-
-    fun invertPixelToValue(x: Int, y: Int): PointF {
-        return transformer.invertPixelToValue(x, y)
     }
 
 

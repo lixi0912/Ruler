@@ -285,23 +285,24 @@ internal class ScrollHelper(
         val deltaX: Int
         val deltaY: Int
 
-        helper.invertPixelToValue(
-            scroller.finalX,
-            scroller.finalY
-        ).also {
-            it.x = round(it.x)
-            it.y = round(it.y)
-            helper.transformer.pointValuesToPixel(it)
-        }.also {
-            if (helper.isHorizontal) {
-                deltaX = it.x.roundToInt() - scrollOffset - scroller.finalX
-                deltaY = 0
-            } else {
-                deltaX = 0
-                deltaY = it.y.roundToInt() - scrollOffset - scroller.finalY
+        RectPool
+            .obtain()
+            .set(scroller.finalX, scroller.finalY)
+            .concat(helper.transformer.mMatrixScrollOffset)
+            .concat(helper.transformer.mMatrixPxToValue)
+            .concat(helper.transformer.mMatrixValueToPx)
+            .also {
+                it.offset(-scrollOffset, -scrollOffset)
+                it.offset(-scroller.finalX, -scroller.finalY)
+                if (helper.isHorizontal) {
+                    deltaX = it.left
+                    deltaY = 0
+                } else {
+                    deltaX = 0
+                    deltaY = it.top
+                }
+                it.recycle()
             }
-            it.recycle()
-        }
 
         if (deltaX != 0 || deltaY != 0) {
             scroller.abortAnimation()
@@ -321,18 +322,19 @@ internal class ScrollHelper(
     private fun updateTickFromScrollPosition(x: Int, y: Int) {
         val tick: Int
 
-        helper.invertPixelToValue(
-            x.coerceIn(minScrollPosition, maxScrollPosition),
-            y.coerceIn(minScrollPosition, maxScrollPosition)
-        ).also {
-            tick = if (view.isHorizontal) {
-                it.x
-            } else {
-                it.y
-            }.roundToInt()
-        }.also {
-            it.recycle()
-        }
+        RectPool
+            .obtain()
+            .set(x.coerceIn(minScrollPosition, maxScrollPosition), y.coerceIn(minScrollPosition, maxScrollPosition))
+            .concat(helper.transformer.mMatrixScrollOffset)
+            .concat(helper.transformer.mMatrixPxToValue)
+            .also {
+                tick = if (view.isHorizontal) {
+                    it.left
+                } else {
+                    it.top
+                }
+                it.recycle()
+            }
 
         view.tick = tick
 

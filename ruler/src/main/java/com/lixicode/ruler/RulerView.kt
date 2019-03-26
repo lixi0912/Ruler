@@ -455,7 +455,7 @@ class RulerView @JvmOverloads constructor(
                     .concat(transformer.mMatrixScrollOffset)
                     .mapToRectF()
                     .apply {
-                        it.intersect(this)
+                        it.coerceIn(this)
                     }
                     .recycle()
             }

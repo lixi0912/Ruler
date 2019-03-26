@@ -93,16 +93,9 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         mMatrixValueToPx.mapPoints(pts)
     }
 
-    fun invertPixelToValue(pts: PointF) {
-        mMatrixScrollOffset.mapPoints(pts)
-        mMatrixPxToValue.mapPoints(pts)
-    }
 
-    fun invertPixelToValue(x: Int, y: Int): PointF {
-        val pts = PointF.obtain(x, y)
-        invertPixelToValue(pts)
-        return pts
-    }
+
+
 }
 
 
