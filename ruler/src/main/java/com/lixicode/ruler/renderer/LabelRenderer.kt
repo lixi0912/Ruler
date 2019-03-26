@@ -40,9 +40,9 @@ internal class LabelRenderer(private val helper: LabelHelper) {
     }
 
 
-    fun finishDraw() {
+    fun finishDraw(view: RulerView) {
         if (helper.autoSizeMode == LabelHelper.ALWAYS) {
-            helper.autoTextSize(measuredText = helper.longestLabel)
+            helper.autoTextSize()
         } else {
             rectF?.recycle()
             this.rectF = null
@@ -62,7 +62,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
 
         val textDrawable = helper.labelOptions.getDrawable()!!
 
-        textDrawable.text = view.valueFormatter.formatValue(tick.toFloat())
+        textDrawable.text = view.getAdapter().getItemTitle(tick)
         if (helper.autoSizeMode == LabelHelper.ALWAYS) {
             helper.autoTextSize(view.viewPort, textDrawable.text)
             if (helper.shouldAutoTextSize(view.viewPort)) {
@@ -105,7 +105,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         }
 
         val textDrawable = helper.labelOptions.getDrawable()!!
-        textDrawable.text = view.valueFormatter.formatValue(tick.toFloat())
+        textDrawable.text = view.getAdapter().getItemTitle(tick)
 
         if (helper.autoSizeMode == LabelHelper.ALWAYS) {
             helper.autoTextSize(view.viewPort, textDrawable.text)

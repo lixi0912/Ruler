@@ -1,3 +1,26 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler
 
 import android.annotation.SuppressLint
@@ -7,7 +30,7 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import com.lixicode.ruler.data.Options
+import com.lixicode.ruler.data.*
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
 import com.lixicode.ruler.renderer.RulerViewRenderer
@@ -18,7 +41,7 @@ import kotlin.math.roundToInt
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/2/27
  */
 class RulerView @JvmOverloads constructor(
@@ -66,21 +89,33 @@ class RulerView @JvmOverloads constructor(
     /**
      * 用于格式化显示的 Label
      */
-    var valueFormatter: ValueFormatter
-        get() = helper.valueFormatter
+    @Deprecated(message = "use adapter instead", level = DeprecationLevel.WARNING)
+    var valueFormatter: ValueFormatter?
+        get() = adapter.formatter
         set(value) {
-            helper.valueFormatter = value
+            adapter.formatter = value
             invalidate()
         }
+
+    /**
+     * 数据适配器
+     *
+     * @since 1.0-rc1
+     */
+    private lateinit var adapter: Adapter
+
 
     /**
      * 当前项的刻度值
      */
     var tick: Int = 0
         set(value) {
-            field = helper.coerceInTicks(value)
-            scrollHelper.scrollTo(field)
+            field = coerceInTicks(value)
+            if (width > 0 && height > 0) {
+                scrollHelper.scrollTo(field)
+            }
         }
+
 
     /**
      * 两个刻度相距的距离
@@ -105,15 +140,17 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see maximumOfTicks
      */
+    @Deprecated(
+        message = "this value will remove in future version",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("adapter")
+    )
     var minimumOfTicks: Int
         get() {
-            return helper.minimumOfTicks
+            throw UnsupportedOperationException()
         }
-        set(value) {
-            if (value != helper.minimumOfTicks) {
-                helper.minimumOfTicks = value
-                requestLayoutInternal()
-            }
+        set(_) {
+            throw UnsupportedOperationException()
         }
 
     /**
@@ -122,15 +159,17 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see minimumOfTicks
      */
+    @Deprecated(
+        message = "this value will remove in future version",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("adapter")
+    )
     var maximumOfTicks: Int
         get() {
-            return helper.maximumOfTicks
+            throw UnsupportedOperationException()
         }
-        set(value) {
-            if (value != helper.maximumOfTicks) {
-                helper.maximumOfTicks = value
-                requestLayoutInternal()
-            }
+        set(_) {
+            throw UnsupportedOperationException()
         }
 
 
@@ -233,13 +272,37 @@ class RulerView @JvmOverloads constructor(
         helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
     }
 
+    /**
+     * 获取数据适配器
+     *
+     * @return 适配器
+     * @since 1.0-rc1
+     */
+    fun getAdapter(): Adapter {
+        return adapter
+    }
+
+    /**
+     * 设置数据适配器
+     *
+     * @param adapter 适配器
+     * @since 1.0-rc1
+     */
+    fun setAdapter(adapter: Adapter) {
+        this.adapter = adapter
+    }
 
     /**
      * @param tick [tick]
      * @return index of [minimumOfTicks]..[maximumOfTicks]
      */
+    @Deprecated(
+        message = "this method will removed in future version",
+        replaceWith = ReplaceWith("tick"),
+        level = DeprecationLevel.WARNING
+    )
     fun tickIndex(tick: Int): Int {
-        return helper.tickIndex(tick)
+        return tick
     }
 
     fun updateBaseLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
@@ -315,7 +378,6 @@ class RulerView @JvmOverloads constructor(
             scrollY + height - paddingBottom
         )
         renderer.onDraw(this, canvas)
-
     }
 
     override fun onAttachedToWindow() {
@@ -365,6 +427,53 @@ class RulerView @JvmOverloads constructor(
         return paddingRight.minus(paddingLeft).takeIf {
             it > 0
         } ?: 0
+    }
+
+    internal fun coerceInTicks(value: Int): Int {
+        return adapter.let {
+            value.rem(it.itemCount + 1)
+        }
+    }
+
+
+    internal fun positionRangeWithOffset(): IntRange {
+        // 
+        val left: Float
+        val top: Float
+        val right: Float
+        val bottom: Float
+        val maxItemPx = scrollHelper.maxScrollPosition.minus(scrollHelper.scrollOffset).toFloat()
+        val minItemPx = scrollHelper.minScrollPosition.plus(scrollHelper.scrollOffset).toFloat()
+
+        val targetX = scrollX.plus(viewPort.contentWidth)
+        val targetY = scrollY.plus(viewPort.contentHeight)
+        if (targetX >= maxItemPx || targetY >= maxItemPx) {
+            right = maxItemPx
+            bottom = maxItemPx
+        } else {
+            right = targetX
+            bottom = targetX
+        }
+
+        left = right.minus(viewPort.contentWidth).coerceAtLeast(minItemPx)
+        top = bottom.minus(viewPort.contentHeight).coerceAtLeast(minItemPx)
+
+
+        return RectFPool.obtain()
+            .also {
+                it.set(left, top, right, bottom)
+            }
+            .concat(transformer.mMatrixPxToValue)
+            .mapToRect()
+            .let {
+                val range = if (isHorizontal) {
+                    it.left..it.right
+                } else {
+                    it.top..it.bottom
+                }
+                it.recycle()
+                range
+            }
     }
 
 }

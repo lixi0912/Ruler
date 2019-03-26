@@ -2,10 +2,10 @@ package com.lixicode.ruler.internal
 
 import android.content.Context
 import android.util.AttributeSet
+import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.PointF
-import com.lixicode.ruler.formatter.ValueFormatter
+import com.lixicode.ruler.data.*
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
@@ -28,17 +28,6 @@ internal class RulerViewHelper(private val view: RulerView) {
      */
     internal val labelHelper = LabelHelper(view)
 
-    var valueFormatter = ValueFormatter.DEFAULT
-
-    /**
-     * 最小刻度
-     */
-    var minimumOfTicks: Int = 0
-
-    /**
-     * 最大刻度
-     */
-    var maximumOfTicks: Int = 100
 
     /**
      * 两个刻度间有多少格
@@ -127,8 +116,8 @@ internal class RulerViewHelper(private val view: RulerView) {
             defStyleAttr, defStyleRes
         )
 
-        val minimumOfTicks = a.getInt(R.styleable.RulerView_ruler_minimumOfTicks, minimumOfTicks)
-        val maximumOfTicks = a.getInt(R.styleable.RulerView_ruler_maximumOfTicks, maximumOfTicks)
+        val minimumOfTicks = a.getInt(R.styleable.RulerView_ruler_minimumOfTicks, 0)
+        val maximumOfTicks = a.getInt(R.styleable.RulerView_ruler_maximumOfTicks, 100)
         val stepOfTicks = a.getInt(R.styleable.RulerView_ruler_stepOfTicks, stepOfTicks)
         val enableMirrorTick = a.getBoolean(R.styleable.RulerView_ruler_enableMirrorTick, enableMirrorTick)
         val orientation = a.getInt(R.styleable.RulerView_android_orientation, orientation)
@@ -142,52 +131,28 @@ internal class RulerViewHelper(private val view: RulerView) {
         this.gravityOfTick = gravityOfTick
         this.orientation = orientation
         this.stepOfTicks = stepOfTicks
-        this.minimumOfTicks = minimumOfTicks
-        this.maximumOfTicks = maximumOfTicks
         this.enableMirrorTick = enableMirrorTick
-
 
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
+        val adapter = Adapter()
+        adapter.itemCount = maximumOfTicks - minimumOfTicks
+        adapter.minimumOfTicks = 0
+        adapter.maximumOfTicks = adapter.itemCount
+
+        view.setAdapter(adapter)
 
 
-        setTickValue(tick)
-    }
-
-    fun rangeOfTickWithScrollOffset(): IntRange {
-        val startValue = PointF.obtain(view.scrollX.toFloat(), view.scrollY.toFloat())
-            .also {
-                transformer.invertPixelToValue(it)
-            }.let {
-                if (isHorizontal) {
-                    coerceInTicks(it.x.roundToInt())
-                } else {
-                    coerceInTicks(it.y.roundToInt())
-                }.apply {
-                    it.recycle()
-                }
-            }
-
-        val endValue = (startValue + visibleTickCount).coerceAtMost(maximumOfTicks)
-        return startValue..endValue
+        setTickValue(tick - minimumOfTicks)
     }
 
     /**
      * @return true [tick] is remainder of ticks
      */
     fun remOfTick(tick: Int): Int {
-        val tickIndex = coerceInTicks(tick).minus(minimumOfTicks)
+        val tickIndex = view.coerceInTicks(tick)
         return tickIndex.rem(stepOfTicks)
-    }
-
-    fun tickIndex(tick: Int): Int {
-        return coerceInTicks(tick).minus(minimumOfTicks)
-    }
-
-
-    fun coerceInTicks(value: Int): Int {
-        return value.coerceIn(minimumOfTicks, maximumOfTicks)
     }
 
 
@@ -271,9 +236,9 @@ internal class RulerViewHelper(private val view: RulerView) {
                 transformer.invertPixelToValue(it)
             }.let {
                 if (isHorizontal) {
-                    it.x.roundToInt() - minimumOfTicks
+                    it.x.roundToInt()
                 } else {
-                    it.y.roundToInt() - minimumOfTicks
+                    it.y.roundToInt()
                 }.apply {
                     it.recycle()
                 }

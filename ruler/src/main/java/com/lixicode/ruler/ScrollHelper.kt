@@ -36,6 +36,8 @@ internal class ScrollHelper(
 
     private val scroller = OverScroller(view.context)
 
+    var scrollOffset: Int = 0
+
     var minScrollPosition: Int = 0
     var maxScrollPosition: Int = 0
 
@@ -61,30 +63,27 @@ internal class ScrollHelper(
     fun onSizeChanged(w: Int, h: Int) {
         firstLayout = true
 
-        minScrollPosition = helper.generateValueToPixel(helper.minimumOfTicks)
-            .let {
-                //  允许首项居中
-                if (helper.isHorizontal) {
-                    it.x.minus(w.div(2)).roundToInt()
-                } else {
-                    it.y.minus(h.div(2)).roundToInt()
-                }.apply {
-                    it.recycle()
-                }
-            }
 
-        //  允许最后一项居中
-        maxScrollPosition = helper.generateValueToPixel(helper.maximumOfTicks)
-            .let {
-                if (helper.isHorizontal) {
-                    it.x.minus(w.div(2)).roundToInt()
-                } else {
-                    it.y.minus(h.div(2)).roundToInt()
-                }.apply {
-                    it.recycle()
-                }
-            }
+        scrollOffset = if (helper.isHorizontal) {
+            w.div(2)
+        } else {
+            h.div(2)
+        }
 
+
+        val adapter = view.getAdapter()
+        minScrollPosition = if (adapter.minimumOfTicks == Int.MIN_VALUE) {
+            Int.MIN_VALUE
+        } else {
+            generateScrollPx(adapter.minimumOfTicks).minus(scrollOffset)
+        }
+
+
+        maxScrollPosition = if (adapter.maximumOfTicks == Int.MAX_VALUE) {
+            Int.MAX_VALUE
+        } else {
+            generateScrollPx(adapter.itemCount).plus(scrollOffset)
+        }
 
         // cancel scroller
         if (!scroller.isFinished) {
@@ -97,6 +96,20 @@ internal class ScrollHelper(
         scrollTo(view.tick)
     }
 
+    private fun generateScrollPx(poisition: Int): Int {
+        return helper.generateValueToPixel(poisition)
+            .let {
+                //  允许首项居中
+                if (helper.isHorizontal) {
+                    it.x.roundToInt()
+                } else {
+                    it.y.roundToInt()
+                }.apply {
+                    it.recycle()
+                }
+            }
+    }
+
 
     fun scrollTo(tick: Int) {
         if (!scroller.isFinished) {
@@ -104,8 +117,8 @@ internal class ScrollHelper(
         }
 
         val pts = helper.generateValueToPixel(tick)
-        val dx = pts.x.plus(minScrollPosition).minus(view.scrollX).roundToInt().takeIf { helper.isHorizontal } ?: 0
-        val dy = pts.y.plus(minScrollPosition).minus(view.scrollY).roundToInt().takeIf { !helper.isHorizontal } ?: 0
+        val dx = pts.x.minus(scrollOffset).minus(view.scrollX).roundToInt().takeIf { helper.isHorizontal } ?: 0
+        val dy = pts.y.minus(scrollOffset).minus(view.scrollY).roundToInt().takeIf { !helper.isHorizontal } ?: 0
         pts.recycle()
 
         if (dx == 0 && dy == 0) {
@@ -117,8 +130,7 @@ internal class ScrollHelper(
             firstLayout = false
             view.scrollBy(dx, dy)
 
-            val tickValue = tick.toFloat()
-            view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
+            view.tickChangeListener?.onTickChanged(tick.toFloat(), view.getAdapter().getItemTitle(tick))
         } else {
             scroller.startScroll(
                 view.scrollX, view.scrollY,
@@ -264,8 +276,8 @@ internal class ScrollHelper(
         val deltaY: Int
 
         helper.invertPixelToValue(
-            scroller.finalX - minScrollPosition,
-            scroller.finalY - minScrollPosition
+            scroller.finalX + scrollOffset,
+            scroller.finalY + scrollOffset
         ).also {
             it.x = round(it.x)
             it.y = round(it.y)
@@ -298,11 +310,14 @@ internal class ScrollHelper(
 
     private fun updateTickFromScrollPosition(x: Int, y: Int) {
 
+        val minItemPx = minScrollPosition.plus(scrollOffset)
+        val maxItemPx = maxScrollPosition.minus(scrollOffset)
+
         val tick: Int
 
         helper.invertPixelToValue(
-            x - minScrollPosition,
-            y - minScrollPosition
+            x.plus(scrollOffset).coerceIn(minItemPx, maxItemPx),
+            y.plus(scrollOffset).coerceIn(minItemPx, maxItemPx)
         ).also {
             tick = if (view.isHorizontal) {
                 it.x
@@ -317,8 +332,7 @@ internal class ScrollHelper(
 
         setScrollState(SCROLL_STATE_IDLE)
 
-        val tickValue = tick.toFloat()
-        view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
+        view.tickChangeListener?.onTickChanged(tick.toFloat(), view.getAdapter().getItemTitle(tick))
     }
 
     private fun setScrollState(state: Int) {

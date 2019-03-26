@@ -13,8 +13,8 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
 
 
     internal var labelMatrix = Matrix()
-    private var mMatrixPxToValue = Matrix()
-    private var mMatrixValueToPx = Matrix()
+    internal var mMatrixPxToValue = Matrix()
+    internal var mMatrixValueToPx = Matrix()
 
     fun prepareMatrixValuePx(helper: RulerViewHelper) {
         if (helper.isHorizontal) {
@@ -35,7 +35,7 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val scaleX = (minimumWidth / deltaX).letFinite()
         val scaleY = (minimumHeight / deltaY).letFinite()
 
-        applyToMatrix(mMatrixValueToPx, -helper.minimumOfTicks.toFloat(), 0F, scaleX, scaleY, 0F, viewPort.contentTop)
+        applyToMatrix(mMatrixValueToPx, scaleX, scaleY, 0F, viewPort.contentTop)
         mMatrixValueToPx.invert(mMatrixPxToValue)
 
 
@@ -56,7 +56,7 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val scaleX = (minimumWidth / deltaX).letFinite()
         val scaleY = (minimumHeight / deltaY).letFinite()
 
-        applyToMatrix(mMatrixValueToPx, 0F, -helper.minimumOfTicks.toFloat(), scaleX, scaleY, viewPort.contentLeft, 0F)
+        applyToMatrix(mMatrixValueToPx, scaleX, scaleY, viewPort.contentLeft, 0F)
         mMatrixValueToPx.invert(mMatrixPxToValue)
 
 
@@ -68,15 +68,12 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
 
     private fun applyToMatrix(
         matrix: Matrix,
-        preTranslateX: Float,
-        preTranslateY: Float,
         scaleX: Float,
         scaleY: Float,
         postTranslateX: Float,
         postTranslateY: Float
     ) {
         matrix.reset()
-        matrix.postTranslate(preTranslateX, preTranslateY)
         matrix.postScale(scaleX, scaleY)
         matrix.postTranslate(postTranslateX, postTranslateY)
 

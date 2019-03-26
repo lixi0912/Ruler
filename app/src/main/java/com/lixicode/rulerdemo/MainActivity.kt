@@ -9,12 +9,14 @@ import android.widget.TextView
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.convertTo
 import com.google.android.material.chip.Chip
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.formatter.ValueFormatter
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import org.w3c.dom.Text
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
@@ -34,13 +36,13 @@ class MainActivity : AppCompatActivity() {
         val rulerView = findViewById<RulerView>(R.id.ruler)
 
         rulerView.valueFormatter = object : ValueFormatter {
-            override fun formatValue(value: Float): String {
-                val intValue = value.roundToInt()
-                val index = rulerView.tickIndex(intValue).div(5 /* step */)
-                if (index < TEXT.length) {
+
+            override fun formatItemLabel(position: Int): String {
+                val index = position.div(5 /* step */)
+                if ((0 until TEXT.length).contains(index)) {
                     return TEXT.substring(index, index + 1)
                 }
-                return intValue.toString()
+                return position.toString()
             }
         }
 

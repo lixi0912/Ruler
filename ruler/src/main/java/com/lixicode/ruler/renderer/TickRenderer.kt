@@ -1,7 +1,6 @@
 package com.lixicode.ruler.renderer
 
 import android.graphics.Canvas
-import android.graphics.Paint
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.data.setBounds
@@ -20,10 +19,10 @@ internal class TickRenderer(private val helper: TickHelper) {
         view: RulerView,
         canvas: Canvas,
         tick: Int,
-        remainderOfTick: Int,
+        remainderValue: Int,
         significantBetweenTick: Boolean
     ) {
-        drawHorizontalTick(view, canvas, tick, remainderOfTick, significantBetweenTick)
+        drawHorizontalTick(view, canvas, tick, remainderValue, significantBetweenTick)
     }
 
 
@@ -47,10 +46,10 @@ internal class TickRenderer(private val helper: TickHelper) {
     }
 
     private fun drawHorizontalTick(
-        view: RulerView, canvas: Canvas, tick: Int, remainderOfTick: Int, significantBetweenTick: Boolean
+        view: RulerView, canvas: Canvas, tick: Int, remainderValue: Int, significantBetweenTick: Boolean
     ) {
         val y = when {
-            remainderOfTick == 0 -> helper.tickOptions.weight
+            remainderValue == 0 -> helper.tickOptions.weight
             significantBetweenTick -> helper.significantTickWeight
             else -> helper.dividerTickOptions.weight
         }

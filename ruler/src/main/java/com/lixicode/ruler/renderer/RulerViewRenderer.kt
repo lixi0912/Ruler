@@ -29,22 +29,22 @@ internal class RulerViewRenderer(helper: RulerViewHelper) {
 
         labelRenderer.onPreDraw(view)
 
-        val enableSignificantTick = helper.stepOfTicks.rem(2) == 0
+        val significantPosition = helper.stepOfTicks.rem(2) == 0
         val halfOfStep = helper.stepOfTicks.div(2)
-        for (tick in helper.rangeOfTickWithScrollOffset()) {
-            val remainderOfTick = helper.remOfTick(tick)
-            val significantBetweenTick = enableSignificantTick && remainderOfTick == halfOfStep
+        for (position in view.positionRangeWithOffset()) {
+            val remainderValue = helper.remOfTick(position)
+            val significantBetweenTick = significantPosition && remainderValue == halfOfStep
 
             // draw tick
             if (helper.gravityOfTick == RulerView.GRAVITY_START || helper.enableMirrorTick) {
-                tickRenderer.onDrawHorizontal(view, canvas, tick, remainderOfTick, significantBetweenTick)
+                tickRenderer.onDrawHorizontal(view, canvas, position, remainderValue, significantBetweenTick)
             }
 
             drawOnMirrorTick(view, canvas) { _, _ ->
-                tickRenderer.onDrawHorizontal(view, canvas, tick, remainderOfTick, significantBetweenTick)
+                tickRenderer.onDrawHorizontal(view, canvas, position, remainderValue, significantBetweenTick)
             }
 
-            labelRenderer.onDrawHorizontal(view, canvas, tick, remainderOfTick)
+            labelRenderer.onDrawHorizontal(view, canvas, position, remainderValue)
         }
 
         if (helper.gravityOfTick == RulerView.GRAVITY_START || helper.enableMirrorTick) {
@@ -55,7 +55,7 @@ internal class RulerViewRenderer(helper: RulerViewHelper) {
             tickRenderer.onDrawHorizontalOver(view, canvas)
         }
 
-        labelRenderer.finishDraw()
+        labelRenderer.finishDraw(view)
 
 
     }
@@ -69,7 +69,7 @@ internal class RulerViewRenderer(helper: RulerViewHelper) {
 
         val enableSignificantTick = helper.stepOfTicks.rem(2) == 0
         val halfOfStep = helper.stepOfTicks.div(2)
-        for (tick in helper.rangeOfTickWithScrollOffset()) {
+        for (tick in view.positionRangeWithOffset()) {
             val remainderOfTick = helper.remOfTick(tick)
             val significantBetweenTick = enableSignificantTick && remainderOfTick == halfOfStep
 
@@ -91,7 +91,7 @@ internal class RulerViewRenderer(helper: RulerViewHelper) {
             tickRenderer.onDrawVerticalOver(view, canvas)
         }
 
-        labelRenderer.finishDraw()
+        labelRenderer.finishDraw(view)
 
     }
 
