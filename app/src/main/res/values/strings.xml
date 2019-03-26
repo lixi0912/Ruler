@@ -13,4 +13,5 @@
     <string name="unit_cm">CM</string>
     <string name="submit">submit</string>
     <string name="dialog_demo">Dialog Demo</string>
+    <string name="wheel_demo">wheel_demo</string>
 </resources>
