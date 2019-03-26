@@ -141,7 +141,10 @@ internal class RulerViewHelper(private val view: RulerView) {
         adapter.minimumOfTicks = 0
         adapter.maximumOfTicks = adapter.itemCount
 
+
         view.setAdapter(adapter)
+
+
 
 
         setTickValue(tick - minimumOfTicks)
@@ -160,8 +163,8 @@ internal class RulerViewHelper(private val view: RulerView) {
         this.view.tick = tick
     }
 
-    fun setLongestLabel(label: String?, sameLengthOfLabel: Boolean) {
-        labelHelper.setLongestLabel(label, sameLengthOfLabel)
+    fun resetLongestLabel(label: String? = null) {
+        labelHelper.resetLongestLabel(label)
     }
 
 

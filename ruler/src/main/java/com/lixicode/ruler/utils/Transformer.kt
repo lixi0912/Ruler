@@ -11,6 +11,7 @@ import com.lixicode.ruler.internal.RulerViewHelper
  */
 internal class Transformer(private val viewPort: ViewPortHandler) {
 
+    internal var mMatrixScrollOffset = Matrix()
 
     internal var labelMatrix = Matrix()
     internal var mMatrixPxToValue = Matrix()
@@ -36,9 +37,8 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val scaleY = (minimumHeight / deltaY).letFinite()
 
         applyToMatrix(mMatrixValueToPx, scaleX, scaleY, 0F, viewPort.contentTop)
+
         mMatrixValueToPx.invert(mMatrixPxToValue)
-
-
 
         labelMatrix.set(mMatrixValueToPx)
 //        labelMatrix.postTranslate(-helper.labelHelper.labelOptions.widthNeeded.div(2F), 0F)
@@ -57,13 +57,18 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val scaleY = (minimumHeight / deltaY).letFinite()
 
         applyToMatrix(mMatrixValueToPx, scaleX, scaleY, viewPort.contentLeft, 0F)
+
         mMatrixValueToPx.invert(mMatrixPxToValue)
-
-
 
         labelMatrix.set(mMatrixValueToPx)
 //        labelMatrix.postTranslate(0F, -helper.labelHelper.labelOptions.heightNeeded.div(2F))
 
+    }
+
+
+    internal fun prepareScrollOffset(dx: Float, dy: Float) {
+        mMatrixScrollOffset.reset()
+        mMatrixScrollOffset.postTranslate(dx, dy)
     }
 
     private fun applyToMatrix(
@@ -76,8 +81,6 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         matrix.reset()
         matrix.postScale(scaleX, scaleY)
         matrix.postTranslate(postTranslateX, postTranslateY)
-
-
     }
 
     fun generateValueToPixel(value: Int): PointF {
@@ -91,6 +94,7 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
     }
 
     fun invertPixelToValue(pts: PointF) {
+        mMatrixScrollOffset.mapPoints(pts)
         mMatrixPxToValue.mapPoints(pts)
     }
 

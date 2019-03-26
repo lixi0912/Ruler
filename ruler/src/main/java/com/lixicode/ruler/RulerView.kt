@@ -26,7 +26,6 @@ package com.lixicode.ruler
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -38,7 +37,6 @@ import com.lixicode.ruler.renderer.RulerViewRenderer
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 /**
  * <>
@@ -291,6 +289,7 @@ class RulerView @JvmOverloads constructor(
      */
     fun setAdapter(adapter: Adapter) {
         this.adapter = adapter
+        helper.resetLongestLabel()
     }
 
     /**
@@ -438,39 +437,35 @@ class RulerView @JvmOverloads constructor(
 
 
     internal fun positionRangeWithOffset(): IntRange {
-        // 
-        val left: Float
-        val top: Float
-        val right: Float
-        val bottom: Float
-        val maxItemPx = scrollHelper.maxScrollPosition.plus(scrollHelper.scrollOffset).toFloat()
-        val minItemPx = scrollHelper.minScrollPosition.plus(scrollHelper.scrollOffset).toFloat()
-
-        val targetX = scrollX.plus(viewPort.contentWidth)
-        val targetY = scrollY.plus(viewPort.contentHeight)
-        if (targetX >= maxItemPx || targetY >= maxItemPx) {
-            right = maxItemPx
-            bottom = maxItemPx
-        } else {
-            right = targetX
-            bottom = targetY
-        }
-
-        left = right.minus(viewPort.contentWidth).coerceAtLeast(minItemPx)
-        top = bottom.minus(viewPort.contentHeight).coerceAtLeast(minItemPx)
-
-
-        return RectFPool.obtain()
+        return RectPool.obtain()
+            .set(scrollX, scrollY)
+            .mapToRectF()
             .also {
-                it.set(left, top, right, bottom)
+                it.inset(-viewPort.contentWidth, -viewPort.contentHeight)
+
+                RectPool.obtain()
+                    .apply {
+                        set(
+                            scrollHelper.minScrollPosition,
+                            scrollHelper.minScrollPosition,
+                            scrollHelper.maxScrollPosition,
+                            scrollHelper.maxScrollPosition
+                        )
+                    }
+                    .concat(transformer.mMatrixScrollOffset)
+                    .mapToRectF()
+                    .apply {
+                        it.intersect(this)
+                    }
+                    .recycle()
             }
             .concat(transformer.mMatrixPxToValue)
             .mapToRect()
             .let {
                 val range = if (isHorizontal) {
-                    it.left..it.right
+                    it.rangeHorizontal()
                 } else {
-                    it.top..it.bottom
+                    it.rangeVertical()
                 }
                 it.recycle()
                 range

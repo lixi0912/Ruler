@@ -80,6 +80,16 @@ fun RectF.mapToRect(): Rect {
     return out
 }
 
+fun Rect.set(width: Int, height: Int): Rect {
+    set(width, height, width, height)
+    return this
+}
+
+fun RectF.set(width: Float, height: Float): RectF {
+    set(width, height, width, height)
+    return this
+}
+
 fun RectF.set(left: Int, top: Int, right: Int, bottom: Int): RectF {
     val temp = RectPool.obtain()
     temp.set(left, top, right, bottom)
@@ -88,9 +98,27 @@ fun RectF.set(left: Int, top: Int, right: Int, bottom: Int): RectF {
     return this
 }
 
+fun Rect.rangeHorizontal(): IntRange {
+    return left..right
+}
+
+fun Rect.rangeVertical(): IntRange {
+    return top..bottom
+}
+
+fun Rect.expand(w: Int, h: Int) {
+    val dx = w.div(-2)
+    val dy = h.div(-2)
+    inset(dx, dy)
+}
+
 fun RectF.expand(w: Int, h: Int) {
-    val dx: Float = w.div(-2F)
-    val dy: Float = h.div(-2F)
+    inset(w.toFloat(), h.toFloat())
+}
+
+fun RectF.expand(w: Float, h: Float) {
+    val dx = w.div(-2F)
+    val dy = h.div(-2F)
     inset(dx, dy)
 }
 

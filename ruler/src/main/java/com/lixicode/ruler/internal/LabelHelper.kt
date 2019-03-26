@@ -39,7 +39,7 @@ internal class LabelHelper(val view: RulerView) {
         var textAlign: Paint.Align = Paint.Align.CENTER,
         var typeface: Typeface = Typeface.DEFAULT,
         var sameLengthOfLabel: Boolean = false,
-        var longestLabel: String = "",
+        var longestLabel: String? = null,
         var autoSizeMode: Int = NEVER,
         var autoSizeMinTextSize: Float,
         var autoSizeMaxTextSize: Float,
@@ -178,8 +178,7 @@ internal class LabelHelper(val view: RulerView) {
         this.autoSizeMinTextSize = attributes.autoSizeMinTextSize
         this.autoSizeMaxTextSize = attributes.autoSizeMaxTextSize
         this.autoSizeStepGranularity = attributes.autoSizeStepGranularity
-
-        setLongestLabel(attributes.longestLabel, false)
+        this.longestLabel = attributes.longestLabel
 
         // do not inset label drawable
         labelOptions.inset = false
@@ -203,8 +202,26 @@ internal class LabelHelper(val view: RulerView) {
     }
 
 
-    fun setLongestLabel(label: String?, notifyChange: Boolean = true) {
-        this.longestLabel = label
+    fun resetLongestLabel(label: String?, notifyChange: Boolean = true) {
+        val measuredText: String? = label ?: view.getAdapter().run {
+            if (itemCount > 0) {
+                if (sameLengthOfLabel) {
+                    return@run getItemTitle(0)
+                } else {
+                    var tempText: String? = label ?: longestLabel
+                    for (index in 0..itemCount) {
+                        tempText = getItemTitle(index)
+                            .takeIf {
+                                it.length > tempText?.length ?: 0
+                            } ?: tempText
+                    }
+                    return@run tempText
+                }
+            }
+            return@run longestLabel
+        }
+
+        this.longestLabel = measuredText
         if (notifyChange) {
             labelOptions.getDrawable()?.updatePaintInfo { true }
         }

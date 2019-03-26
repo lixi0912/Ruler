@@ -6,9 +6,7 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.widget.OverScroller
 import androidx.core.view.ViewCompat
-import com.lixicode.ruler.data.PointF
-import com.lixicode.ruler.data.offsetX
-import com.lixicode.ruler.data.offsetY
+import com.lixicode.ruler.data.*
 import com.lixicode.ruler.internal.RulerViewHelper
 import kotlin.math.abs
 import kotlin.math.round
@@ -61,29 +59,26 @@ internal class ScrollHelper(
 
 
     fun onSizeChanged(w: Int, h: Int) {
+
+
         firstLayout = true
 
 
         scrollOffset = if (helper.isHorizontal) {
-            w.div(2)
+            w.div(2).also {
+                view.transformer.prepareScrollOffset(it.toFloat(), 0F)
+            }
         } else {
-            h.div(2)
+            h.div(2).also {
+                view.transformer.prepareScrollOffset(0f, it.toFloat())
+            }
         }
 
 
         val adapter = view.getAdapter()
-        minScrollPosition = if (adapter.minimumOfTicks == Int.MIN_VALUE) {
-            Int.MIN_VALUE
-        } else {
-            generateScrollPx(adapter.minimumOfTicks).minus(scrollOffset)
-        }
+        minScrollPosition = generateScrollPx(adapter.minimumOfTicks)
+        maxScrollPosition = generateScrollPx(adapter.maximumOfTicks)
 
-
-        maxScrollPosition = if (adapter.maximumOfTicks == Int.MAX_VALUE) {
-            Int.MAX_VALUE
-        } else {
-            generateScrollPx(adapter.maximumOfTicks).minus(scrollOffset)
-        }
 
         // cancel scroller
         if (!scroller.isFinished) {
@@ -97,7 +92,9 @@ internal class ScrollHelper(
     }
 
     private fun generateScrollPx(poisition: Int): Int {
-        return helper.generateValueToPixel(poisition)
+        return if (poisition == Int.MIN_VALUE || poisition == Int.MAX_VALUE) {
+            poisition
+        } else helper.generateValueToPixel(poisition)
             .let {
                 //  允许首项居中
                 if (helper.isHorizontal) {
@@ -106,7 +103,7 @@ internal class ScrollHelper(
                     it.y.roundToInt()
                 }.apply {
                     it.recycle()
-                }
+                }.minus(scrollOffset)
             }
     }
 
@@ -116,10 +113,23 @@ internal class ScrollHelper(
             return
         }
 
-        val pts = helper.generateValueToPixel(tick)
-        val dx = pts.x.minus(scrollOffset).minus(view.scrollX).roundToInt().takeIf { helper.isHorizontal } ?: 0
-        val dy = pts.y.minus(scrollOffset).minus(view.scrollY).roundToInt().takeIf { !helper.isHorizontal } ?: 0
-        pts.recycle()
+        val dx: Int
+        val dy: Int
+
+        RectPool.obtain()
+            .also {
+                it.set(tick, tick, tick, tick)
+            }
+            .concat(helper.transformer.mMatrixValueToPx)
+            .also {
+                it.inset(-view.scrollX, -view.scrollY)
+                it.offset(-scrollOffset, -scrollOffset)
+            }
+            .also {
+                dx = it.left.takeIf { helper.isHorizontal } ?: 0
+                dy = it.top.takeIf { !helper.isHorizontal } ?: 0
+                it.recycle()
+            }
 
         if (dx == 0 && dy == 0) {
             setScrollState(SCROLL_STATE_IDLE)
@@ -276,8 +286,8 @@ internal class ScrollHelper(
         val deltaY: Int
 
         helper.invertPixelToValue(
-            scroller.finalX + scrollOffset,
-            scroller.finalY + scrollOffset
+            scroller.finalX,
+            scroller.finalY
         ).also {
             it.x = round(it.x)
             it.y = round(it.y)
@@ -312,8 +322,8 @@ internal class ScrollHelper(
         val tick: Int
 
         helper.invertPixelToValue(
-            x.coerceIn(minScrollPosition, maxScrollPosition).plus(scrollOffset),
-            y.coerceIn(minScrollPosition, maxScrollPosition).plus(scrollOffset)
+            x.coerceIn(minScrollPosition, maxScrollPosition),
+            y.coerceIn(minScrollPosition, maxScrollPosition)
         ).also {
             tick = if (view.isHorizontal) {
                 it.x
