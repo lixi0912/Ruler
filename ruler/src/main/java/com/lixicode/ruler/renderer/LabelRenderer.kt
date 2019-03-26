@@ -92,6 +92,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
             )
             textDrawable.draw(canvas)
         }
+
     }
 
     fun onDrawVertical(

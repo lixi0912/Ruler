@@ -26,6 +26,7 @@ package com.lixicode.ruler
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -359,6 +360,7 @@ class RulerView @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         if (changed || forcedRemeasure) {
+            forcedRemeasure = false
             dispatchOnSizeChanged(width, height)
         }
     }
@@ -367,7 +369,6 @@ class RulerView @JvmOverloads constructor(
         helper.onSizeChanged(w, h)
         scrollHelper.onSizeChanged(w, h)
     }
-
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -442,7 +443,7 @@ class RulerView @JvmOverloads constructor(
         val top: Float
         val right: Float
         val bottom: Float
-        val maxItemPx = scrollHelper.maxScrollPosition.minus(scrollHelper.scrollOffset).toFloat()
+        val maxItemPx = scrollHelper.maxScrollPosition.plus(scrollHelper.scrollOffset).toFloat()
         val minItemPx = scrollHelper.minScrollPosition.plus(scrollHelper.scrollOffset).toFloat()
 
         val targetX = scrollX.plus(viewPort.contentWidth)
@@ -452,7 +453,7 @@ class RulerView @JvmOverloads constructor(
             bottom = maxItemPx
         } else {
             right = targetX
-            bottom = targetX
+            bottom = targetY
         }
 
         left = right.minus(viewPort.contentWidth).coerceAtLeast(minItemPx)

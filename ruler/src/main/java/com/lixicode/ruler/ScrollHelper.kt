@@ -82,7 +82,7 @@ internal class ScrollHelper(
         maxScrollPosition = if (adapter.maximumOfTicks == Int.MAX_VALUE) {
             Int.MAX_VALUE
         } else {
-            generateScrollPx(adapter.itemCount).plus(scrollOffset)
+            generateScrollPx(adapter.maximumOfTicks).minus(scrollOffset)
         }
 
         // cancel scroller
@@ -284,11 +284,11 @@ internal class ScrollHelper(
             helper.transformer.pointValuesToPixel(it)
         }.also {
             if (helper.isHorizontal) {
-                deltaX = it.x.roundToInt() + minScrollPosition - scroller.finalX
+                deltaX = it.x.roundToInt() - scrollOffset - scroller.finalX
                 deltaY = 0
             } else {
                 deltaX = 0
-                deltaY = it.y.roundToInt() + minScrollPosition - scroller.finalY
+                deltaY = it.y.roundToInt() - scrollOffset - scroller.finalY
             }
             it.recycle()
         }
@@ -309,15 +309,11 @@ internal class ScrollHelper(
     }
 
     private fun updateTickFromScrollPosition(x: Int, y: Int) {
-
-        val minItemPx = minScrollPosition.plus(scrollOffset)
-        val maxItemPx = maxScrollPosition.minus(scrollOffset)
-
         val tick: Int
 
         helper.invertPixelToValue(
-            x.plus(scrollOffset).coerceIn(minItemPx, maxItemPx),
-            y.plus(scrollOffset).coerceIn(minItemPx, maxItemPx)
+            x.coerceIn(minScrollPosition, maxScrollPosition).plus(scrollOffset),
+            y.coerceIn(minScrollPosition, maxScrollPosition).plus(scrollOffset)
         ).also {
             tick = if (view.isHorizontal) {
                 it.x
