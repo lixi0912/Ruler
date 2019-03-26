@@ -71,25 +71,6 @@ open class Options<T : Drawable>(
         }
     }
 
-
-    fun coerceWidthIn(width: Int) {
-
-
-    }
-
-}
-
-fun Options<*>.setBounds(x: Float, y: Float) {
-    setBounds(x.roundToInt(), y.roundToInt())
-}
-
-fun Options<*>.setBounds(x: Int, y: Int) {
-    setBounds(x, y, x, y)
-}
-
-
-fun Options<*>.setBounds(left: Float, top: Float, right: Float, bottom: Float) {
-    setBounds(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
 }
 
 fun Options<*>.setBounds(left: Int, top: Int, right: Int, bottom: Int) {
@@ -106,13 +87,4 @@ fun Options<*>.setBounds(left: Int, top: Int, right: Int, bottom: Int) {
             )
         }
     }
-}
-
-inline fun Int.negativeIf(negativeIfNeed: () -> Boolean): Int {
-    return if (negativeIfNeed()) {
-        -this
-    } else {
-        this
-    }
-
 }
