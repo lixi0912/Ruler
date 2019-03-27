@@ -1,5 +1,7 @@
 package com.lixicode.ruler
 
+import android.graphics.Rect
+import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
@@ -46,7 +48,7 @@ internal class ScrollHelper(
     private var mActivePointerId = RulerView.INVALID_POINTER
     private var mVelocityTracker: VelocityTracker? = null
     private var mScrollState: Int = 0
-    private var mLastTouchPoint: PointF? = null
+    private var mLastTouchPoint: RectF? = null
     private var isBeingDragged: Boolean = false
     private var firstLayout: Boolean = false
 
@@ -94,17 +96,21 @@ internal class ScrollHelper(
     private fun generateScrollPx(poisition: Int): Int {
         return if (poisition == Int.MIN_VALUE || poisition == Int.MAX_VALUE) {
             poisition
-        } else helper.generateValueToPixel(poisition)
-            .let {
-                //  允许首项居中
-                if (helper.isHorizontal) {
-                    it.x.roundToInt()
-                } else {
-                    it.y.roundToInt()
-                }.apply {
-                    it.recycle()
-                }.minus(scrollOffset)
-            }
+        } else {
+            RectPool.obtain()
+                .set(poisition, poisition)
+                .concat(helper.transformer.mMatrixValueToPx)
+                .let {
+                    //  允许首项居中
+                    if (helper.isHorizontal) {
+                        it.left
+                    } else {
+                        it.top
+                    }.apply {
+                        it.recycle()
+                    }.minus(scrollOffset)
+                }
+        }
     }
 
 
@@ -169,7 +175,11 @@ internal class ScrollHelper(
 
         when (event.action.and(MotionEvent.ACTION_MASK)) {
             MotionEvent.ACTION_DOWN -> {
-                mLastTouchPoint = PointF.obtain(event.x, event.y)
+                mLastTouchPoint = RectFPool.obtain()
+                    .also {
+                        it.left = event.x
+                        it.top = event.y
+                    }
 
                 abortScrollAnimation()
 
@@ -186,8 +196,8 @@ internal class ScrollHelper(
 
                 val touchPoint = mLastTouchPoint!!
                 if (!isBeingDragged) {
-                    val xDiff = abs(event.getX(pointerIndex) - touchPoint.x)
-                    val yDiff = abs(event.getY(pointerIndex) - touchPoint.y)
+                    val xDiff = abs(event.getX(pointerIndex) - touchPoint.left)
+                    val yDiff = abs(event.getY(pointerIndex) - touchPoint.top)
 
                     if (xDiff > touchSlop || yDiff > touchSlop) {
                         isBeingDragged = true
@@ -200,13 +210,15 @@ internal class ScrollHelper(
 
                 if (isBeingDragged) {
                     if (view.isHorizontal) {
-                        val deltaX = touchPoint.offsetX(event.getX(pointerIndex)).roundToInt()
-                        if (overScrollByCompat(-deltaX, 0)) {
+                        val deltaX = event.getX(pointerIndex) - touchPoint.left
+                        touchPoint.left = event.getX(pointerIndex)
+                        if (overScrollByCompat(-deltaX.roundToInt(), 0)) {
                             recycleVelocityTracker()
                         }
                     } else {
-                        val deltaY = touchPoint.offsetY(event.getY(pointerIndex)).roundToInt()
-                        if (overScrollByCompat(0, -deltaY)) {
+                        val deltaY = event.getY(pointerIndex) - touchPoint.top
+                        touchPoint.top = event.getY(pointerIndex)
+                        if (overScrollByCompat(0, -deltaY.roundToInt())) {
                             recycleVelocityTracker()
                         }
                     }

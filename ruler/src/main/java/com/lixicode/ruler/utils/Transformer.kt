@@ -1,7 +1,6 @@
 package com.lixicode.ruler.utils
 
 import android.graphics.Matrix
-import com.lixicode.ruler.data.PointF
 import com.lixicode.ruler.internal.RulerViewHelper
 
 /**
@@ -12,7 +11,6 @@ import com.lixicode.ruler.internal.RulerViewHelper
 internal class Transformer(private val viewPort: ViewPortHandler) {
 
     internal var mMatrixScrollOffset = Matrix()
-
     internal var labelMatrix = Matrix()
     internal var mMatrixPxToValue = Matrix()
     internal var mMatrixValueToPx = Matrix()
@@ -41,7 +39,6 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         mMatrixValueToPx.invert(mMatrixPxToValue)
 
         labelMatrix.set(mMatrixValueToPx)
-//        labelMatrix.postTranslate(-helper.labelHelper.labelOptions.widthNeeded.div(2F), 0F)
 
     }
 
@@ -61,8 +58,6 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         mMatrixValueToPx.invert(mMatrixPxToValue)
 
         labelMatrix.set(mMatrixValueToPx)
-//        labelMatrix.postTranslate(0F, -helper.labelHelper.labelOptions.heightNeeded.div(2F))
-
     }
 
 
@@ -83,22 +78,5 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         matrix.postTranslate(postTranslateX, postTranslateY)
     }
 
-    fun generateValueToPixel(value: Int): PointF {
-        val pts = PointF.obtain(value, value)
-        mMatrixValueToPx.mapPoints(pts)
-        return pts
-    }
 
-    fun pointValuesToPixel(pts: PointF) {
-        mMatrixValueToPx.mapPoints(pts)
-    }
-
-
-
-
-}
-
-
-internal fun Matrix.mapPoints(pts: PointF) {
-    mapPoints(pts.array)
 }

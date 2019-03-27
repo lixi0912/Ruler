@@ -1,6 +1,7 @@
 package com.lixicode.ruler.internal
 
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
 import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.R
@@ -165,7 +166,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     var minimunMeasureWidth = 0
     var minimumMeasureHeight = 0
 
-    fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): PointF {
+    fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): Rect {
         // reset offset
         viewPort.offsetRect.setEmpty()
 
@@ -180,7 +181,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
 
-    private fun computeHorizontalSize(viewPort: ViewPortHandler): PointF {
+    private fun computeHorizontalSize(viewPort: ViewPortHandler): Rect {
         // 计算所需要的偏移值
         tickHelper.computeHorizontalOffset(viewPort)
 
@@ -194,11 +195,11 @@ internal class RulerViewHelper(private val view: RulerView) {
         val width = minimunMeasureWidth.plus(view.paddingLeft).plus(view.paddingRight)
         val height = minimumMeasureHeight.plus(view.paddingTop).plus(view.paddingBottom)
 
-        return PointF.obtain(width, height)
+        return RectPool.obtain().also { it.set(0, 0, width, height) }
     }
 
 
-    private fun computeVerticalSize(viewPort: ViewPortHandler): PointF {
+    private fun computeVerticalSize(viewPort: ViewPortHandler): Rect {
         // 计算所需要的偏移值
         tickHelper.computeVerticalOffset(viewPort)
 
@@ -213,7 +214,7 @@ internal class RulerViewHelper(private val view: RulerView) {
 
         val width = minimunMeasureWidth.plus(view.paddingLeft).plus(view.paddingRight)
         val height = minimumMeasureHeight.plus(view.paddingTop).plus(view.paddingBottom)
-        return PointF.obtain(width, height)
+        return RectPool.obtain().also { it.set(0, 0, width, height) }
     }
 
     fun onSizeChanged(w: Int, h: Int) {
@@ -228,11 +229,5 @@ internal class RulerViewHelper(private val view: RulerView) {
 
         transformer.prepareMatrixValuePx(this)
     }
-
-
-    fun generateValueToPixel(value: Int): PointF {
-        return transformer.generateValueToPixel(value)
-    }
-
 
 }

@@ -344,10 +344,10 @@ class RulerView @JvmOverloads constructor(
             .also {
                 setMeasuredDimension(
                     resolveSize(
-                        max(suggestedMinimumWidth, it.x.toInt())
+                        max(suggestedMinimumWidth, it.width())
                         , widthMeasureSpec
                     ), resolveSize(
-                        max(suggestedMinimumHeight, it.y.toInt())
+                        max(suggestedMinimumHeight, it.height())
                         , heightMeasureSpec
                     )
                 )

@@ -1,5 +1,6 @@
 package com.lixicode.ruler.data
 
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import kotlin.math.roundToInt
 
@@ -73,18 +74,26 @@ open class Options<T : Drawable>(
 
 }
 
-fun Options<*>.setBounds(left: Int, top: Int, right: Int, bottom: Int) {
-    getDrawable()?.apply {
-        setBounds(left, top, right, bottom)
-        if (inset) {
-            val insetHorizontal: Int = -(intrinsicWidth shr 1)
-            val insetVertical: Int = -(intrinsicHeight shr 1)
-
-
-            bounds.inset(
-                insetHorizontal,
-                insetVertical
-            )
+fun <T : Drawable> Options<T>.setBounds(
+    rect: Rect,
+    onExpanded: (Rect) -> Rect = { it },
+    onInset: (Rect) -> Rect = { it }
+): Options<T> {
+    val bounds = if (inset) {
+        val dx = widthNeeded shr 1
+        val dy = heightNeeded shr 1
+        if (rect.isEmpty) {
+            rect.expand(dx, dy)
+            onExpanded(rect)
+        } else {
+            rect.inset(dx, dy)
+            onInset(rect)
         }
+    } else {
+        rect
     }
+
+    getDrawable()?.bounds = bounds
+    bounds.recycle()
+    return this
 }
