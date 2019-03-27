@@ -8,7 +8,7 @@ import android.graphics.drawable.Drawable
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/11
  */
 class DottedLineDrawable : Drawable() {

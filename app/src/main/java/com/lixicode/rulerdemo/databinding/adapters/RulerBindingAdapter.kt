@@ -9,7 +9,7 @@ import com.lixicode.rulerdemo.R
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/4
  */
 class RulerBindingAdapter {
