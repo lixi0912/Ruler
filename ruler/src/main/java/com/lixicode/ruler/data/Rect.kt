@@ -13,9 +13,26 @@ import com.lixicode.ruler.utils.RectPool
  */
 
 
+fun Rect.inset(rect: Rect): Rect {
+    this.left += rect.left
+    this.top += rect.top
+    this.right -= rect.right
+    this.bottom -= rect.bottom
+    return this
+}
+
+
+internal fun Rect.clone(): Rect {
+    return RectPool.obtain().also {
+        it.set(this)
+    }
+}
+
+
 internal fun Rect.concat(matrix: Matrix): Rect {
     return mapToRectF().concat(matrix).mapToRect()
 }
+
 
 internal fun Rect.mapToRectF(): RectF {
     return RectFPool.obtain()

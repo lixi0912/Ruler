@@ -5,6 +5,10 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import com.lixicode.ruler.R
 import com.lixicode.ruler.data.Options
+import com.lixicode.ruler.data.release
+import com.lixicode.ruler.data.set
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.min
 
@@ -114,12 +118,18 @@ internal class TickHelper {
      * 计算横向时, 所需要的偏移值
      */
     fun computeHorizontalOffset(viewPort: ViewPortHandler) {
-        val size: Float = if (baseLineOptions.enable) {
-            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2).toFloat()
+        val size = if (baseLineOptions.enable) {
+            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2)
         } else {
-            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2).toFloat()
+            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2)
         }
-        viewPort.offsetRect.set(size, size, size, size)
+
+        RectPool.obtain()
+            .also {
+                it.set(size, size, size, size)
+                viewPort.setOffset(it)
+                it.release()
+            }
     }
 
     /**
@@ -131,12 +141,18 @@ internal class TickHelper {
      * 计算横向时, 所需要的偏移值
      */
     fun computeVerticalOffset(viewPort: ViewPortHandler) {
-        val size: Float = if (baseLineOptions.enable) {
-            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2).toFloat()
+        val size = if (baseLineOptions.enable) {
+            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2)
         } else {
-            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2).toFloat()
+            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2)
         }
-        viewPort.offsetRect.set(size, size, size, size)
+
+        RectPool.obtain()
+            .also {
+                it.set(size, size, size, size)
+                viewPort.setOffset(it)
+                it.release()
+            }
     }
 
 

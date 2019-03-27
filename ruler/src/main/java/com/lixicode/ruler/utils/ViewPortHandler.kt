@@ -1,5 +1,6 @@
 package com.lixicode.ruler.utils
 
+import android.graphics.Rect
 import android.graphics.RectF
 
 /**
@@ -9,38 +10,22 @@ import android.graphics.RectF
  */
 class ViewPortHandler {
 
-    val contentRect by lazy {
+    private val contentRect by lazy {
         RectF()
     }
 
-    val offsetRect by lazy {
+    private val offsetRect by lazy {
         RectF()
     }
-
-
-    val offsetLeft
-        get() = offsetRect.left
-    val offsetTop
-        get() = offsetRect.top
-    val offsetRight
-        get() = offsetRect.right
-    val offsetBottom
-        get() = offsetRect.bottom
-
-    val offsetVertical
-        get() = offsetTop + offsetBottom
-
-    val offsetHorizontal
-        get() = offsetLeft + offsetRight
 
     val contentLeft
-        get() = contentRect.left + offsetLeft
+        get() = contentRect.left + offsetRect.left
     val contentTop
-        get() = contentRect.top + offsetTop
+        get() = contentRect.top + offsetRect.top
     val contentRight
-        get() = contentRect.right - offsetRight
+        get() = contentRect.right - offsetRect.right
     val contentBottom
-        get() = contentRect.bottom - offsetBottom
+        get() = contentRect.bottom - offsetRect.bottom
 
 
     val viewLeft
@@ -66,12 +51,12 @@ class ViewPortHandler {
         get() = contentRect.height()
 
 
-    fun setDimens(left: Float, top: Float, right: Float, bottom: Float) {
-        contentRect.set(left, top, right, bottom)
+    fun setDimens(rect: Rect) {
+        contentRect.set(rect)
     }
 
-    fun setOffset(left: Float, top: Float, right: Float, bottom: Float) {
-        offsetRect.set(left, top, right, bottom)
+    fun setOffset(rect: Rect) {
+        offsetRect.set(rect)
     }
 
 }

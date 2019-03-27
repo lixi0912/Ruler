@@ -6,6 +6,8 @@ import android.util.AttributeSet
 import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
+import com.lixicode.ruler.data.mapToRectF
+import com.lixicode.ruler.data.release
 import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
@@ -168,7 +170,11 @@ internal class RulerViewHelper(private val view: RulerView) {
 
     fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): Rect {
         // reset offset
-        viewPort.offsetRect.setEmpty()
+        RectPool.obtain()
+            .also {
+                viewPort.setOffset(it)
+            }
+            .release()
 
         // reset textSize
         labelHelper.resetTextSize()
@@ -218,12 +224,17 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
     fun onSizeChanged(w: Int, h: Int) {
-        val left = view.paddingLeft.toFloat()
-        val top = view.paddingTop.toFloat()
-        val right = w.toFloat() - view.paddingRight
-        val bottom = h.toFloat() - view.paddingBottom
+        RectPool.obtain()
+            .also {
+                it.set(
+                    view.paddingLeft,
+                    view.paddingTop,
+                    w - view.paddingRight,
+                    h - view.paddingBottom
+                )
+                viewPort.setDimens(it)
+            }.release()
 
-        viewPort.setDimens(left, top, right, bottom)
 
         labelHelper.autoTextSize(viewPort)
 
