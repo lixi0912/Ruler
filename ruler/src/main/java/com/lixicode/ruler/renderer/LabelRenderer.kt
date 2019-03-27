@@ -6,6 +6,7 @@ import android.graphics.RectF
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.internal.LabelHelper
+import com.lixicode.ruler.utils.RectFPool
 
 /**
  * @author 陈晓辉
@@ -44,7 +45,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         if (helper.autoSizeMode == LabelHelper.ALWAYS) {
             helper.autoTextSize()
         } else {
-            rectF?.recycle()
+            rectF?.release()
             this.rectF = null
         }
     }
@@ -79,7 +80,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
                         tick.toFloat(), src.top,
                         helper.labelOptions.widthNeeded
                     )
-                    src.recycle()
+                    src.release()
                 }
 
             textDrawable.draw(canvas)
@@ -122,7 +123,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
                         src.left, tick.toFloat(),
                         expandHeight = helper.labelOptions.heightNeeded
                     )
-                    src.recycle()
+                    src.release()
                 }
 
             textDrawable.draw(canvas)
@@ -151,7 +152,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         matrix.mapRect(dest, src)
         dest.expand(expandWidth, expandHeight)
         dest.round(textDrawable.bounds)
-        dest.recycle()
+        dest.release()
     }
 
 

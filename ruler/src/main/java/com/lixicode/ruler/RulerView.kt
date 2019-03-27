@@ -34,6 +34,7 @@ import com.lixicode.ruler.data.*
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
 import com.lixicode.ruler.renderer.RulerViewRenderer
+import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
@@ -352,7 +353,7 @@ class RulerView @JvmOverloads constructor(
                     )
                 )
             }.run {
-                recycle()
+                release()
             }
     }
 
@@ -438,7 +439,9 @@ class RulerView @JvmOverloads constructor(
 
     internal fun positionRangeWithOffset(): IntRange {
         return RectPool.obtain()
-            .set(scrollX, scrollY)
+            .also {
+                it.set(scrollX, scrollY, scrollX, scrollY)
+            }
             .mapToRectF()
             .also {
                 it.inset(-viewPort.contentWidth, -viewPort.contentHeight)
@@ -457,7 +460,7 @@ class RulerView @JvmOverloads constructor(
                     .apply {
                         it.coerceIn(this)
                     }
-                    .recycle()
+                    .release()
             }
             .concat(transformer.mMatrixPxToValue)
             .mapToRect()
@@ -467,7 +470,7 @@ class RulerView @JvmOverloads constructor(
                 } else {
                     it.rangeVertical()
                 }
-                it.recycle()
+                it.release()
                 range
             }
     }

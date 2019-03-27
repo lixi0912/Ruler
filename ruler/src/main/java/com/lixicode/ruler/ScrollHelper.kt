@@ -1,6 +1,5 @@
 package com.lixicode.ruler
 
-import android.graphics.Rect
 import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.VelocityTracker
@@ -11,7 +10,6 @@ import androidx.core.view.ViewCompat
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.internal.RulerViewHelper
 import kotlin.math.abs
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 /**
@@ -107,7 +105,7 @@ internal class ScrollHelper(
                     } else {
                         it.top
                     }.apply {
-                        it.recycle()
+                        it.release()
                     }.minus(scrollOffset)
                 }
         }
@@ -134,7 +132,7 @@ internal class ScrollHelper(
             .also {
                 dx = it.left.takeIf { helper.isHorizontal } ?: 0
                 dy = it.top.takeIf { !helper.isHorizontal } ?: 0
-                it.recycle()
+                it.release()
             }
 
         if (dx == 0 && dy == 0) {
@@ -313,7 +311,7 @@ internal class ScrollHelper(
                     deltaX = 0
                     deltaY = it.top
                 }
-                it.recycle()
+                it.release()
             }
 
         if (deltaX != 0 || deltaY != 0) {
@@ -345,7 +343,7 @@ internal class ScrollHelper(
                 } else {
                     it.top
                 }
-                it.recycle()
+                it.release()
             }
 
         view.tick = tick
@@ -422,7 +420,7 @@ internal class ScrollHelper(
         isBeingDragged = false
         mActivePointerId = RulerView.INVALID_POINTER
 
-        mLastTouchPoint?.recycle()
+        mLastTouchPoint?.release()
         mLastTouchPoint = null
 
         recycleVelocityTracker()

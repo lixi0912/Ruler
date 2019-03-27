@@ -2,7 +2,6 @@ package com.lixicode.ruler.data
 
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import kotlin.math.roundToInt
 
 /**
  * <>
@@ -94,6 +93,6 @@ fun <T : Drawable> Options<T>.setBounds(
     }
 
     getDrawable()?.bounds = bounds
-    bounds.recycle()
+    bounds.release()
     return this
 }

@@ -6,6 +6,8 @@ import android.graphics.drawable.Drawable
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.internal.TickHelper
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 
 /**
  * @author 陈晓辉

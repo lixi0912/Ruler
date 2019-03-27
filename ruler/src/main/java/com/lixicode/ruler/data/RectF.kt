@@ -3,7 +3,8 @@ package com.lixicode.ruler.data
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RectF
-import androidx.core.util.Pools
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 
 /**
  * <>
@@ -11,50 +12,28 @@ import androidx.core.util.Pools
  * @date 2019/3/27
  */
 
-internal class RectFPool {
-
-    companion object {
-        private val sPool = Pools.SimplePool<RectF>(6)
-
-        fun obtain(): RectF {
-            val rectF = sPool.acquire()
-            return rectF ?: RectF()
-        }
-
-
-        fun recycle(rectF: RectF) {
-            rectF.setEmpty()
-            sPool.release(rectF)
-        }
-
-    }
-
-}
 
 internal fun RectF.concat(matrix: Matrix): RectF {
     matrix.mapRect(this)
     return this
 }
 
-internal fun RectF.set(width: Float, height: Float): RectF {
-    set(width, height, width, height)
-    return this
-}
-
 internal fun RectF.set(left: Int, top: Int, right: Int, bottom: Int): RectF {
-    val temp = RectPool.obtain()
-    temp.set(left, top, right, bottom)
-    set(temp)
-    temp.recycle()
+    RectPool.obtain().also {
+        it.set(left, top, right, bottom)
+    }.also {
+        set(it)
+    }.release()
     return this
 }
 
 
 internal fun RectF.mapToRect(): Rect {
-    val out = RectPool.obtain()
-    round(out)
-    RectFPool.recycle(this)
-    return out
+    return RectPool.obtain().also {
+        round(it)
+    }.also {
+        release()
+    }
 }
 
 internal fun RectF.expand(dx: Int, dy: Int): RectF {
@@ -75,6 +54,6 @@ internal fun RectF.coerceIn(other: RectF): RectF {
     return this
 }
 
-internal fun RectF.recycle() {
-    RectFPool.recycle(this)
+internal fun RectF.release() {
+    RectFPool.release(this)
 }

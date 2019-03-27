@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.*
+import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.max
