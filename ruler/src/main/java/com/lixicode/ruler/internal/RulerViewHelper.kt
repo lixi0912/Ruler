@@ -144,7 +144,7 @@ internal class RulerViewHelper(private val view: RulerView) {
 
 
 
-        setTickValue(tick - minimumOfTicks)
+        setTickValue(tick)
     }
 
     /**
