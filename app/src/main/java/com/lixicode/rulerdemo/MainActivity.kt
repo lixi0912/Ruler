@@ -77,14 +77,24 @@ class MainActivity : AppCompatActivity() {
                                 DottedLineDrawable()
                             )
                         } else {
-                            options.setDrawable(
-                                ContextCompat.getDrawable(
-                                    this@MainActivity,
-                                    R.drawable.dotted_baseline
+                            if (rulerView.isHorizontal) {
+                                options.setDrawable(
+                                    ContextCompat.getDrawable(
+                                        this@MainActivity,
+                                        R.drawable.dotted_baseline
+                                    )
                                 )
-                            )
-                            chip.text =
-                                if (rulerView.isHorizontal) getString(R.string.dotted_line) else getString(R.string.not_support_xml)
+                                chip.text = getString(R.string.dotted_line)
+                            } else {
+                                options.setDrawable(
+                                    ContextCompat.getDrawable(
+                                        this@MainActivity,
+                                        R.drawable.rotate_dotted_baseline
+                                    )
+                                )
+                                chip.text = getString(R.string.not_support_xml)
+                            }
+
 
                             rulerView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
                         }
@@ -107,6 +117,17 @@ class MainActivity : AppCompatActivity() {
 
                     if (dashBaseLine.isSelected) {
                         dashBaseLine.text = getString(R.string.not_support_xml)
+
+
+                        rulerView.updateBaseLineOptions { options ->
+                            options.setDrawable(
+                                ContextCompat.getDrawable(
+                                    this@MainActivity,
+                                    R.drawable.rotate_dotted_baseline
+                                )
+                            )
+                            true
+                        }
                     }
                 } else {
                     rulerView.orientation = RulerView.HORIZONTAL
@@ -114,6 +135,16 @@ class MainActivity : AppCompatActivity() {
 
                     if (dashBaseLine.isSelected) {
                         dashBaseLine.text = getString(R.string.dotted_line)
+
+                        rulerView.updateBaseLineOptions { options ->
+                            options.setDrawable(
+                                ContextCompat.getDrawable(
+                                    this@MainActivity,
+                                    R.drawable.dotted_baseline
+                                )
+                            )
+                            true
+                        }
                     }
                 }
             }
