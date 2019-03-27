@@ -3,6 +3,7 @@ package com.lixicode.ruler.renderer
 import android.graphics.Canvas
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.internal.RulerViewHelper
+import kotlin.math.abs
 
 /**
  * @author 陈晓辉
@@ -69,19 +70,19 @@ internal class RulerViewRenderer(helper: RulerViewHelper) {
 
         val enableSignificantTick = helper.stepOfTicks.rem(2) == 0
         val halfOfStep = helper.stepOfTicks.div(2)
-        for (tick in view.positionRangeWithOffset()) {
-            val remainderOfTick = helper.remOfTick(tick)
+        for (position in view.positionRangeWithOffset()) {
+            val remainderOfTick = helper.remOfTick(position)
             val significantBetweenTick = enableSignificantTick && remainderOfTick == halfOfStep
 
             // draw tick
             if (helper.gravityOfTick == RulerView.GRAVITY_START || helper.enableMirrorTick) {
-                tickRenderer.onDrawVertical(view, canvas, tick, remainderOfTick, significantBetweenTick)
+                tickRenderer.onDrawVertical(view, canvas, position, remainderOfTick, significantBetweenTick)
             }
 
             drawOnMirrorTick(view, canvas) { _, _ ->
-                tickRenderer.onDrawVertical(view, canvas, tick, remainderOfTick, significantBetweenTick)
+                tickRenderer.onDrawVertical(view, canvas, position, remainderOfTick, significantBetweenTick)
             }
-            labelRenderer.onDrawVertical(view, canvas, tick, remainderOfTick)
+            labelRenderer.onDrawVertical(view, canvas, position, remainderOfTick)
         }
         if (helper.gravityOfTick == RulerView.GRAVITY_START || helper.enableMirrorTick) {
             tickRenderer.onDrawVerticalOver(view, canvas)

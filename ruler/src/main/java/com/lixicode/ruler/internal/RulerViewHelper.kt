@@ -6,11 +6,11 @@ import android.util.AttributeSet
 import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.mapToRectF
 import com.lixicode.ruler.data.release
 import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -133,16 +133,12 @@ internal class RulerViewHelper(private val view: RulerView) {
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
-        val adapter = Adapter()
-        adapter.itemCount = maximumOfTicks - minimumOfTicks
-        adapter.minimumOfTicks = 0
-        adapter.maximumOfTicks = adapter.itemCount
-
+        val adapter = object : Adapter() {
+            override val itemCount: Int
+                get() = maximumOfTicks - minimumOfTicks
+        }
 
         view.setAdapter(adapter)
-
-
-
 
         setTickValue(tick)
     }
@@ -151,8 +147,7 @@ internal class RulerViewHelper(private val view: RulerView) {
      * @return true [tick] is remainder of ticks
      */
     fun remOfTick(tick: Int): Int {
-        val tickIndex = view.coerceInTicks(tick)
-        return tickIndex.rem(stepOfTicks)
+        return abs(tick.rem(view.getAdapter().itemCount).rem(stepOfTicks))
     }
 
 
@@ -168,7 +163,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     var minimunMeasureWidth = 0
     var minimumMeasureHeight = 0
 
-    fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): Rect {
+    fun computeMeasureSize(): Rect {
         // reset offset
         RectPool.obtain()
             .also {

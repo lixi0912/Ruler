@@ -41,6 +41,8 @@ internal class ScrollHelper(
     var minScrollPosition: Int = 0
     var maxScrollPosition: Int = 0
 
+    var infiniteMode: Boolean = false
+
     private val touchSlop: Int
     private val minimumVelocity: Float
     private val maximumVelocity: Float
@@ -61,11 +63,13 @@ internal class ScrollHelper(
 
 
     fun onSizeChanged(w: Int, h: Int) {
-
-
         firstLayout = true
+        ensureScrollOffset(w, h)
+        ensureScrollRange(view.getAdapter())
+        resetViewPosition()
+    }
 
-
+    private fun ensureScrollOffset(w: Int, h: Int) {
         scrollOffset = if (helper.isHorizontal) {
             w.div(2).also {
                 view.transformer.prepareScrollOffset(it.toFloat(), 0F)
@@ -75,13 +79,9 @@ internal class ScrollHelper(
                 view.transformer.prepareScrollOffset(0f, it.toFloat())
             }
         }
+    }
 
-
-        val adapter = view.getAdapter()
-        minScrollPosition = generateScrollPx(adapter.minimumOfTicks)
-        maxScrollPosition = generateScrollPx(adapter.maximumOfTicks)
-
-
+    private fun resetViewPosition() {
         // cancel scroller
         if (!scroller.isFinished) {
             scroller.abortAnimation()
@@ -90,17 +90,29 @@ internal class ScrollHelper(
         // reset scroll position
         view.scrollTo(0, 0)
 
-        scrollTo(view.tick)
+        scrollTo(view.tick, animateTo = false)
     }
 
-    private fun generateScrollPx(poisition: Int): Int {
-        return if (poisition == Int.MIN_VALUE || poisition == Int.MAX_VALUE) {
-            poisition
+    private fun ensureScrollRange(adapter: Adapter) {
+        if (infiniteMode) {
+            minScrollPosition = generateScrollPx(Int.MIN_VALUE)
+            maxScrollPosition = generateScrollPx(Int.MAX_VALUE)
+        } else {
+            minScrollPosition = generateScrollPx(0)
+            maxScrollPosition = generateScrollPx(adapter.itemCount)
+        }
+
+    }
+
+
+    private fun generateScrollPx(position: Int): Int {
+        return if (position == Int.MIN_VALUE || position == Int.MAX_VALUE) {
+            position
         } else {
             RectPool.obtain()
                 .also {
-                    it.left = poisition
-                    it.top = poisition
+                    it.left = position
+                    it.top = position
                     it.right = it.left
                     it.bottom = it.top
                 }
@@ -119,14 +131,13 @@ internal class ScrollHelper(
     }
 
 
-    fun scrollTo(tick: Int) {
+    fun scrollTo(tick: Int, animateTo: Boolean = false) {
         if (!scroller.isFinished) {
             return
         }
 
         val dx: Int
         val dy: Int
-
         RectPool.obtain()
             .also {
                 it.set(tick, tick, tick, tick)
@@ -141,17 +152,14 @@ internal class ScrollHelper(
                 dy = it.top.takeIf { !helper.isHorizontal } ?: 0
                 it.release()
             }
-
         if (dx == 0 && dy == 0) {
             setScrollState(SCROLL_STATE_IDLE)
             return
         }
 
-        if (firstLayout) {
+        if (firstLayout || !animateTo) {
             firstLayout = false
             view.scrollBy(dx, dy)
-
-            view.tickChangeListener?.onTickChanged(tick.toFloat(), view.getAdapter().getItemTitle(tick))
         } else {
             scroller.startScroll(
                 view.scrollX, view.scrollY,
@@ -342,7 +350,7 @@ internal class ScrollHelper(
     }
 
     private fun updateTickFromScrollPosition(x: Int, y: Int) {
-        val tick: Int
+        val position: Int
 
         RectPool
             .obtain()
@@ -355,7 +363,7 @@ internal class ScrollHelper(
             .concat(helper.transformer.mMatrixScrollOffset)
             .concat(helper.transformer.mMatrixPxToValue)
             .also {
-                tick = if (view.isHorizontal) {
+                position = if (view.isHorizontal) {
                     it.left
                 } else {
                     it.top
@@ -363,11 +371,8 @@ internal class ScrollHelper(
                 it.release()
             }
 
-        view.tick = tick
-
+        view.setTickInternal(position, true)
         setScrollState(SCROLL_STATE_IDLE)
-
-        view.tickChangeListener?.onTickChanged(tick.toFloat(), view.getAdapter().getItemTitle(tick))
     }
 
     private fun setScrollState(state: Int) {
@@ -400,8 +405,16 @@ internal class ScrollHelper(
 
         var clampedX = false
         if (canScrollHorizontal) {
-            val left = minScrollPosition - maxOverScrollX
-            val right = maxOverScrollX + maxScrollPosition
+            val left = if (minScrollPosition == Int.MIN_VALUE) {
+                minScrollPosition
+            } else {
+                minScrollPosition - maxOverScrollX
+            }
+            val right = if (maxScrollPosition == Int.MAX_VALUE) {
+                maxScrollPosition
+            } else {
+                maxOverScrollX + maxScrollPosition
+            }
 
             if (newScrollX > right) {
                 newScrollX = right
@@ -416,8 +429,11 @@ internal class ScrollHelper(
         var clampedY = false
         if (canScrollVertical) {
             val top = -maxOverScrollY
-            val bottom = maxOverScrollY + maxScrollPosition
-
+            val bottom = if (maxScrollPosition == Int.MAX_VALUE) {
+                maxScrollPosition
+            } else {
+                maxOverScrollX + maxScrollPosition
+            }
             if (newScrollY > bottom) {
                 newScrollY = bottom
                 clampedY = true

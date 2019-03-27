@@ -37,6 +37,7 @@ import com.lixicode.ruler.renderer.RulerViewRenderer
 import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
+import kotlin.math.abs
 import kotlin.math.max
 
 /**
@@ -108,14 +109,27 @@ class RulerView @JvmOverloads constructor(
     /**
      * 当前项的刻度值
      */
-    var tick: Int = 0
-        set(value) {
-            field = coerceInTicks(value)
-            if (width > 0 && height > 0) {
-                scrollHelper.scrollTo(field)
-            }
-        }
+    internal var tick: Int = 0
 
+    fun getTick(): Int {
+        return tick
+    }
+
+    fun setTick(tick: Int, notify: Boolean = false) {
+        setTickInternal(tick, animateTo = false, notify = notify)
+    }
+
+    internal fun setTickInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
+        val tick = position.rem(adapter.itemCount + 1)
+        val absTick = abs(tick)
+        this.tick = absTick
+        if (width > 0 && height > 0) {
+            scrollHelper.scrollTo(position, animateTo)
+        }
+        if (notify) {
+            dispatchOnTickChanged(absTick)
+        }
+    }
 
     /**
      * 两个刻度相距的距离
@@ -306,6 +320,13 @@ class RulerView @JvmOverloads constructor(
         return tick
     }
 
+    var infiniteMode: Boolean
+        get() = scrollHelper.infiniteMode
+        set(value) {
+            scrollHelper.infiniteMode = value
+            requestLayoutInternal()
+        }
+
     fun updateBaseLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
         if (onOptionsUpdated(helper.tickHelper.baseLineOptions)) {
             requestLayoutInternal()
@@ -341,7 +362,7 @@ class RulerView @JvmOverloads constructor(
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        helper.computeMeasureSize(widthMeasureSpec, heightMeasureSpec)
+        helper.computeMeasureSize()
             .also {
                 setMeasuredDimension(
                     resolveSize(
@@ -365,19 +386,22 @@ class RulerView @JvmOverloads constructor(
         }
     }
 
+
     private fun dispatchOnSizeChanged(w: Int, h: Int) {
         helper.onSizeChanged(w, h)
         scrollHelper.onSizeChanged(w, h)
     }
 
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
         canvas.clipRect(
             scrollX + paddingLeft,
             scrollY + paddingTop,
             scrollX + width - paddingRight,
             scrollY + height - paddingBottom
         )
+
+        super.onDraw(canvas)
+
         renderer.onDraw(this, canvas)
     }
 
@@ -430,13 +454,6 @@ class RulerView @JvmOverloads constructor(
         } ?: 0
     }
 
-    internal fun coerceInTicks(value: Int): Int {
-        return adapter.let {
-            value.rem(it.itemCount + 1)
-        }
-    }
-
-
     internal fun positionRangeWithOffset(): IntRange {
         return RectPool.obtain()
             .also {
@@ -445,7 +462,9 @@ class RulerView @JvmOverloads constructor(
             .mapToRectF()
             .also {
                 it.inset(-viewPort.contentWidth, -viewPort.contentHeight)
-
+                if (scrollHelper.minScrollPosition == Int.MIN_VALUE || scrollHelper.maxScrollPosition == Int.MAX_VALUE) {
+                    return@also
+                }
                 RectPool.obtain()
                     .apply {
                         set(
@@ -474,5 +493,10 @@ class RulerView @JvmOverloads constructor(
                 range
             }
     }
+
+    internal fun dispatchOnTickChanged(tick: Int) {
+        tickChangeListener?.onTickChanged(tick.toFloat(), getAdapter().getItemTitle(tick))
+    }
+
 
 }

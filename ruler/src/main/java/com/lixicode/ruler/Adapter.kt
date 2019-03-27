@@ -24,6 +24,7 @@
 package com.lixicode.ruler
 
 import com.lixicode.ruler.formatter.ValueFormatter
+import kotlin.math.abs
 
 /**
  * <数据适配器>
@@ -36,20 +37,16 @@ open class Adapter {
 
     var formatter: ValueFormatter? = null
 
-    /**
-     * 最小刻度
-     */
-    internal var minimumOfTicks: Int = 0
+    open val itemCount: Int
+        get() = 0
 
-    /**
-     * 最大刻度
-     */
-    internal var maximumOfTicks: Int = 100
+    internal fun getItemTitle(position: Int): String {
+        val itemPosition = abs(position).rem(itemCount)
+        return formatter?.formatItemLabel(itemPosition) ?: formatItemLabel(itemPosition)
+    }
 
-    var itemCount: Int = 0
-
-    open fun getItemTitle(position: Int): String {
-        return formatter?.formatItemLabel(position) ?: position.toString()
+    open fun formatItemLabel(position: Int): String {
+        return position.toString()
     }
 
 

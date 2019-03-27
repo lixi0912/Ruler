@@ -14,4 +14,6 @@
     <string name="submit">submit</string>
     <string name="dialog_demo">Dialog Demo</string>
     <string name="wheel_demo">wheel_demo</string>
+    <string name="infinite_mode">infinite_mode</string>
+    <string name="finite_mode">finite_mode</string>
 </resources>
