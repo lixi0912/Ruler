@@ -33,8 +33,8 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val minimumWidth = viewPort.contentWidth.coerceAtLeast(helper.minimunMeasureWidth.toFloat())
         val minimumHeight = viewPort.contentHeight
 
-        val scaleX = (minimumWidth / deltaX).letFinite()
-        val scaleY = (minimumHeight / deltaY).letFinite()
+        val scaleX = minimumWidth / deltaX
+        val scaleY = minimumHeight / deltaY
 
         applyToMatrix(mMatrixValueToPx, scaleX, scaleY, 0F, viewPort.contentTop)
 
@@ -52,8 +52,8 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val deltaX = helper.weightOfView
         val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
 
-        val scaleX = (minimumWidth / deltaX).letFinite()
-        val scaleY = (minimumHeight / deltaY).letFinite()
+        val scaleX = minimumWidth / deltaX
+        val scaleY = minimumHeight / deltaY
 
         applyToMatrix(mMatrixValueToPx, scaleX, scaleY, viewPort.contentLeft, 0F)
 
