@@ -9,6 +9,8 @@ import android.widget.OverScroller
 import androidx.core.view.ViewCompat
 import com.lixicode.ruler.data.*
 import com.lixicode.ruler.internal.RulerViewHelper
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -96,7 +98,12 @@ internal class ScrollHelper(
             poisition
         } else {
             RectPool.obtain()
-                .set(poisition, poisition)
+                .also {
+                    it.left = poisition
+                    it.top = poisition
+                    it.right = it.left
+                    it.bottom = it.top
+                }
                 .concat(helper.transformer.mMatrixValueToPx)
                 .let {
                     //  允许首项居中
@@ -297,7 +304,12 @@ internal class ScrollHelper(
 
         RectPool
             .obtain()
-            .set(scroller.finalX, scroller.finalY)
+            .also {
+                it.left = scroller.finalX
+                it.top = scroller.finalY
+                it.right = it.left
+                it.bottom = it.top
+            }
             .concat(helper.transformer.mMatrixScrollOffset)
             .concat(helper.transformer.mMatrixPxToValue)
             .concat(helper.transformer.mMatrixValueToPx)
@@ -334,7 +346,12 @@ internal class ScrollHelper(
 
         RectPool
             .obtain()
-            .set(x.coerceIn(minScrollPosition, maxScrollPosition), y.coerceIn(minScrollPosition, maxScrollPosition))
+            .also {
+                it.left = x.coerceIn(minScrollPosition, maxScrollPosition)
+                it.top = y.coerceIn(minScrollPosition, maxScrollPosition)
+                it.right = it.left
+                it.bottom = it.top
+            }
             .concat(helper.transformer.mMatrixScrollOffset)
             .concat(helper.transformer.mMatrixPxToValue)
             .also {
