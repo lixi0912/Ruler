@@ -9,7 +9,7 @@ import com.lixicode.rulerdemo.R
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/4
  */
 class RulerBindingAdapter {
@@ -19,28 +19,31 @@ class RulerBindingAdapter {
         @JvmStatic
         @InverseBindingAdapter(attribute = "tick")
         fun getTick(view: RulerView): Int {
-            return view.tick
+            return view.getTick()
         }
 
         @JvmStatic
         @BindingAdapter(value = ["tick", "tickAttrChanged"], requireAll = false)
         fun setTick(view: RulerView, value: Int, attrChanged: InverseBindingListener?) {
-            if (view.tick == value) {
-                return
-            }
-            view.tick = value
+
             attrChanged?.run {
                 val oldListener =
                     ListenerUtil.getListener<RulerView.OnTickChangedListener?>(view, R.id.callbackListener)
                 if (null == oldListener) {
                     val newListener = object : RulerView.OnTickChangedListener {
-                        override fun onTickChanged(value: Float, label: String) {
-                            onChange()
+
+                        override fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
+                            if (oldValue != newValue) {
+                                onChange()
+                            }
                         }
                     }
                     ListenerUtil.trackListener(view, newListener, R.id.callbackListener)
                     view.tickChangeListener = newListener
                 }
+            }
+            if (view.getTick() != value) {
+                view.setTick(value)
             }
         }
     }

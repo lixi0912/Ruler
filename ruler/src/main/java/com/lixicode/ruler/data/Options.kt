@@ -1,11 +1,34 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler.data
 
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import kotlin.math.roundToInt
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/7
  */
 open class Options<T : Drawable>(
@@ -71,48 +94,28 @@ open class Options<T : Drawable>(
         }
     }
 
-
-    fun coerceWidthIn(width: Int) {
-
-
-    }
-
 }
 
-fun Options<*>.setBounds(x: Float, y: Float) {
-    setBounds(x.roundToInt(), y.roundToInt())
-}
-
-fun Options<*>.setBounds(x: Int, y: Int) {
-    setBounds(x, y, x, y)
-}
-
-
-fun Options<*>.setBounds(left: Float, top: Float, right: Float, bottom: Float) {
-    setBounds(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
-}
-
-fun Options<*>.setBounds(left: Int, top: Int, right: Int, bottom: Int) {
-    getDrawable()?.apply {
-        setBounds(left, top, right, bottom)
-        if (inset) {
-            val insetHorizontal: Int = -(intrinsicWidth shr 1)
-            val insetVertical: Int = -(intrinsicHeight shr 1)
-
-
-            bounds.inset(
-                insetHorizontal,
-                insetVertical
-            )
+fun <T : Drawable> Options<T>.setBounds(
+    rect: Rect,
+    onExpanded: (Rect) -> Rect = { it },
+    onInset: (Rect) -> Rect = { it }
+): Options<T> {
+    val bounds = if (inset) {
+        val dx = widthNeeded shr 1
+        val dy = heightNeeded shr 1
+        if (rect.isEmpty) {
+            rect.expand(dx, dy)
+            onExpanded(rect)
+        } else {
+            rect.inset(dx, dy)
+            onInset(rect)
         }
-    }
-}
-
-inline fun Int.negativeIf(negativeIfNeed: () -> Boolean): Int {
-    return if (negativeIfNeed()) {
-        -this
     } else {
-        this
+        rect
     }
 
+    getDrawable()?.bounds = bounds
+    bounds.release()
+    return this
 }

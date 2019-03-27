@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+        android:fromDegrees="90" android:toDegrees="90">
+
+    <shape android:shape="line">
+
+
+        <solid android:color="@color/ruler_baseline"/>
+
+        <size android:width="300dp" android:height="2dp"/>
+
+        <stroke android:color="@color/ruler_baseline"
+                android:width="1dp"
+                android:dashWidth="5dp"
+                android:dashGap="2dp"/>
+
+
+    </shape>
+
+
+</rotate>

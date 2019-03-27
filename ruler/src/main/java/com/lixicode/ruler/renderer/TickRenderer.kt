@@ -1,15 +1,39 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler.renderer
 
 import android.graphics.Canvas
-import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.PointF
-import com.lixicode.ruler.data.setBounds
+import com.lixicode.ruler.data.*
 import com.lixicode.ruler.internal.TickHelper
-import kotlin.math.roundToInt
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 
 /**
- * @author 陈晓辉
+ * @author lixi
  * @description <>
  * @date 2019/3/20
  */
@@ -20,10 +44,10 @@ internal class TickRenderer(private val helper: TickHelper) {
         view: RulerView,
         canvas: Canvas,
         tick: Int,
-        remainderOfTick: Int,
+        remainderValue: Int,
         significantBetweenTick: Boolean
     ) {
-        drawHorizontalTick(view, canvas, tick, remainderOfTick, significantBetweenTick)
+        drawHorizontalTick(view, canvas, tick, remainderValue, significantBetweenTick)
     }
 
 
@@ -47,40 +71,77 @@ internal class TickRenderer(private val helper: TickHelper) {
     }
 
     private fun drawHorizontalTick(
-        view: RulerView, canvas: Canvas, tick: Int, remainderOfTick: Int, significantBetweenTick: Boolean
+        view: RulerView, canvas: Canvas, tick: Int, remainderValue: Int, significantBetweenTick: Boolean
     ) {
-        val y = when {
-            remainderOfTick == 0 -> helper.tickOptions.weight
-            significantBetweenTick -> helper.significantTickWeight
-            else -> helper.dividerTickOptions.weight
+
+        val options: Options<Drawable>
+        val weight: Float
+        when {
+            remainderValue == 0 -> {
+                options = helper.tickOptions
+                weight = helper.tickOptions.weight
+            }
+            significantBetweenTick -> {
+                options = helper.dividerTickOptions
+                weight = helper.significantTickWeight
+            }
+            else -> {
+                options = helper.dividerTickOptions
+                weight = helper.dividerTickOptions.weight
+            }
         }
 
-        PointF.obtain(tick.toFloat(), y)
+        val tickValue = tick.toFloat()
+        val rect = RectFPool.obtain()
             .also {
-                view.transformer.pointValuesToPixel(it)
+                it.set(tickValue, 0F, tickValue, weight)
             }
+            .concat(view.transformer.mMatrixValueToPx)
+            .mapToRect()
+
+
+        drawWithBounds(
+            view, canvas, rect, options
+        )
+    }
+
+    private fun drawVerticalTick(
+        view: RulerView,
+        canvas: Canvas,
+        tick: Int,
+        remainderValue: Int,
+        significantBetweenTick: Boolean
+    ) {
+        val options: Options<Drawable>
+        val weight: Float
+        when {
+            remainderValue == 0 -> {
+                options = helper.tickOptions
+                weight = helper.tickOptions.weight
+            }
+            significantBetweenTick -> {
+                options = helper.dividerTickOptions
+                weight = helper.significantTickWeight
+            }
+            else -> {
+                options = helper.dividerTickOptions
+                weight = helper.dividerTickOptions.weight
+            }
+        }
+
+        val tickValue = tick.toFloat()
+        val rect = RectFPool.obtain()
             .also {
-                val isDividerLine = y != helper.tickOptions.weight
-                if (isDividerLine) {
-                    helper.dividerTickOptions
-                } else {
-                    helper.tickOptions
-                }.run {
-
-                    // bounds
-                    setBounds(
-                        it.x.roundToInt(),
-                        view.viewPort.contentTop.roundToInt(),
-                        it.x.roundToInt(),
-                        it.y.minus(view.viewPort.contentTop).roundToInt()
-                    )
-
-                    // draw
-                    getDrawable()?.draw(canvas)
-                }
-            }.also {
-                it.recycle()
+                it.set(0F, tickValue, weight, tickValue)
             }
+            .concat(view.transformer.mMatrixValueToPx)
+            .mapToRect()
+
+
+        drawWithBounds(
+            view, canvas, rect, options
+        )
+
     }
 
 
@@ -88,26 +149,41 @@ internal class TickRenderer(private val helper: TickHelper) {
         if (!helper.cursorOptions.visible) {
             return
         }
-        PointF.obtain(view.tick.toFloat(), helper.tickOptions.weight)
+        val rect = RectFPool.obtain()
             .also {
-                view.transformer.pointValuesToPixel(it)
-            }.also {
-                it.x = (view.scrollX + view.width.div(2)).toFloat()
-            }.also {
-                // bounds
-                helper.cursorOptions.setBounds(
-                    it.x.roundToInt(),
-                    view.viewPort.contentTop.roundToInt(),
-                    it.x.roundToInt(),
-                    it.y.minus(view.viewPort.contentTop).roundToInt()
-                )
-
-                // draw
-                helper.cursorOptions.getDrawable()?.draw(canvas)
-            }.also {
-                it.recycle()
+                it.set(0F, 0F, 0F, helper.tickOptions.weight)
             }
+            .concat(view.transformer.mMatrixValueToPx)
+            .mapToRect()
+            .also {
+                it.left = view.scrollX + view.width.div(2)
+                it.right = it.left
+            }
+        drawWithBounds(
+            view, canvas, rect, helper.cursorOptions
+        )
     }
+
+    private fun drawVerticalCursor(view: RulerView, canvas: Canvas) {
+        if (!helper.cursorOptions.visible) {
+            return
+        }
+        val rect = RectFPool.obtain()
+            .also {
+                it.set(0F, view.tick.toFloat(), helper.tickOptions.weight, view.tick.toFloat())
+            }
+            .concat(view.transformer.mMatrixValueToPx)
+            .mapToRect()
+            .also {
+                it.bottom = view.scrollY + view.height.div(2)
+                it.top = it.bottom
+            }
+
+        drawWithBounds(
+            view, canvas, rect, helper.cursorOptions
+        )
+    }
+
 
     private fun drawHorizontalBaseLine(view: RulerView, canvas: Canvas) {
         if (!helper.baseLineOptions.visible) {
@@ -115,98 +191,61 @@ internal class TickRenderer(private val helper: TickHelper) {
         }
 
         // 绘制基准线
-        val x = view.scrollX
-        val yPx = view.viewPort.contentRect.top.roundToInt() + helper.baseLineOptions.heightNeeded
-
-        helper.baseLineOptions.setBounds(x + view.paddingLeft, yPx, x + view.width - view.paddingRight, yPx)
-
-        // draw
-        helper.baseLineOptions.getDrawable()?.draw(canvas)
-    }
-
-
-    private fun drawVerticalTick(
-        view: RulerView,
-        canvas: Canvas,
-        tick: Int,
-        remainderOfTick: Int,
-        significantBetweenTick: Boolean
-    ) {
-        val x = when {
-            remainderOfTick == 0 -> helper.tickOptions.weight
-            significantBetweenTick -> helper.significantTickWeight
-            else -> helper.dividerTickOptions.weight
-        }
-
-        PointF.obtain(x, tick.toFloat())
+        RectPool.obtain()
             .also {
-                view.transformer.pointValuesToPixel(it)
+                it.left = view.scrollX + view.paddingLeft
+                it.right = view.scrollX + view.width - view.paddingRight
             }
+            .mapToRectF()
             .also {
-                val isDividerLine = x != helper.tickOptions.weight
-                if (isDividerLine) {
-                    helper.dividerTickOptions
-                } else {
-                    helper.tickOptions
-                }.run {
-
-                    // bounds
-                    setBounds(
-                        view.viewPort.contentLeft.roundToInt(),
-                        it.y.roundToInt(),
-                        it.x.minus(view.viewPort.contentLeft).roundToInt(),
-                        it.y.roundToInt()
-                    )
-
-                    // draw
-                    getDrawable()?.draw(canvas)
-                }
-            }.also {
-                it.recycle()
+                it.offset(0F, view.viewPort.contentTop)
             }
+            .mapToRect()
+            .let {
+                helper.baseLineOptions.setBounds(it)
+            }.getDrawable()?.draw(canvas)
     }
-
-    private fun drawVerticalCursor(view: RulerView, canvas: Canvas) {
-        if (!helper.cursorOptions.visible) {
-            return
-        }
-        PointF.obtain(helper.tickOptions.weight, view.tick.toFloat())
-            .also {
-                view.transformer.pointValuesToPixel(it)
-            }.also {
-                it.y = (view.scrollY + view.height.div(2)).toFloat()
-            }.also {
-                // bounds
-                helper.cursorOptions.setBounds(
-                    view.viewPort.contentLeft.roundToInt(),
-                    it.y.roundToInt(),
-                    it.x.minus(view.viewPort.contentLeft).roundToInt(),
-                    it.y.roundToInt()
-                )
-
-                // draw
-                helper.cursorOptions.getDrawable()?.draw(canvas)
-            }.also {
-                it.recycle()
-            }
-    }
-
 
     private fun drawVerticalBaseLine(view: RulerView, canvas: Canvas) {
         if (!helper.baseLineOptions.visible) {
             return
         }
-        // 绘制基准线
-        val yPx = view.scrollY + view.paddingTop
-        val xPx = view.viewPort.contentRect.left.roundToInt()
-        helper.baseLineOptions.setBounds(
-            xPx,
-            yPx,
-            xPx + helper.baseLineOptions.widthNeeded,
-            yPx + view.height - view.paddingBottom
-        )
 
-        // draw
-        helper.baseLineOptions.getDrawable()?.draw(canvas)
+        // 绘制基准线
+        RectPool.obtain()
+            .also {
+                it.top = view.scrollY + view.paddingTop
+                it.bottom = view.scrollY + view.height - view.paddingBottom
+            }
+            .mapToRectF()
+            .also {
+                it.offset(view.viewPort.contentLeft, 0F)
+            }
+            .mapToRect()
+            .let {
+                helper.baseLineOptions.setBounds(it)
+            }.getDrawable()?.draw(canvas)
     }
+
+
+    private fun <T : Drawable> drawWithBounds(
+        view: RulerView,
+        canvas: Canvas,
+        rect: Rect,
+        options: Options<T>
+    ) {
+        options.setBounds(rect, onExpanded = {
+            it.mapToRectF()
+                .apply {
+                    // force start on content top
+                    if (view.isHorizontal) {
+                        offsetTo(left, view.viewPort.contentTop)
+                    } else {
+                        offsetTo(view.viewPort.contentLeft, top)
+                    }
+                }
+                .mapToRect()
+        }).getDrawable()?.draw(canvas)
+    }
+
 }

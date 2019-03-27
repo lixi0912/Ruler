@@ -1,3 +1,26 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler
 
 import android.annotation.SuppressLint
@@ -7,18 +30,19 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import com.lixicode.ruler.data.Options
+import com.lixicode.ruler.data.*
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
 import com.lixicode.ruler.renderer.RulerViewRenderer
+import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
+import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/2/27
  */
 class RulerView @JvmOverloads constructor(
@@ -40,7 +64,24 @@ class RulerView @JvmOverloads constructor(
     }
 
     interface OnTickChangedListener {
-        fun onTickChanged(value: Float, label: String)
+
+        @Deprecated(
+            message = "this method will be removed in a future release",
+            replaceWith = ReplaceWith("onTickChange(oldValue,value,label)"),
+            level = DeprecationLevel.WARNING
+        )
+        fun onTickChanged(value: Float, label: String) {
+
+        }
+
+        /**
+         * 值发生改变
+         *
+         * @since 1.0-rc1
+         */
+        fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
+            onTickChanged(newValue.toFloat(), label)
+        }
     }
 
 
@@ -66,21 +107,61 @@ class RulerView @JvmOverloads constructor(
     /**
      * 用于格式化显示的 Label
      */
-    var valueFormatter: ValueFormatter
-        get() = helper.valueFormatter
+    @Deprecated(message = "use adapter instead", level = DeprecationLevel.WARNING)
+    var valueFormatter: ValueFormatter?
+        get() = adapter.formatter
         set(value) {
-            helper.valueFormatter = value
+            adapter.formatter = value
             invalidate()
         }
 
     /**
-     * 当前项的刻度值
+     * 数据适配器
+     *
+     * @since 1.0-rc1
      */
-    var tick: Int = 0
-        set(value) {
-            field = helper.coerceInTicks(value)
-            scrollHelper.scrollTo(field)
+    private lateinit var adapter: Adapter
+
+
+    /**
+     * 当前项的刻度值
+     *
+     */
+    internal var tick: Int = 0
+
+
+    /**
+     * 获取当前刻度
+     *
+     * @since 1.0-rc1
+     */
+    fun getTick(): Int {
+        return tick
+    }
+
+    /**
+     * 设置当前刻度
+     *
+     * @param tick current item value
+     * @param notify if it is true, callback will be called
+     * @since 1.0-rc1
+     */
+    fun setTick(tick: Int, notify: Boolean = false) {
+        setTickInternal(tick, animateTo = false, notify = notify)
+    }
+
+    internal fun setTickInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
+        val tick = position.rem(adapter.itemCount + 1)
+        val absTick = abs(tick)
+        val oldTick = this.tick
+        this.tick = absTick
+        if (width > 0 && height > 0) {
+            scrollHelper.scrollTo(position, animateTo)
         }
+        if (notify) {
+            dispatchOnTickChanged(oldTick, absTick)
+        }
+    }
 
     /**
      * 两个刻度相距的距离
@@ -105,15 +186,17 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see maximumOfTicks
      */
+    @Deprecated(
+        message = "this value will be removed in a future release",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("adapter")
+    )
     var minimumOfTicks: Int
         get() {
-            return helper.minimumOfTicks
+            throw UnsupportedOperationException()
         }
-        set(value) {
-            if (value != helper.minimumOfTicks) {
-                helper.minimumOfTicks = value
-                requestLayoutInternal()
-            }
+        set(_) {
+            throw UnsupportedOperationException()
         }
 
     /**
@@ -122,15 +205,17 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see minimumOfTicks
      */
+    @Deprecated(
+        message = "this value will be removed in a future release",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("adapter")
+    )
     var maximumOfTicks: Int
         get() {
-            return helper.maximumOfTicks
+            throw UnsupportedOperationException()
         }
-        set(value) {
-            if (value != helper.maximumOfTicks) {
-                helper.maximumOfTicks = value
-                requestLayoutInternal()
-            }
+        set(_) {
+            throw UnsupportedOperationException()
         }
 
 
@@ -233,14 +318,46 @@ class RulerView @JvmOverloads constructor(
         helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
     }
 
+    /**
+     * 获取数据适配器
+     *
+     * @return 适配器
+     * @since 1.0-rc1
+     */
+    fun getAdapter(): Adapter {
+        return adapter
+    }
+
+    /**
+     * 设置数据适配器
+     *
+     * @param adapter 适配器
+     * @since 1.0-rc1
+     */
+    fun setAdapter(adapter: Adapter) {
+        this.adapter = adapter
+        helper.resetLongestLabel()
+    }
 
     /**
      * @param tick [tick]
      * @return index of [minimumOfTicks]..[maximumOfTicks]
      */
+    @Deprecated(
+        message = "this method will be removed in a future release",
+        replaceWith = ReplaceWith("tick"),
+        level = DeprecationLevel.WARNING
+    )
     fun tickIndex(tick: Int): Int {
-        return helper.tickIndex(tick)
+        return tick
     }
+
+    var infiniteMode: Boolean
+        get() = scrollHelper.infiniteMode
+        set(value) {
+            scrollHelper.infiniteMode = value
+            requestLayoutInternal()
+        }
 
     fun updateBaseLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
         if (onOptionsUpdated(helper.tickHelper.baseLineOptions)) {
@@ -277,45 +394,47 @@ class RulerView @JvmOverloads constructor(
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        helper.computeMeasureSize(widthMeasureSpec, heightMeasureSpec)
+        helper.computeMeasureSize()
             .also {
                 setMeasuredDimension(
                     resolveSize(
-                        max(suggestedMinimumWidth, it.x.toInt())
+                        max(suggestedMinimumWidth, it.width())
                         , widthMeasureSpec
                     ), resolveSize(
-                        max(suggestedMinimumHeight, it.y.toInt())
+                        max(suggestedMinimumHeight, it.height())
                         , heightMeasureSpec
                     )
                 )
             }.run {
-                recycle()
+                release()
             }
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         if (changed || forcedRemeasure) {
+            forcedRemeasure = false
             dispatchOnSizeChanged(width, height)
         }
     }
+
 
     private fun dispatchOnSizeChanged(w: Int, h: Int) {
         helper.onSizeChanged(w, h)
         scrollHelper.onSizeChanged(w, h)
     }
 
-
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
         canvas.clipRect(
             scrollX + paddingLeft,
             scrollY + paddingTop,
             scrollX + width - paddingRight,
             scrollY + height - paddingBottom
         )
-        renderer.onDraw(this, canvas)
 
+        super.onDraw(canvas)
+
+        renderer.onDraw(this, canvas)
     }
 
     override fun onAttachedToWindow() {
@@ -366,5 +485,50 @@ class RulerView @JvmOverloads constructor(
             it > 0
         } ?: 0
     }
+
+    internal fun positionRangeWithOffset(): IntRange {
+        return RectPool.obtain()
+            .also {
+                it.set(scrollX, scrollY, scrollX, scrollY)
+            }
+            .mapToRectF()
+            .also {
+                it.inset(-viewPort.contentWidth, -viewPort.contentHeight)
+                if (scrollHelper.minScrollPosition == Int.MIN_VALUE || scrollHelper.maxScrollPosition == Int.MAX_VALUE) {
+                    return@also
+                }
+                RectPool.obtain()
+                    .apply {
+                        set(
+                            scrollHelper.minScrollPosition,
+                            scrollHelper.minScrollPosition,
+                            scrollHelper.maxScrollPosition,
+                            scrollHelper.maxScrollPosition
+                        )
+                    }
+                    .concat(transformer.mMatrixScrollOffset)
+                    .mapToRectF()
+                    .apply {
+                        it.coerceIn(this)
+                    }
+                    .release()
+            }
+            .concat(transformer.mMatrixPxToValue)
+            .mapToRect()
+            .let {
+                val range = if (isHorizontal) {
+                    it.rangeHorizontal()
+                } else {
+                    it.rangeVertical()
+                }
+                it.release()
+                range
+            }
+    }
+
+    private fun dispatchOnTickChanged(oldValue: Int, newValue: Int) {
+        tickChangeListener?.onTickChanged(oldValue, newValue, getAdapter().getItemTitle(newValue))
+    }
+
 
 }

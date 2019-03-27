@@ -1,19 +1,45 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler.internal
 
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
+import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.data.PointF
-import com.lixicode.ruler.formatter.ValueFormatter
+import com.lixicode.ruler.data.release
+import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/7
  */
 internal class RulerViewHelper(private val view: RulerView) {
@@ -28,17 +54,6 @@ internal class RulerViewHelper(private val view: RulerView) {
      */
     internal val labelHelper = LabelHelper(view)
 
-    var valueFormatter = ValueFormatter.DEFAULT
-
-    /**
-     * 最小刻度
-     */
-    var minimumOfTicks: Int = 0
-
-    /**
-     * 最大刻度
-     */
-    var maximumOfTicks: Int = 100
 
     /**
      * 两个刻度间有多少格
@@ -106,12 +121,6 @@ internal class RulerViewHelper(private val view: RulerView) {
             return weightOfLabel.plus(tickWeight)
         }
 
-    /**
-     * 每次绘制的刻度数
-     */
-    var visibleTickCount: Int = 0
-
-
     var horizontalScrollRange: Int = 0
     var verticalScrollRange: Int = 0
 
@@ -127,8 +136,8 @@ internal class RulerViewHelper(private val view: RulerView) {
             defStyleAttr, defStyleRes
         )
 
-        val minimumOfTicks = a.getInt(R.styleable.RulerView_ruler_minimumOfTicks, minimumOfTicks)
-        val maximumOfTicks = a.getInt(R.styleable.RulerView_ruler_maximumOfTicks, maximumOfTicks)
+        val minimumOfTicks = a.getInt(R.styleable.RulerView_ruler_minimumOfTicks, 0)
+        val maximumOfTicks = a.getInt(R.styleable.RulerView_ruler_maximumOfTicks, 100)
         val stepOfTicks = a.getInt(R.styleable.RulerView_ruler_stepOfTicks, stepOfTicks)
         val enableMirrorTick = a.getBoolean(R.styleable.RulerView_ruler_enableMirrorTick, enableMirrorTick)
         val orientation = a.getInt(R.styleable.RulerView_android_orientation, orientation)
@@ -142,52 +151,26 @@ internal class RulerViewHelper(private val view: RulerView) {
         this.gravityOfTick = gravityOfTick
         this.orientation = orientation
         this.stepOfTicks = stepOfTicks
-        this.minimumOfTicks = minimumOfTicks
-        this.maximumOfTicks = maximumOfTicks
         this.enableMirrorTick = enableMirrorTick
-
 
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
+        val adapter = object : Adapter() {
+            override val itemCount: Int
+                get() = maximumOfTicks - minimumOfTicks
+        }
 
+        view.setAdapter(adapter)
 
         setTickValue(tick)
-    }
-
-    fun rangeOfTickWithScrollOffset(): IntRange {
-        val startValue = PointF.obtain(view.scrollX.toFloat(), view.scrollY.toFloat())
-            .also {
-                transformer.invertPixelToValue(it)
-            }.let {
-                if (isHorizontal) {
-                    coerceInTicks(it.x.roundToInt())
-                } else {
-                    coerceInTicks(it.y.roundToInt())
-                }.apply {
-                    it.recycle()
-                }
-            }
-
-        val endValue = (startValue + visibleTickCount).coerceAtMost(maximumOfTicks)
-        return startValue..endValue
     }
 
     /**
      * @return true [tick] is remainder of ticks
      */
     fun remOfTick(tick: Int): Int {
-        val tickIndex = coerceInTicks(tick).minus(minimumOfTicks)
-        return tickIndex.rem(stepOfTicks)
-    }
-
-    fun tickIndex(tick: Int): Int {
-        return coerceInTicks(tick).minus(minimumOfTicks)
-    }
-
-
-    fun coerceInTicks(value: Int): Int {
-        return value.coerceIn(minimumOfTicks, maximumOfTicks)
+        return abs(tick.rem(view.getAdapter().itemCount).rem(stepOfTicks))
     }
 
 
@@ -195,17 +178,21 @@ internal class RulerViewHelper(private val view: RulerView) {
         this.view.tick = tick
     }
 
-    fun setLongestLabel(label: String?, sameLengthOfLabel: Boolean) {
-        labelHelper.setLongestLabel(label, sameLengthOfLabel)
+    fun resetLongestLabel(label: String? = null) {
+        labelHelper.resetLongestLabel(label)
     }
 
 
     var minimunMeasureWidth = 0
     var minimumMeasureHeight = 0
 
-    fun computeMeasureSize(widthMeasureSpec: Int, heightMeasureSpec: Int): PointF {
+    fun computeMeasureSize(): Rect {
         // reset offset
-        viewPort.offsetRect.setEmpty()
+        RectPool.obtain()
+            .also {
+                viewPort.setOffset(it)
+            }
+            .release()
 
         // reset textSize
         labelHelper.resetTextSize()
@@ -218,7 +205,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     }
 
 
-    private fun computeHorizontalSize(viewPort: ViewPortHandler): PointF {
+    private fun computeHorizontalSize(viewPort: ViewPortHandler): Rect {
         // 计算所需要的偏移值
         tickHelper.computeHorizontalOffset(viewPort)
 
@@ -232,11 +219,11 @@ internal class RulerViewHelper(private val view: RulerView) {
         val width = minimunMeasureWidth.plus(view.paddingLeft).plus(view.paddingRight)
         val height = minimumMeasureHeight.plus(view.paddingTop).plus(view.paddingBottom)
 
-        return PointF.obtain(width, height)
+        return RectPool.obtain().also { it.set(0, 0, width, height) }
     }
 
 
-    private fun computeVerticalSize(viewPort: ViewPortHandler): PointF {
+    private fun computeVerticalSize(viewPort: ViewPortHandler): Rect {
         // 计算所需要的偏移值
         tickHelper.computeVerticalOffset(viewPort)
 
@@ -244,50 +231,32 @@ internal class RulerViewHelper(private val view: RulerView) {
             .plus(labelHelper.labelOptions.spacing.times(2)).roundToInt()
 
 
-        val visibleTextHeight = labelHelper.visibleHeightNeeded() * visibleCountOfTick
-        val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
+        val visibleTextHeight = labelHelper.visibleHeightNeeded(visibleCountOfTick, stepOfTicks)
+        val visibleTickWidth = tickHelper.visibleHeightNeeded(visibleCountOfTick, stepOfTicks)
 
         minimumMeasureHeight = max(visibleTextHeight, visibleTickWidth)
 
         val width = minimunMeasureWidth.plus(view.paddingLeft).plus(view.paddingRight)
         val height = minimumMeasureHeight.plus(view.paddingTop).plus(view.paddingBottom)
-        return PointF.obtain(width, height)
+        return RectPool.obtain().also { it.set(0, 0, width, height) }
     }
 
     fun onSizeChanged(w: Int, h: Int) {
-        val left = view.paddingLeft.toFloat()
-        val top = view.paddingTop.toFloat()
-        val right = w.toFloat() - view.paddingRight
-        val bottom = h.toFloat() - view.paddingBottom
+        RectPool.obtain()
+            .also {
+                it.set(
+                    view.paddingLeft,
+                    view.paddingTop,
+                    w - view.paddingRight,
+                    h - view.paddingBottom
+                )
+                viewPort.setDimens(it)
+            }.release()
 
-        viewPort.setDimens(left, top, right, bottom)
 
         labelHelper.autoTextSize(viewPort)
 
         transformer.prepareMatrixValuePx(this)
-
-        this.visibleTickCount = PointF.obtain(w.toFloat(), h.toFloat())
-            .also {
-                transformer.invertPixelToValue(it)
-            }.let {
-                if (isHorizontal) {
-                    it.x.roundToInt() - minimumOfTicks
-                } else {
-                    it.y.roundToInt() - minimumOfTicks
-                }.apply {
-                    it.recycle()
-                }
-            }
     }
-
-
-    fun generateValueToPixel(value: Int): PointF {
-        return transformer.generateValueToPixel(value)
-    }
-
-    fun invertPixelToValue(x: Int, y: Int): PointF {
-        return transformer.invertPixelToValue(x, y)
-    }
-
 
 }

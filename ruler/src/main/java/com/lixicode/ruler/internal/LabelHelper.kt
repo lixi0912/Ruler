@@ -1,3 +1,26 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler.internal
 
 import android.content.Context
@@ -9,7 +32,6 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
-import android.view.View
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.Options
@@ -18,7 +40,7 @@ import kotlin.math.roundToInt
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/7
  */
 internal class LabelHelper(val view: RulerView) {
@@ -40,7 +62,7 @@ internal class LabelHelper(val view: RulerView) {
         var textAlign: Paint.Align = Paint.Align.CENTER,
         var typeface: Typeface = Typeface.DEFAULT,
         var sameLengthOfLabel: Boolean = false,
-        var longestLabel: String = "",
+        var longestLabel: String? = null,
         var autoSizeMode: Int = NEVER,
         var autoSizeMinTextSize: Float,
         var autoSizeMaxTextSize: Float,
@@ -125,12 +147,12 @@ internal class LabelHelper(val view: RulerView) {
 
     }
 
-    internal var longestLabel: String = ""
     internal var autoSizeMode: Int = NEVER
     private var autoSizeMinTextSize: Float = Float.MAX_VALUE
     private var autoSizeMaxTextSize: Float = Float.MIN_VALUE
     private var autoSizeStepGranularity: Int = 1
     private var sameLengthOfLabel: Boolean = false
+    private var longestLabel: String? = null
 
 
     val labelOptions = Options(TextDrawable {
@@ -179,8 +201,7 @@ internal class LabelHelper(val view: RulerView) {
         this.autoSizeMinTextSize = attributes.autoSizeMinTextSize
         this.autoSizeMaxTextSize = attributes.autoSizeMaxTextSize
         this.autoSizeStepGranularity = attributes.autoSizeStepGranularity
-
-        setLongestLabel(attributes.longestLabel, false)
+        this.longestLabel = attributes.longestLabel
 
         // do not inset label drawable
         labelOptions.inset = false
@@ -201,30 +222,29 @@ internal class LabelHelper(val view: RulerView) {
             it.color = attributes.textColor?.defaultColor ?: it.color
             updated
         }
-
-
     }
 
 
-    fun setLongestLabel(label: String?, notifyChange: Boolean = true) {
-        val helper = view.helper
-        if (!TextUtils.isEmpty(label)) {
-            this.longestLabel = label!!
-        } else if (sameLengthOfLabel) {
-            this.longestLabel = view.valueFormatter.formatValue(helper.maximumOfTicks.toFloat())
-        } else {
-            var tempString = longestLabel
-            var tempLength = tempString.length
-            for (index in helper.minimumOfTicks..helper.maximumOfTicks step helper.stepOfTicks) {
-                val formatted = view.valueFormatter.formatValue(index.toFloat())
-                if (formatted.length > tempLength) {
-                    tempString = formatted
-                    tempLength = formatted.length
+    fun resetLongestLabel(label: String?, notifyChange: Boolean = true) {
+        val measuredText: String? = label ?: view.getAdapter().run {
+            if (itemCount > 0) {
+                if (sameLengthOfLabel) {
+                    return@run getItemTitle(0)
+                } else {
+                    var tempText: String? = label ?: longestLabel
+                    for (index in 0..itemCount) {
+                        tempText = getItemTitle(index)
+                            .takeIf {
+                                it.length > tempText?.length ?: 0
+                            } ?: tempText
+                    }
+                    return@run tempText
                 }
             }
-            this.longestLabel = tempString
+            return@run longestLabel
         }
 
+        this.longestLabel = measuredText
         if (notifyChange) {
             labelOptions.getDrawable()?.updatePaintInfo { true }
         }
@@ -234,14 +254,17 @@ internal class LabelHelper(val view: RulerView) {
     fun visibleWidthNeeded(visibleCountOfTick: Int, stepOfTicks: Int): Int {
 
         // 此处计算的 spacing 会被 Transform 均分
-        val visiableSpacing = labelOptions.spacing.times(visibleCountOfTick.times(stepOfTicks))
+        val visibleSpacing = labelOptions.spacing.times(visibleCountOfTick.times(stepOfTicks))
 
         return labelOptions.widthNeeded.times(visibleCountOfTick)
-            .plus(visiableSpacing)
+            .plus(visibleSpacing)
     }
 
-    fun visibleHeightNeeded(): Int {
-        return labelOptions.heightNeeded
+    fun visibleHeightNeeded(visibleCountOfTick: Int = 1, stepOfTicks: Int = 1): Int {
+        // 此处计算的 spacing 会被 Transform 均分
+        val visibleSpacing = labelOptions.spacing.times(visibleCountOfTick.times(stepOfTicks))
+
+        return labelOptions.heightNeeded.times(visibleCountOfTick).plus(visibleSpacing)
     }
 
 
@@ -256,7 +279,7 @@ internal class LabelHelper(val view: RulerView) {
             }
     }
 
-    fun autoTextSize(viewPort: ViewPortHandler? = null, measuredText: String = longestLabel) {
+    fun autoTextSize(viewPort: ViewPortHandler? = null, measuredText: String? = longestLabel) {
         if (autoSizeMode != NEVER) {
             labelOptions.getDrawable()?.run {
                 paint.textSize = autoSizeMaxTextSize
@@ -283,7 +306,7 @@ internal class LabelHelper(val view: RulerView) {
     }
 
 
-    internal class TextDrawable(private val getLongestLabel: () -> String) : Drawable() {
+    internal class TextDrawable(private val getLongestLabel: () -> String?) : Drawable() {
 
 
         internal val paint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
@@ -297,9 +320,10 @@ internal class LabelHelper(val view: RulerView) {
             } else false
         }
 
-        fun measureTextSize(longestText: String): Boolean {
-            val textWidthNeeded = paint.measureText(longestText).roundToInt()
-            val textHeightNeeded = calcTextHeight(longestText)
+        fun measureTextSize(longestText: String?): Boolean {
+            val measuredText = longestText ?: text
+            val textWidthNeeded = paint.measureText(measuredText).roundToInt()
+            val textHeightNeeded = calcTextHeight(measuredText)
             return if (this.textWidthNeeded != textWidthNeeded || this.textHeightNeeded != textHeightNeeded) {
                 this.textWidthNeeded = textWidthNeeded
                 this.textHeightNeeded = textHeightNeeded

@@ -3,18 +3,13 @@ package com.lixicode.rulerdemo
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
-import android.widget.ProgressBar
 import android.widget.SeekBar
-import android.widget.TextView
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.chip.Chip
+import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.RulerView
-import com.lixicode.ruler.formatter.ValueFormatter
-
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.content_main.*
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
@@ -32,22 +27,23 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         val rulerView = findViewById<RulerView>(R.id.ruler)
+        rulerView.setAdapter(object : Adapter() {
 
-        rulerView.valueFormatter = object : ValueFormatter {
-            override fun formatValue(value: Float): String {
-                val intValue = value.roundToInt()
-                val index = rulerView.tickIndex(intValue).div(5 /* step */)
-                if (index < TEXT.length) {
-                    return TEXT.substring(index, index + 1)
-                }
-                return intValue.toString()
+            override val itemCount: Int
+                get() = TEXT.length.times(5)
+
+            override fun formatItemLabel(position: Int): String {
+                val index = position.div(5 /* step */)
+                return TEXT.substring(index, index + 1)
             }
-        }
+
+        })
+
 
         val valueChip = findViewById<Chip>(R.id.value)
         rulerView.tickChangeListener = object : RulerView.OnTickChangedListener {
             override fun onTickChanged(value: Float, label: String) {
-                val text = "tick: ${rulerView.tick},value:$value,label:$label"
+                val text = "tick: ${rulerView.getTick()},value:$value,label:$label"
                 valueChip.text = text
                 rulerView.requestLayout()
             }
@@ -75,14 +71,24 @@ class MainActivity : AppCompatActivity() {
                                 DottedLineDrawable()
                             )
                         } else {
-                            options.setDrawable(
-                                ContextCompat.getDrawable(
-                                    this@MainActivity,
-                                    R.drawable.dotted_baseline
+                            if (rulerView.isHorizontal) {
+                                options.setDrawable(
+                                    ContextCompat.getDrawable(
+                                        this@MainActivity,
+                                        R.drawable.dotted_baseline
+                                    )
                                 )
-                            )
-                            chip.text =
-                                if (rulerView.isHorizontal) getString(R.string.dotted_line) else getString(R.string.not_support_xml)
+                                chip.text = getString(R.string.dotted_line)
+                            } else {
+                                options.setDrawable(
+                                    ContextCompat.getDrawable(
+                                        this@MainActivity,
+                                        R.drawable.rotate_dotted_baseline
+                                    )
+                                )
+                                chip.text = getString(R.string.not_support_xml)
+                            }
+
 
                             rulerView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
                         }
@@ -105,6 +111,17 @@ class MainActivity : AppCompatActivity() {
 
                     if (dashBaseLine.isSelected) {
                         dashBaseLine.text = getString(R.string.not_support_xml)
+
+
+                        rulerView.updateBaseLineOptions { options ->
+                            options.setDrawable(
+                                ContextCompat.getDrawable(
+                                    this@MainActivity,
+                                    R.drawable.rotate_dotted_baseline
+                                )
+                            )
+                            true
+                        }
                     }
                 } else {
                     rulerView.orientation = RulerView.HORIZONTAL
@@ -112,6 +129,16 @@ class MainActivity : AppCompatActivity() {
 
                     if (dashBaseLine.isSelected) {
                         dashBaseLine.text = getString(R.string.dotted_line)
+
+                        rulerView.updateBaseLineOptions { options ->
+                            options.setDrawable(
+                                ContextCompat.getDrawable(
+                                    this@MainActivity,
+                                    R.drawable.dotted_baseline
+                                )
+                            )
+                            true
+                        }
                     }
                 }
             }
@@ -146,6 +173,17 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         gravityChip.text = getText(R.string.gravity_start)
                     }
+                }
+            }
+        }
+
+        findViewById<Chip>(R.id.infinite_button).also { chip ->
+            chip.setOnCheckedChangeListener { _, isChecked ->
+                rulerView.infiniteMode = isChecked
+                if (isChecked) {
+                    chip.text = getText(R.string.infinite_mode)
+                } else {
+                    chip.text = getText(R.string.finite_mode)
                 }
             }
         }
@@ -190,6 +228,12 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.dialog_button)
             .setOnClickListener {
                 RulerDialogFragment().show(supportFragmentManager, getString(R.string.dialog_demo))
+            }
+
+        findViewById<View>(R.id.wheel_button)
+            .setOnClickListener {
+                com.lixicode.rulerdemo.WheelDialogFragment()
+                    .show(supportFragmentManager, getString(R.string.wheel_demo))
             }
 
     }

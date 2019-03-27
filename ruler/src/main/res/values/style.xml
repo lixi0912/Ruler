@@ -11,9 +11,9 @@
         <item name="ruler_significantTickWeight">1.5</item>
         <item name="ruler_visibleCountOfTick">5</item>
         <item name="ruler_stepOfTicks">5</item>
-        <item name="ruler_minimumOfTicks">100</item>
+        <item name="ruler_minimumOfTicks">0</item>
         <item name="ruler_maximumOfTicks">500</item>
-        <item name="ruler_tick">100</item>
+        <item name="ruler_tick">0</item>
         <item name="ruler_enableMirrorTick">false</item>
         <item name="android:orientation">vertical</item>
         <item name="ruler_gravityOfTick">start</item>
