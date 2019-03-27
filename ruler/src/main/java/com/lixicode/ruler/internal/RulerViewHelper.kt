@@ -213,8 +213,8 @@ internal class RulerViewHelper(private val view: RulerView) {
             .plus(labelHelper.labelOptions.spacing.times(2)).roundToInt()
 
 
-        val visibleTextHeight = labelHelper.visibleHeightNeeded() * visibleCountOfTick
-        val visibleTickWidth = tickHelper.visibleWidthNeeded(visibleCountOfTick, stepOfTicks)
+        val visibleTextHeight = labelHelper.visibleHeightNeeded(visibleCountOfTick, stepOfTicks)
+        val visibleTickWidth = tickHelper.visibleHeightNeeded(visibleCountOfTick, stepOfTicks)
 
         minimumMeasureHeight = max(visibleTextHeight, visibleTickWidth)
 

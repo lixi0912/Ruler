@@ -110,6 +110,17 @@ internal class TickHelper {
         return visibleTickWidthNeeded.plus(visibleDividerSpacingNeeded).plus(visibleDividerWidthNeeded)
     }
 
+    fun visibleHeightNeeded(visibleCountOfTick: Int, stepOfTicks: Int): Int {
+        val spacingCount = stepOfTicks.plus(1)
+        val visibleDividerSpacingNeeded = spacingCount.times(dividerTickOptions.spacing)
+            .times(visibleCountOfTick).times(stepOfTicks)
+
+        val visibleDividerWidthNeeded = stepOfTicks.times(dividerTickOptions.heightNeeded)
+
+        val visibleTickWidthNeeded = tickOptions.heightNeeded.times(visibleCountOfTick)
+        return visibleTickWidthNeeded.plus(visibleDividerSpacingNeeded).plus(visibleDividerWidthNeeded)
+    }
+
     /**
      * ------
      *

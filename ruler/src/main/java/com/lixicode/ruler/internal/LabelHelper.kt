@@ -237,8 +237,11 @@ internal class LabelHelper(val view: RulerView) {
             .plus(visibleSpacing)
     }
 
-    fun visibleHeightNeeded(): Int {
-        return labelOptions.heightNeeded
+    fun visibleHeightNeeded(visibleCountOfTick: Int = 1, stepOfTicks: Int = 1): Int {
+        // 此处计算的 spacing 会被 Transform 均分
+        val visibleSpacing = labelOptions.spacing.times(visibleCountOfTick.times(stepOfTicks))
+
+        return labelOptions.heightNeeded.times(visibleCountOfTick).plus(visibleSpacing)
     }
 
 
