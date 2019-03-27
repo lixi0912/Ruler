@@ -31,8 +31,11 @@ class RulerBindingAdapter {
                     ListenerUtil.getListener<RulerView.OnTickChangedListener?>(view, R.id.callbackListener)
                 if (null == oldListener) {
                     val newListener = object : RulerView.OnTickChangedListener {
-                        override fun onTickChanged(value: Float, label: String) {
-                            onChange()
+
+                        override fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
+                            if (oldValue != newValue) {
+                                onChange()
+                            }
                         }
                     }
                     ListenerUtil.trackListener(view, newListener, R.id.callbackListener)
