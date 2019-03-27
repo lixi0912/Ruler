@@ -19,7 +19,8 @@ open class SingletonPool<T>(
     }
 
     fun release(value: T) {
-        sPool.release(value)
+        value.also(onPreRelease)
+            .also { sPool.release(it) }
     }
 
 }

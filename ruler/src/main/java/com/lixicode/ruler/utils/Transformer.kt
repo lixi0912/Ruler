@@ -76,7 +76,12 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         postTranslateY: Float
     ) {
         matrix.reset()
-        matrix.postScale(scaleX, scaleY)
+        if (scaleX.isFinite()) {
+            matrix.postScale(scaleX, 1F)
+        }
+        if (scaleY.isFinite()) {
+            matrix.postScale(1F, scaleY)
+        }
         matrix.postTranslate(postTranslateX, postTranslateY)
     }
 
