@@ -13,4 +13,4 @@
 
 [Demo Apk](/image/demo.apk)
 
-![](/image/demo.gif)
+<img src="/image/demo.gif" width="300" alt="demo"/>
