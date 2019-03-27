@@ -1,21 +1,44 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler
 
+import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
 import android.view.ViewConfiguration
 import android.widget.OverScroller
 import androidx.core.view.ViewCompat
-import com.lixicode.ruler.data.PointF
-import com.lixicode.ruler.data.offsetX
-import com.lixicode.ruler.data.offsetY
+import com.lixicode.ruler.data.*
 import com.lixicode.ruler.internal.RulerViewHelper
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 import kotlin.math.abs
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 /**
- * @author 陈晓辉
+ * @author lixi
  * @description <>
  * @date 2019/3/9
  */
@@ -36,8 +59,12 @@ internal class ScrollHelper(
 
     private val scroller = OverScroller(view.context)
 
+    var scrollOffset: Int = 0
+
     var minScrollPosition: Int = 0
     var maxScrollPosition: Int = 0
+
+    var infiniteMode: Boolean = false
 
     private val touchSlop: Int
     private val minimumVelocity: Float
@@ -46,7 +73,7 @@ internal class ScrollHelper(
     private var mActivePointerId = RulerView.INVALID_POINTER
     private var mVelocityTracker: VelocityTracker? = null
     private var mScrollState: Int = 0
-    private var mLastTouchPoint: PointF? = null
+    private var mLastTouchPoint: RectF? = null
     private var isBeingDragged: Boolean = false
     private var firstLayout: Boolean = false
 
@@ -60,32 +87,24 @@ internal class ScrollHelper(
 
     fun onSizeChanged(w: Int, h: Int) {
         firstLayout = true
+        ensureScrollOffset(w, h)
+        ensureScrollRange(view.getAdapter())
+        resetViewPosition()
+    }
 
-        minScrollPosition = helper.generateValueToPixel(helper.minimumOfTicks)
-            .let {
-                //  允许首项居中
-                if (helper.isHorizontal) {
-                    it.x.minus(w.div(2)).roundToInt()
-                } else {
-                    it.y.minus(h.div(2)).roundToInt()
-                }.apply {
-                    it.recycle()
-                }
+    private fun ensureScrollOffset(w: Int, h: Int) {
+        scrollOffset = if (helper.isHorizontal) {
+            w.div(2).also {
+                view.transformer.prepareScrollOffset(it.toFloat(), 0F)
             }
-
-        //  允许最后一项居中
-        maxScrollPosition = helper.generateValueToPixel(helper.maximumOfTicks)
-            .let {
-                if (helper.isHorizontal) {
-                    it.x.minus(w.div(2)).roundToInt()
-                } else {
-                    it.y.minus(h.div(2)).roundToInt()
-                }.apply {
-                    it.recycle()
-                }
+        } else {
+            h.div(2).also {
+                view.transformer.prepareScrollOffset(0f, it.toFloat())
             }
+        }
+    }
 
-
+    private fun resetViewPosition() {
         // cancel scroller
         if (!scroller.isFinished) {
             scroller.abortAnimation()
@@ -94,31 +113,76 @@ internal class ScrollHelper(
         // reset scroll position
         view.scrollTo(0, 0)
 
-        scrollTo(view.tick)
+        scrollTo(view.tick, animateTo = false)
+    }
+
+    private fun ensureScrollRange(adapter: Adapter) {
+        if (infiniteMode) {
+            minScrollPosition = generateScrollPx(Int.MIN_VALUE)
+            maxScrollPosition = generateScrollPx(Int.MAX_VALUE)
+        } else {
+            minScrollPosition = generateScrollPx(0)
+            maxScrollPosition = generateScrollPx(adapter.itemCount)
+        }
+
     }
 
 
-    fun scrollTo(tick: Int) {
+    private fun generateScrollPx(position: Int): Int {
+        return if (position == Int.MIN_VALUE || position == Int.MAX_VALUE) {
+            position
+        } else {
+            RectPool.obtain()
+                .also {
+                    it.left = position
+                    it.top = position
+                    it.right = it.left
+                    it.bottom = it.top
+                }
+                .concat(helper.transformer.mMatrixValueToPx)
+                .let {
+                    //  允许首项居中
+                    if (helper.isHorizontal) {
+                        it.left
+                    } else {
+                        it.top
+                    }.apply {
+                        it.release()
+                    }.minus(scrollOffset)
+                }
+        }
+    }
+
+
+    fun scrollTo(tick: Int, animateTo: Boolean = false) {
         if (!scroller.isFinished) {
             return
         }
 
-        val pts = helper.generateValueToPixel(tick)
-        val dx = pts.x.plus(minScrollPosition).minus(view.scrollX).roundToInt().takeIf { helper.isHorizontal } ?: 0
-        val dy = pts.y.plus(minScrollPosition).minus(view.scrollY).roundToInt().takeIf { !helper.isHorizontal } ?: 0
-        pts.recycle()
-
+        val dx: Int
+        val dy: Int
+        RectPool.obtain()
+            .also {
+                it.set(tick, tick, tick, tick)
+            }
+            .concat(helper.transformer.mMatrixValueToPx)
+            .also {
+                it.inset(-view.scrollX, -view.scrollY)
+                it.offset(-scrollOffset, -scrollOffset)
+            }
+            .also {
+                dx = it.left.takeIf { helper.isHorizontal } ?: 0
+                dy = it.top.takeIf { !helper.isHorizontal } ?: 0
+                it.release()
+            }
         if (dx == 0 && dy == 0) {
             setScrollState(SCROLL_STATE_IDLE)
             return
         }
 
-        if (firstLayout) {
+        if (firstLayout || !animateTo) {
             firstLayout = false
             view.scrollBy(dx, dy)
-
-            val tickValue = tick.toFloat()
-            view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
         } else {
             scroller.startScroll(
                 view.scrollX, view.scrollY,
@@ -147,7 +211,11 @@ internal class ScrollHelper(
 
         when (event.action.and(MotionEvent.ACTION_MASK)) {
             MotionEvent.ACTION_DOWN -> {
-                mLastTouchPoint = PointF.obtain(event.x, event.y)
+                mLastTouchPoint = RectFPool.obtain()
+                    .also {
+                        it.left = event.x
+                        it.top = event.y
+                    }
 
                 abortScrollAnimation()
 
@@ -164,8 +232,8 @@ internal class ScrollHelper(
 
                 val touchPoint = mLastTouchPoint!!
                 if (!isBeingDragged) {
-                    val xDiff = abs(event.getX(pointerIndex) - touchPoint.x)
-                    val yDiff = abs(event.getY(pointerIndex) - touchPoint.y)
+                    val xDiff = abs(event.getX(pointerIndex) - touchPoint.left)
+                    val yDiff = abs(event.getY(pointerIndex) - touchPoint.top)
 
                     if (xDiff > touchSlop || yDiff > touchSlop) {
                         isBeingDragged = true
@@ -178,13 +246,15 @@ internal class ScrollHelper(
 
                 if (isBeingDragged) {
                     if (view.isHorizontal) {
-                        val deltaX = touchPoint.offsetX(event.getX(pointerIndex)).roundToInt()
-                        if (overScrollByCompat(-deltaX, 0)) {
+                        val deltaX = event.getX(pointerIndex) - touchPoint.left
+                        touchPoint.left = event.getX(pointerIndex)
+                        if (overScrollByCompat(-deltaX.roundToInt(), 0)) {
                             recycleVelocityTracker()
                         }
                     } else {
-                        val deltaY = touchPoint.offsetY(event.getY(pointerIndex)).roundToInt()
-                        if (overScrollByCompat(0, -deltaY)) {
+                        val deltaY = event.getY(pointerIndex) - touchPoint.top
+                        touchPoint.top = event.getY(pointerIndex)
+                        if (overScrollByCompat(0, -deltaY.roundToInt())) {
                             recycleVelocityTracker()
                         }
                     }
@@ -263,23 +333,29 @@ internal class ScrollHelper(
         val deltaX: Int
         val deltaY: Int
 
-        helper.invertPixelToValue(
-            scroller.finalX - minScrollPosition,
-            scroller.finalY - minScrollPosition
-        ).also {
-            it.x = round(it.x)
-            it.y = round(it.y)
-            helper.transformer.pointValuesToPixel(it)
-        }.also {
-            if (helper.isHorizontal) {
-                deltaX = it.x.roundToInt() + minScrollPosition - scroller.finalX
-                deltaY = 0
-            } else {
-                deltaX = 0
-                deltaY = it.y.roundToInt() + minScrollPosition - scroller.finalY
+        RectPool
+            .obtain()
+            .also {
+                it.left = scroller.finalX
+                it.top = scroller.finalY
+                it.right = it.left
+                it.bottom = it.top
             }
-            it.recycle()
-        }
+            .concat(helper.transformer.mMatrixScrollOffset)
+            .concat(helper.transformer.mMatrixPxToValue)
+            .concat(helper.transformer.mMatrixValueToPx)
+            .also {
+                it.offset(-scrollOffset, -scrollOffset)
+                it.offset(-scroller.finalX, -scroller.finalY)
+                if (helper.isHorizontal) {
+                    deltaX = it.left
+                    deltaY = 0
+                } else {
+                    deltaX = 0
+                    deltaY = it.top
+                }
+                it.release()
+            }
 
         if (deltaX != 0 || deltaY != 0) {
             scroller.abortAnimation()
@@ -297,28 +373,29 @@ internal class ScrollHelper(
     }
 
     private fun updateTickFromScrollPosition(x: Int, y: Int) {
+        val position: Int
 
-        val tick: Int
+        RectPool
+            .obtain()
+            .also {
+                it.left = x.coerceIn(minScrollPosition, maxScrollPosition)
+                it.top = y.coerceIn(minScrollPosition, maxScrollPosition)
+                it.right = it.left
+                it.bottom = it.top
+            }
+            .concat(helper.transformer.mMatrixScrollOffset)
+            .concat(helper.transformer.mMatrixPxToValue)
+            .also {
+                position = if (view.isHorizontal) {
+                    it.left
+                } else {
+                    it.top
+                }
+                it.release()
+            }
 
-        helper.invertPixelToValue(
-            x - minScrollPosition,
-            y - minScrollPosition
-        ).also {
-            tick = if (view.isHorizontal) {
-                it.x
-            } else {
-                it.y
-            }.roundToInt()
-        }.also {
-            it.recycle()
-        }
-
-        view.tick = tick
-
+        view.setTickInternal(position, true)
         setScrollState(SCROLL_STATE_IDLE)
-
-        val tickValue = tick.toFloat()
-        view.tickChangeListener?.onTickChanged(tickValue, view.valueFormatter.formatValue(tickValue))
     }
 
     private fun setScrollState(state: Int) {
@@ -351,8 +428,16 @@ internal class ScrollHelper(
 
         var clampedX = false
         if (canScrollHorizontal) {
-            val left = minScrollPosition - maxOverScrollX
-            val right = maxOverScrollX + maxScrollPosition
+            val left = if (minScrollPosition == Int.MIN_VALUE) {
+                minScrollPosition
+            } else {
+                minScrollPosition - maxOverScrollX
+            }
+            val right = if (maxScrollPosition == Int.MAX_VALUE) {
+                maxScrollPosition
+            } else {
+                maxOverScrollX + maxScrollPosition
+            }
 
             if (newScrollX > right) {
                 newScrollX = right
@@ -367,8 +452,11 @@ internal class ScrollHelper(
         var clampedY = false
         if (canScrollVertical) {
             val top = -maxOverScrollY
-            val bottom = maxOverScrollY + maxScrollPosition
-
+            val bottom = if (maxScrollPosition == Int.MAX_VALUE) {
+                maxScrollPosition
+            } else {
+                maxOverScrollX + maxScrollPosition
+            }
             if (newScrollY > bottom) {
                 newScrollY = bottom
                 clampedY = true
@@ -388,7 +476,7 @@ internal class ScrollHelper(
         isBeingDragged = false
         mActivePointerId = RulerView.INVALID_POINTER
 
-        mLastTouchPoint?.recycle()
+        mLastTouchPoint?.release()
         mLastTouchPoint = null
 
         recycleVelocityTracker()

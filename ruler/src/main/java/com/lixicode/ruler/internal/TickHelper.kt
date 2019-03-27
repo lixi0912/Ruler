@@ -1,3 +1,26 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler.internal
 
 import android.content.Context
@@ -5,12 +28,16 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import com.lixicode.ruler.R
 import com.lixicode.ruler.data.Options
+import com.lixicode.ruler.data.release
+import com.lixicode.ruler.data.set
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.ViewPortHandler
 import kotlin.math.min
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/7
  */
 internal class TickHelper {
@@ -106,6 +133,17 @@ internal class TickHelper {
         return visibleTickWidthNeeded.plus(visibleDividerSpacingNeeded).plus(visibleDividerWidthNeeded)
     }
 
+    fun visibleHeightNeeded(visibleCountOfTick: Int, stepOfTicks: Int): Int {
+        val spacingCount = stepOfTicks.plus(1)
+        val visibleDividerSpacingNeeded = spacingCount.times(dividerTickOptions.spacing)
+            .times(visibleCountOfTick).times(stepOfTicks)
+
+        val visibleDividerWidthNeeded = stepOfTicks.times(dividerTickOptions.heightNeeded)
+
+        val visibleTickWidthNeeded = tickOptions.heightNeeded.times(visibleCountOfTick)
+        return visibleTickWidthNeeded.plus(visibleDividerSpacingNeeded).plus(visibleDividerWidthNeeded)
+    }
+
     /**
      * ------
      *
@@ -114,12 +152,18 @@ internal class TickHelper {
      * 计算横向时, 所需要的偏移值
      */
     fun computeHorizontalOffset(viewPort: ViewPortHandler) {
-        val size: Float = if (baseLineOptions.enable) {
-            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2).toFloat()
+        val size = if (baseLineOptions.enable) {
+            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2)
         } else {
-            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2).toFloat()
+            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2)
         }
-        viewPort.offsetRect.set(size, size, size, size)
+
+        RectPool.obtain()
+            .also {
+                it.set(size, size, size, size)
+                viewPort.setOffset(it)
+                it.release()
+            }
     }
 
     /**
@@ -131,12 +175,18 @@ internal class TickHelper {
      * 计算横向时, 所需要的偏移值
      */
     fun computeVerticalOffset(viewPort: ViewPortHandler) {
-        val size: Float = if (baseLineOptions.enable) {
-            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2).toFloat()
+        val size = if (baseLineOptions.enable) {
+            min(baseLineOptions.widthNeeded, baseLineOptions.heightNeeded).times(2)
         } else {
-            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2).toFloat()
+            min(tickOptions.widthNeeded, tickOptions.heightNeeded).times(2)
         }
-        viewPort.offsetRect.set(size, size, size, size)
+
+        RectPool.obtain()
+            .also {
+                it.set(size, size, size, size)
+                viewPort.setOffset(it)
+                it.release()
+            }
     }
 
 

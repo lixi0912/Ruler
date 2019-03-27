@@ -21,65 +21,65 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.lixicode.ruler.utils
+package com.lixicode.ruler.data
 
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RectF
+import com.lixicode.ruler.utils.RectFPool
+import com.lixicode.ruler.utils.RectPool
 
 /**
- * <>
  * @author lixi
- * @date 2019/2/27
+ * @description <>
+ * @date 2019/3/21
  */
-class ViewPortHandler {
 
-    private val contentRect by lazy {
-        RectF()
+
+fun Rect.inset(rect: Rect): Rect {
+    this.left += rect.left
+    this.top += rect.top
+    this.right -= rect.right
+    this.bottom -= rect.bottom
+    return this
+}
+
+
+internal fun Rect.clone(): Rect {
+    return RectPool.obtain().also {
+        it.set(this)
     }
-
-    private val offsetRect by lazy {
-        RectF()
-    }
-
-    val contentLeft
-        get() = contentRect.left + offsetRect.left
-    val contentTop
-        get() = contentRect.top + offsetRect.top
-    val contentRight
-        get() = contentRect.right - offsetRect.right
-    val contentBottom
-        get() = contentRect.bottom - offsetRect.bottom
+}
 
 
-    val viewLeft
-        get() = contentRect.left
-    val viewTop
-        get() = contentRect.top
-    val viewRight
-        get() = contentRect.right
-    val viewBottom
-        get() = contentRect.bottom
+internal fun Rect.concat(matrix: Matrix): Rect {
+    return mapToRectF().concat(matrix).mapToRect()
+}
 
 
-    val contentWidth
-        get() = contentRight - contentLeft
-    val contentHeight
-        get() = contentBottom - contentTop
+internal fun Rect.mapToRectF(): RectF {
+    return RectFPool.obtain()
+        .also {
+            it.set(this)
+        }.also {
+            RectPool.release(this)
+        }
+}
+
+internal fun Rect.release() {
+    RectPool.release(this)
+}
 
 
-    val width: Float
-        get() = contentRect.width()
+internal fun Rect.rangeHorizontal(): IntRange {
+    return left..right
+}
 
-    val height: Float
-        get() = contentRect.height()
+internal fun Rect.rangeVertical(): IntRange {
+    return top..bottom
+}
 
-
-    fun setDimens(rect: Rect) {
-        contentRect.set(rect)
-    }
-
-    fun setOffset(rect: Rect) {
-        offsetRect.set(rect)
-    }
-
+internal fun Rect.expand(dx: Int, dy: Int): Rect {
+    inset(-dx, -dy)
+    return this
 }

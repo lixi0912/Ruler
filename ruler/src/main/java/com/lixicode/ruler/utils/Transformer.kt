@@ -1,20 +1,44 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 lixi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.lixicode.ruler.utils
 
 import android.graphics.Matrix
-import com.lixicode.ruler.data.PointF
+import androidx.core.util.Pools
 import com.lixicode.ruler.internal.RulerViewHelper
 
 /**
  * <>
- * @author 陈晓辉
+ * @author lixi
  * @date 2019/3/5
  */
 internal class Transformer(private val viewPort: ViewPortHandler) {
 
 
+    internal var mMatrixScrollOffset = Matrix()
     internal var labelMatrix = Matrix()
-    private var mMatrixPxToValue = Matrix()
-    private var mMatrixValueToPx = Matrix()
+    internal var mMatrixPxToValue = Matrix()
+    internal var mMatrixValueToPx = Matrix()
 
     fun prepareMatrixValuePx(helper: RulerViewHelper) {
         if (helper.isHorizontal) {
@@ -32,16 +56,14 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val minimumWidth = viewPort.contentWidth.coerceAtLeast(helper.minimunMeasureWidth.toFloat())
         val minimumHeight = viewPort.contentHeight
 
-        val scaleX = (minimumWidth / deltaX).letFinite()
-        val scaleY = (minimumHeight / deltaY).letFinite()
+        val scaleX = minimumWidth / deltaX
+        val scaleY = minimumHeight / deltaY
 
-        applyToMatrix(mMatrixValueToPx, -helper.minimumOfTicks.toFloat(), 0F, scaleX, scaleY, 0F, viewPort.contentTop)
+        applyToMatrix(mMatrixValueToPx, scaleX, scaleY, 0F, viewPort.contentTop)
+
         mMatrixValueToPx.invert(mMatrixPxToValue)
 
-
-
         labelMatrix.set(mMatrixValueToPx)
-//        labelMatrix.postTranslate(-helper.labelHelper.labelOptions.widthNeeded.div(2F), 0F)
 
     }
 
@@ -53,58 +75,38 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val deltaX = helper.weightOfView
         val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
 
-        val scaleX = (minimumWidth / deltaX).letFinite()
-        val scaleY = (minimumHeight / deltaY).letFinite()
+        val scaleX = minimumWidth / deltaX
+        val scaleY = minimumHeight / deltaY
 
-        applyToMatrix(mMatrixValueToPx, 0F, -helper.minimumOfTicks.toFloat(), scaleX, scaleY, viewPort.contentLeft, 0F)
+        applyToMatrix(mMatrixValueToPx, scaleX, scaleY, viewPort.contentLeft, 0F)
+
         mMatrixValueToPx.invert(mMatrixPxToValue)
 
-
-
         labelMatrix.set(mMatrixValueToPx)
-//        labelMatrix.postTranslate(0F, -helper.labelHelper.labelOptions.heightNeeded.div(2F))
+    }
 
+
+    internal fun prepareScrollOffset(dx: Float, dy: Float) {
+        mMatrixScrollOffset.reset()
+        mMatrixScrollOffset.postTranslate(dx, dy)
     }
 
     private fun applyToMatrix(
         matrix: Matrix,
-        preTranslateX: Float,
-        preTranslateY: Float,
         scaleX: Float,
         scaleY: Float,
         postTranslateX: Float,
         postTranslateY: Float
     ) {
         matrix.reset()
-        matrix.postTranslate(preTranslateX, preTranslateY)
-        matrix.postScale(scaleX, scaleY)
+        if (scaleX.isFinite()) {
+            matrix.postScale(scaleX, 1F)
+        }
+        if (scaleY.isFinite()) {
+            matrix.postScale(1F, scaleY)
+        }
         matrix.postTranslate(postTranslateX, postTranslateY)
-
-
     }
 
-    fun generateValueToPixel(value: Int): PointF {
-        val pts = PointF.obtain(value, value)
-        mMatrixValueToPx.mapPoints(pts)
-        return pts
-    }
 
-    fun pointValuesToPixel(pts: PointF) {
-        mMatrixValueToPx.mapPoints(pts)
-    }
-
-    fun invertPixelToValue(pts: PointF) {
-        mMatrixPxToValue.mapPoints(pts)
-    }
-
-    fun invertPixelToValue(x: Int, y: Int): PointF {
-        val pts = PointF.obtain(x, y)
-        invertPixelToValue(pts)
-        return pts
-    }
-}
-
-
-internal fun Matrix.mapPoints(pts: PointF) {
-    mapPoints(pts.array)
 }

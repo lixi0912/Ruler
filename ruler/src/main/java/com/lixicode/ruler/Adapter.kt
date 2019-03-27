@@ -21,65 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.lixicode.ruler.utils
+package com.lixicode.ruler
 
-import android.graphics.Rect
-import android.graphics.RectF
+import com.lixicode.ruler.formatter.ValueFormatter
+import kotlin.math.abs
 
 /**
- * <>
+ * <数据适配器>
  * @author lixi
- * @date 2019/2/27
+ * @date 2019/3/26
+ *
+ * @since 1.0-rc1
  */
-class ViewPortHandler {
+open class Adapter {
 
-    private val contentRect by lazy {
-        RectF()
+    var formatter: ValueFormatter? = null
+
+    /**
+     * 无限模式下，传入的 position 为 [Int.MIN_VALUE]-[Int.MIN_VALUE]，所以需要格式为有效位置
+     */
+    internal fun getItemTitle(position: Int): String {
+        val itemPosition = abs(position).rem(itemCount)
+        return formatter?.formatItemLabel(itemPosition) ?: formatItemLabel(itemPosition)
     }
 
-    private val offsetRect by lazy {
-        RectF()
+    /**
+     * item 的个数
+     */
+    open val itemCount: Int
+        get() = 0
+
+
+    /**
+     * 格式化 itemLabel
+     */
+    open fun formatItemLabel(position: Int): String {
+        return position.toString()
     }
 
-    val contentLeft
-        get() = contentRect.left + offsetRect.left
-    val contentTop
-        get() = contentRect.top + offsetRect.top
-    val contentRight
-        get() = contentRect.right - offsetRect.right
-    val contentBottom
-        get() = contentRect.bottom - offsetRect.bottom
-
-
-    val viewLeft
-        get() = contentRect.left
-    val viewTop
-        get() = contentRect.top
-    val viewRight
-        get() = contentRect.right
-    val viewBottom
-        get() = contentRect.bottom
-
-
-    val contentWidth
-        get() = contentRight - contentLeft
-    val contentHeight
-        get() = contentBottom - contentTop
-
-
-    val width: Float
-        get() = contentRect.width()
-
-    val height: Float
-        get() = contentRect.height()
-
-
-    fun setDimens(rect: Rect) {
-        contentRect.set(rect)
-    }
-
-    fun setOffset(rect: Rect) {
-        offsetRect.set(rect)
-    }
 
 }
