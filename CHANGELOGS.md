@@ -1,3 +1,17 @@
+## 1.0-rc1 (2019/03/27)
+### Enhancements
+- 增加无限模式
+- 增加数据适配器
+
+### Changes
+- onTickChanged(value, label) -> onTickChanged(oldValue, newValue, label)
+
+### Deprecated
+- minimumOfTicks: Int
+- maximumOfTicks: Int
+- OnTickChangedListener.onTickChanged(value: Float, label: String)
+- ValueFormatter
+
 ## 1.0-alpha4 (2019/03/25)
 
 ### Bug Fixes
