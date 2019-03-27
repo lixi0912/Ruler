@@ -88,11 +88,11 @@
         <com.google.android.material.chip.Chip
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:id="@+id/infinite_button"
-                android:text="@string/finite_mode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="false"
                 android:checkable="true"
+                android:text="@string/finite_mode"
         />
     </com.google.android.material.chip.ChipGroup>
 
@@ -146,7 +146,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/wheel_button"
             app:layout_constraintTop_toBottomOf="@id/progress_height"
             android:text="@string/dialog_demo"/>
     <Button
@@ -154,9 +154,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/dialog_button"
+            app:layout_constraintLeft_toRightOf="@id/dialog_button"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/dialog_button"
             android:text="@string/wheel_demo"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -64,7 +64,24 @@ class RulerView @JvmOverloads constructor(
     }
 
     interface OnTickChangedListener {
-        fun onTickChanged(value: Float, label: String)
+
+        @Deprecated(
+            message = "this method will be removed in a future release",
+            replaceWith = ReplaceWith("onTickChange(oldValue,value,label)"),
+            level = DeprecationLevel.WARNING
+        )
+        fun onTickChanged(value: Float, label: String) {
+
+        }
+
+        /**
+         * 值发生改变
+         *
+         * @since 1.0-rc1
+         */
+        fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
+            onTickChanged(newValue.toFloat(), label)
+        }
     }
 
 
@@ -108,13 +125,27 @@ class RulerView @JvmOverloads constructor(
 
     /**
      * 当前项的刻度值
+     *
      */
     internal var tick: Int = 0
 
+
+    /**
+     * 获取当前刻度
+     *
+     * @since 1.0-rc1
+     */
     fun getTick(): Int {
         return tick
     }
 
+    /**
+     * 设置当前刻度
+     *
+     * @param tick current item value
+     * @param notify if it is true, callback will be called
+     * @since 1.0-rc1
+     */
     fun setTick(tick: Int, notify: Boolean = false) {
         setTickInternal(tick, animateTo = false, notify = notify)
     }
@@ -122,12 +153,13 @@ class RulerView @JvmOverloads constructor(
     internal fun setTickInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
         val tick = position.rem(adapter.itemCount + 1)
         val absTick = abs(tick)
+        val oldTick = this.tick
         this.tick = absTick
         if (width > 0 && height > 0) {
             scrollHelper.scrollTo(position, animateTo)
         }
         if (notify) {
-            dispatchOnTickChanged(absTick)
+            dispatchOnTickChanged(oldTick, absTick)
         }
     }
 
@@ -155,7 +187,7 @@ class RulerView @JvmOverloads constructor(
      * @see maximumOfTicks
      */
     @Deprecated(
-        message = "this value will remove in future version",
+        message = "this value will be removed in a future release",
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("adapter")
     )
@@ -174,7 +206,7 @@ class RulerView @JvmOverloads constructor(
      * @see minimumOfTicks
      */
     @Deprecated(
-        message = "this value will remove in future version",
+        message = "this value will be removed in a future release",
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("adapter")
     )
@@ -312,7 +344,7 @@ class RulerView @JvmOverloads constructor(
      * @return index of [minimumOfTicks]..[maximumOfTicks]
      */
     @Deprecated(
-        message = "this method will removed in future version",
+        message = "this method will be removed in a future release",
         replaceWith = ReplaceWith("tick"),
         level = DeprecationLevel.WARNING
     )
@@ -494,8 +526,8 @@ class RulerView @JvmOverloads constructor(
             }
     }
 
-    internal fun dispatchOnTickChanged(tick: Int) {
-        tickChangeListener?.onTickChanged(tick.toFloat(), getAdapter().getItemTitle(tick))
+    private fun dispatchOnTickChanged(oldValue: Int, newValue: Int) {
+        tickChangeListener?.onTickChanged(oldValue, newValue, getAdapter().getItemTitle(newValue))
     }
 
 

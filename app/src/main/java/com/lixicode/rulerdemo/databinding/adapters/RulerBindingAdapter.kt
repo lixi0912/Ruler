@@ -25,10 +25,7 @@ class RulerBindingAdapter {
         @JvmStatic
         @BindingAdapter(value = ["tick", "tickAttrChanged"], requireAll = false)
         fun setTick(view: RulerView, value: Int, attrChanged: InverseBindingListener?) {
-            if (view.getTick() == value) {
-                return
-            }
-            view.setTick(value)
+
             attrChanged?.run {
                 val oldListener =
                     ListenerUtil.getListener<RulerView.OnTickChangedListener?>(view, R.id.callbackListener)
@@ -41,6 +38,9 @@ class RulerBindingAdapter {
                     ListenerUtil.trackListener(view, newListener, R.id.callbackListener)
                     view.tickChangeListener = newListener
                 }
+            }
+            if (view.getTick() != value) {
+                view.setTick(value)
             }
         }
     }

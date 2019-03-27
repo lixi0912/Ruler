@@ -37,14 +37,24 @@ open class Adapter {
 
     var formatter: ValueFormatter? = null
 
-    open val itemCount: Int
-        get() = 0
-
+    /**
+     * 无限模式下，传入的 position 为 [Int.MIN_VALUE]-[Int.MIN_VALUE]，所以需要格式为有效位置
+     */
     internal fun getItemTitle(position: Int): String {
         val itemPosition = abs(position).rem(itemCount)
         return formatter?.formatItemLabel(itemPosition) ?: formatItemLabel(itemPosition)
     }
 
+    /**
+     * item 的个数
+     */
+    open val itemCount: Int
+        get() = 0
+
+
+    /**
+     * 格式化 itemLabel
+     */
     open fun formatItemLabel(position: Int): String {
         return position.toString()
     }
