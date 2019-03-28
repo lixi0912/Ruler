@@ -156,14 +156,18 @@ internal class RulerViewHelper(private val view: RulerView) {
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
+        view.minimumOfTicks = minimumOfTicks
+        view.maximumOfTicks = maximumOfTicks
+
+        val itemCount = maximumOfTicks - minimumOfTicks + stepOfTicks
         val adapter = object : Adapter() {
             override val itemCount: Int
-                get() = maximumOfTicks - minimumOfTicks
+                get() = itemCount
         }
+        view.tick = tick
 
         view.setAdapter(adapter)
 
-        setTickValue(tick)
     }
 
     /**
@@ -173,10 +177,6 @@ internal class RulerViewHelper(private val view: RulerView) {
         return abs(tick.rem(view.getAdapter().itemCount).rem(stepOfTicks))
     }
 
-
-    private fun setTickValue(tick: Int) {
-        this.view.tick = tick
-    }
 
     fun resetLongestLabel(label: String? = null) {
         labelHelper.resetLongestLabel(label)
