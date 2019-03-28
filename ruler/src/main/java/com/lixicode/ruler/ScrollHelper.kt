@@ -122,7 +122,7 @@ internal class ScrollHelper(
             maxScrollPosition = generateScrollPx(Int.MAX_VALUE)
         } else {
             minScrollPosition = generateScrollPx(0)
-            maxScrollPosition = generateScrollPx(adapter.itemCount)
+            maxScrollPosition = generateScrollPx(adapter.itemCount - view.stepOfTicks)
         }
 
     }
