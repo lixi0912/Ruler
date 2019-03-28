@@ -126,6 +126,7 @@ class RulerView @JvmOverloads constructor(
     /**
      * 当前项的刻度值
      *
+     * @since 1.0-rc2
      */
     internal var tick: Int = 0
 
@@ -147,19 +148,18 @@ class RulerView @JvmOverloads constructor(
      * @since 1.0-rc1
      */
     fun setTick(tick: Int, notify: Boolean = false) {
-        setTickInternal(tick, animateTo = false, notify = notify)
+        setCurrentItemInternal(tick, animateTo = false, notify = notify)
     }
 
-    internal fun setTickInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
-        val tick = position.rem(adapter.itemCount + 1)
-        val absTick = abs(tick)
-        val oldTick = this.tick
-        this.tick = absTick
+    internal fun setCurrentItemInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
+        val oldItem = this.tick
+        val newItem = abs(position.rem(adapter.itemCount + 1))
+        this.tick = newItem
         if (width > 0 && height > 0) {
             scrollHelper.scrollTo(position, animateTo)
         }
         if (notify) {
-            dispatchOnTickChanged(oldTick, absTick)
+            dispatchOnTickChanged(oldItem, newItem)
         }
     }
 

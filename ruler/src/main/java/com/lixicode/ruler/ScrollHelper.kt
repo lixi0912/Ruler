@@ -113,7 +113,7 @@ internal class ScrollHelper(
         // reset scroll position
         view.scrollTo(0, 0)
 
-        scrollTo(view.tick, animateTo = false)
+        scrollTo(view.getTick(), animateTo = false)
     }
 
     private fun ensureScrollRange(adapter: Adapter) {
@@ -124,7 +124,6 @@ internal class ScrollHelper(
             minScrollPosition = generateScrollPx(0)
             maxScrollPosition = generateScrollPx(adapter.itemCount - view.stepOfTicks)
         }
-
     }
 
 
@@ -394,7 +393,7 @@ internal class ScrollHelper(
                 it.release()
             }
 
-        view.setTickInternal(position, true)
+        view.setCurrentItemInternal(position, true)
         setScrollState(SCROLL_STATE_IDLE)
     }
 
