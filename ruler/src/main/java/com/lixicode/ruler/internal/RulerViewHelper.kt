@@ -124,6 +124,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     var horizontalScrollRange: Int = 0
     var verticalScrollRange: Int = 0
 
+    var autoSpacingMode: Int = RulerView.NOT_EXPAND_SPACING
 
     fun loadFromAttributes(
         context: Context,
@@ -143,6 +144,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         val orientation = a.getInt(R.styleable.RulerView_android_orientation, orientation)
         val gravityOfTick = a.getInt(R.styleable.RulerView_ruler_gravityOfTick, gravityOfTick)
         val visibleCountOfTick = a.getInt(R.styleable.RulerView_ruler_visibleCountOfTick, visibleCountOfTick)
+        val autoExpandSpacing = a.getInt(R.styleable.RulerView_ruler_autoSpacingMode, autoSpacingMode)
 
         val tick = a.getInt(R.styleable.RulerView_ruler_tick, 0)
         a.recycle()
@@ -152,6 +154,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         this.orientation = orientation
         this.stepOfTicks = stepOfTicks
         this.enableMirrorTick = enableMirrorTick
+        this.autoSpacingMode = autoExpandSpacing
 
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)

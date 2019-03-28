@@ -61,6 +61,10 @@ class RulerView @JvmOverloads constructor(
 
         const val MAX_OVER_SCROLL_EDGE = 100
 
+
+        const val NOT_EXPAND_SPACING = 0
+        const val EXPAND_SPACING_ALWAYS = 1
+
     }
 
     interface OnTickChangedListener {

@@ -95,6 +95,11 @@
             <enum name="always" value="2"/>
         </attr>
 
+        <attr name="ruler_autoSpacingMode" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="always" value="1"/>
+        </attr>
+
         <attr name="ruler_autoSizeMinTextSize" format="dimension"/>
         <attr name="ruler_autoSizeMaxTextSize" format="dimension"/>
         <attr name="ruler_autoSizeStepGranularity" format="dimension"/>

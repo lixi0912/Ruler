@@ -24,7 +24,7 @@
 package com.lixicode.ruler.utils
 
 import android.graphics.Matrix
-import androidx.core.util.Pools
+import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.internal.RulerViewHelper
 
 /**
@@ -51,13 +51,14 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
 
     private fun prepareHorizontalMatrix(helper: RulerViewHelper) {
         val deltaX = helper.visibleCountOfTick * helper.stepOfTicks
-        val deltaY = helper.weightOfView
-
-        val minimumWidth = viewPort.contentWidth.coerceAtLeast(helper.minimunMeasureWidth.toFloat())
-        val minimumHeight = viewPort.contentHeight
+        val minimumWidth = if (helper.autoSpacingMode == RulerView.EXPAND_SPACING_ALWAYS) {
+            viewPort.contentWidth.coerceAtLeast(helper.minimunMeasureWidth.toFloat())
+        } else {
+            helper.minimunMeasureWidth.toFloat()
+        }
 
         val scaleX = minimumWidth / deltaX
-        val scaleY = minimumHeight / deltaY
+        val scaleY = viewPort.contentHeight / helper.weightOfView
 
         applyToMatrix(mMatrixValueToPx, scaleX, scaleY, 0F, viewPort.contentTop)
 
@@ -69,13 +70,15 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
 
 
     private fun prepareVerticalMatrix(helper: RulerViewHelper) {
-        val minimumWidth = viewPort.contentWidth
-        val minimumHeight = viewPort.contentHeight.coerceAtLeast(helper.minimumMeasureHeight.toFloat())
+        val scaleX = viewPort.contentWidth / helper.weightOfView
 
-        val deltaX = helper.weightOfView
+        val minimumHeight = if (helper.autoSpacingMode == RulerView.EXPAND_SPACING_ALWAYS) {
+            viewPort.contentHeight.coerceAtLeast(helper.minimumMeasureHeight.toFloat())
+        } else {
+            helper.minimumMeasureHeight.toFloat()
+        }
+
         val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
-
-        val scaleX = minimumWidth / deltaX
         val scaleY = minimumHeight / deltaY
 
         applyToMatrix(mMatrixValueToPx, scaleX, scaleY, viewPort.contentLeft, 0F)
