@@ -315,6 +315,7 @@ class RulerView @JvmOverloads constructor(
     fun setAdapter(adapter: Adapter) {
         this.adapter = adapter
         helper.resetLongestLabel()
+        requestLayoutInternal()
     }
 
     /**
