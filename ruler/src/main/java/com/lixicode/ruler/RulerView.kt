@@ -186,18 +186,7 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see maximumOfTicks
      */
-    @Deprecated(
-        message = "this value will be removed in a future release",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("adapter")
-    )
-    var minimumOfTicks: Int
-        get() {
-            throw UnsupportedOperationException()
-        }
-        set(_) {
-            throw UnsupportedOperationException()
-        }
+    var minimumOfTicks: Int = 0
 
     /**
      * 最大刻度数
@@ -205,18 +194,7 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see minimumOfTicks
      */
-    @Deprecated(
-        message = "this value will be removed in a future release",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("adapter")
-    )
-    var maximumOfTicks: Int
-        get() {
-            throw UnsupportedOperationException()
-        }
-        set(_) {
-            throw UnsupportedOperationException()
-        }
+    var maximumOfTicks: Int = 0
 
 
     /**
