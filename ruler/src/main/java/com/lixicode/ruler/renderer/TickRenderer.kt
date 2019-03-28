@@ -151,7 +151,7 @@ internal class TickRenderer(private val helper: TickHelper) {
         }
         val rect = RectFPool.obtain()
             .also {
-                it.set(0F, 0F, 0F, helper.tickOptions.weight)
+                it.set(0F, 0F, 0F, helper.cursorOptions.weight)
             }
             .concat(view.transformer.mMatrixValueToPx)
             .mapToRect()
@@ -170,7 +170,7 @@ internal class TickRenderer(private val helper: TickHelper) {
         }
         val rect = RectFPool.obtain()
             .also {
-                it.set(0F, view.getTick().toFloat(), helper.tickOptions.weight, view.getTick().toFloat())
+                it.set(0F, view.getTick().toFloat(), helper.cursorOptions.weight, view.getTick().toFloat())
             }
             .concat(view.transformer.mMatrixValueToPx)
             .mapToRect()

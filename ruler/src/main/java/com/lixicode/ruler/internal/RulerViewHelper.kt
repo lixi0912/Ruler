@@ -90,7 +90,7 @@ internal class RulerViewHelper(private val view: RulerView) {
 
     val weightOfTick: Float
         get() {
-            return tickHelper.tickOptions.weight
+            return tickHelper.weight
         }
 
 

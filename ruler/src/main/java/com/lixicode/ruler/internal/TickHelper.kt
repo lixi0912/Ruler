@@ -51,6 +51,12 @@ internal class TickHelper {
 
     internal val cursorOptions: Options<Drawable> = Options()
 
+    val weight: Float
+        get() = tickOptions.takeIf { it.enable }?.weight
+            ?: dividerTickOptions.takeIf { it.enable }?.weight
+            ?: cursorOptions.takeIf { it.enable }?.weight
+            ?: 0F
+
 
     /**
      * 比如
