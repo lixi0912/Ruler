@@ -14,7 +14,7 @@ import kotlin.math.roundToInt
 
 class RulerDialogFragment : DialogFragment() {
 
-    val tick: ObservableField<Int> = ObservableField(0)
+    val tick: ObservableField<Int> = ObservableField()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
@@ -25,14 +25,17 @@ class RulerDialogFragment : DialogFragment() {
             null,
             false
         )
+        tick.set(binding.ruler.minimumOfTicks)
+
         binding.tick = tick
         binding.btnDialogOk.setOnClickListener {
             dismiss()
         }
 
         binding.ruler.valueFormatter = object : ValueFormatter {
-            override fun formatValue(value: Float): String {
-                return value.roundToInt().toString()
+
+            override fun formatItemLabel(position: Int): String {
+                return position.plus(binding.ruler.minimumOfTicks).toString()
             }
         }
 

@@ -15,25 +15,35 @@ import kotlin.math.roundToInt
 
 class WheelDialogFragment : DialogFragment() {
 
-    val tick: ObservableField<Int> = ObservableField(0)
+    val month: ObservableField<Int> = ObservableField(0)
+    val day: ObservableField<Int> = ObservableField(0)
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-
-
         val binding = DataBindingUtil.inflate<DialogRulerWheelBinding>(
             LayoutInflater.from(context),
             R.layout.dialog_ruler_wheel,
             null,
             false
         )
-        binding.tick = tick
+        month.set(binding.monthRuler.minimumOfTicks)
+        day.set(binding.dateRuler.minimumOfTicks)
+
+        binding.month = month
+        binding.day = day
+
         binding.btnDialogOk.setOnClickListener {
             dismiss()
         }
 
-        binding.ruler.valueFormatter = object : ValueFormatter {
-            override fun formatValue(value: Float): String {
-                return value.roundToInt().toString()
+        binding.monthRuler.valueFormatter = object : ValueFormatter {
+            override fun formatItemLabel(position: Int): String {
+                return position.plus(binding.monthRuler.minimumOfTicks).toString()
+            }
+        }
+
+        binding.dateRuler.valueFormatter = object : ValueFormatter {
+            override fun formatItemLabel(position: Int): String {
+                return position.plus(binding.dateRuler.minimumOfTicks).toString()
             }
         }
 

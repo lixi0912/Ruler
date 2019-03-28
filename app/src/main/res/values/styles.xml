@@ -14,4 +14,9 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
+
+    <style name="AppTheme.RulerView.Options.WheelLabel" parent="RulerView.Options.Label">
+        <item name="ruler_spacing">12dp</item>
+    </style>
+
 </resources>

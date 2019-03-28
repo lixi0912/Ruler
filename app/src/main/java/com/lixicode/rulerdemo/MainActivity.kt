@@ -29,6 +29,16 @@ class MainActivity : AppCompatActivity() {
         val rulerView = findViewById<RulerView>(R.id.ruler)
         rulerView.setAdapter(object : Adapter() {
 
+            // item count - 65
+//            override val itemCount: Int
+//                get() = TEXT.length
+
+            // index -> 0 - 64
+//            override fun formatItemLabel(index: Int): String {
+//                return TEXT.substring(index, index + 1)
+//            }
+
+            // item count -
             override val itemCount: Int
                 get() = TEXT.length.times(5)
 
@@ -36,6 +46,7 @@ class MainActivity : AppCompatActivity() {
                 val index = position.div(5 /* step */)
                 return TEXT.substring(index, index + 1)
             }
+
 
         })
 

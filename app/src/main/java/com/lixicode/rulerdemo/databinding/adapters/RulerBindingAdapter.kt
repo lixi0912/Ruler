@@ -19,7 +19,7 @@ class RulerBindingAdapter {
         @JvmStatic
         @InverseBindingAdapter(attribute = "tick")
         fun getTick(view: RulerView): Int {
-            return view.getTick()
+            return view.getTick() + view.minimumOfTicks
         }
 
         @JvmStatic
@@ -42,8 +42,14 @@ class RulerBindingAdapter {
                     view.tickChangeListener = newListener
                 }
             }
-            if (view.getTick() != value) {
-                view.setTick(value)
+            val tickValue = if (value >= view.minimumOfTicks) {
+                value - view.minimumOfTicks
+            } else {
+                value
+            }
+
+            if (view.getTick() != tickValue) {
+                view.setTick(tickValue, true)
             }
         }
     }

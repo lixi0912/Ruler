@@ -11,6 +11,8 @@
     <string name="gravity_end">Gravity End</string>
     <string name="gravity_invalid">Gravity Invalid</string>
     <string name="unit_cm">CM</string>
+    <string name="unit_month">/month</string>
+    <string name="unit_date">/day</string>
     <string name="submit">submit</string>
     <string name="dialog_demo">Dialog Demo</string>
     <string name="wheel_demo">wheel_demo</string>
