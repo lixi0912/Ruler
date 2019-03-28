@@ -33,18 +33,18 @@
 
     <style name="RulerView.Options.Tick" parent="RulerView.Options">
         <item name="ruler_weight">0.8</item>
-        <item name="ruler_drawable">@drawable/simple_tick</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_tick</item>
     </style>
     <style name="RulerView.Options.BaseLine" parent="RulerView.Options">
-        <item name="ruler_drawable">@drawable/simple_baseline</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_baseline</item>
     </style>
     <style name="RulerView.Options.Divider" parent="RulerView.Options">
         <item name="ruler_weight">0.5</item>
-        <item name="ruler_drawable">@drawable/simple_tick</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_tick</item>
     </style>
     <style name="RulerView.Options.Course" parent="RulerView.Options">
         <item name="ruler_weight">0.8</item>
-        <item name="ruler_drawable">@drawable/simple_course</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_course</item>
     </style>
 
     <style name="RulerView.Options.Label" parent="RulerView.Options">

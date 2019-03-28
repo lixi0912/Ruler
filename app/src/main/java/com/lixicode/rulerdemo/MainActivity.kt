@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                     if (it.isSelected) {
                         rulerView.setLayerType(View.LAYER_TYPE_NONE, null)
 
-                        options.setDrawable(ContextCompat.getDrawable(this@MainActivity, R.drawable.simple_baseline))
+                        options.setDrawable(ContextCompat.getDrawable(this@MainActivity, R.drawable.ruler_simple_baseline))
                         chip.text = getString(R.string.solid_line)
                     } else {
                         if (chip.isChecked) {
