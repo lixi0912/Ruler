@@ -7,9 +7,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ObservableField
 import androidx.fragment.app.DialogFragment
+import com.lixicode.ruler.RulerView
+import com.lixicode.ruler.RulerView.OnTickChangedListener
 import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.rulerdemo.databinding.DialogRulerBinding
 import com.lixicode.rulerdemo.databinding.DialogRulerWheelBinding
+import java.util.*
 import kotlin.math.roundToInt
 
 
@@ -46,6 +49,26 @@ class WheelDialogFragment : DialogFragment() {
                 return position.plus(binding.dateRuler.minimumOfTicks).toString()
             }
         }
+
+
+        val calendar = Calendar.getInstance()
+        binding.monthRuler.addOnTickChangedListener(object : OnTickChangedListener {
+
+            override fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
+                if (oldValue != newValue) {
+                    binding.dateRuler.getAdapter()?.run {
+                        calendar.set(Calendar.MONTH, newValue)
+
+                        val newItemCount = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+                        if (itemCount != newItemCount) {
+                            itemCount = newItemCount
+                            notifyDataSetChange()
+                        }
+                    }
+                }
+            }
+
+        })
 
         return AlertDialog.Builder(context!!)
             .setView(binding.root)

@@ -113,7 +113,7 @@ internal class ScrollHelper(
         // reset scroll position
         view.scrollTo(0, 0)
 
-        scrollTo(view.getTick(), animateTo = false)
+        view.setCurrentItemInternal(view.getTick(), false, notify = false)
     }
 
     private fun ensureScrollRange(adapter: Adapter) {

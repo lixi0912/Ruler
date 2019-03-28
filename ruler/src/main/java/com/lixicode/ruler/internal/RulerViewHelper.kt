@@ -163,11 +163,8 @@ internal class RulerViewHelper(private val view: RulerView) {
         view.maximumOfTicks = maximumOfTicks
         view.tick = tick
 
-        val itemCount = maximumOfTicks - minimumOfTicks + stepOfTicks
-        val adapter = object : Adapter() {
-            override val itemCount: Int
-                get() = itemCount
-        }
+        val adapter = Adapter()
+        adapter.itemCount = maximumOfTicks - minimumOfTicks + stepOfTicks
 
         view.setAdapter(adapter)
 

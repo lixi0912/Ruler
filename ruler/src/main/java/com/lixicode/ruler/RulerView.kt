@@ -38,7 +38,6 @@ import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
 import java.util.*
-import kotlin.math.abs
 import kotlin.math.max
 
 /**
@@ -100,7 +99,19 @@ class RulerView @JvmOverloads constructor(
 
     private val scrollHelper: ScrollHelper
 
+
+    @Deprecated(
+        "this method will be removed in a future release",
+        ReplaceWith("this.addOnTickChangedListener(listener)")
+    )
     var tickChangeListener: OnTickChangedListener? = null
+
+    /**
+     * tick change listeners
+     *
+     * @since 1.0-rc2
+     */
+    var tickChangeListeners: MutableList<OnTickChangedListener>? = null
 
     /**
      * 当前显示样式
@@ -157,17 +168,22 @@ class RulerView @JvmOverloads constructor(
     }
 
     internal fun setCurrentItemInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
-        val oldItem = this.tick
-        val newItem = adapter?.run {
-            abs(position.rem(itemCount + 1))
-        } ?: position
+        val oldTick = tick
+        if (infiniteMode) {
+            tick = position.rem(adapter!!.itemCount + 1)
+            if (width > 0 && height > 0) {
+                scrollHelper.scrollTo(position, animateTo)
+            }
+        } else {
+            tick = position.coerceAtMost(adapter!!.itemCount - 1)
 
-        this.tick = newItem
-        if (width > 0 && height > 0) {
-            scrollHelper.scrollTo(position, animateTo)
+            if (width > 0 && height > 0) {
+                scrollHelper.scrollTo(tick, animateTo)
+            }
         }
+
         if (notify) {
-            dispatchOnTickChanged(oldItem, newItem)
+            dispatchOnTickChanged(oldTick, tick)
         }
     }
 
@@ -295,8 +311,16 @@ class RulerView @JvmOverloads constructor(
 
     private var forcedRemeasure = false
 
-    private val notifyObserver = Observer { _, _ ->
+    /**
+     *
+     * the adapter changed
+     *
+     * @since 1.0-rc2
+     */
+    private val notifyObserver = Observer { _, tick ->
+
         helper.resetLongestLabel()
+
         requestLayoutInternal()
     }
 
@@ -327,14 +351,11 @@ class RulerView @JvmOverloads constructor(
      * @since 1.0-rc1
      */
     fun setAdapter(adapter: Adapter) {
-        this.adapter?.run {
-            unRegisterObserver(notifyObserver)
-        }
+        this.adapter?.unRegisterObserver(notifyObserver)
+        this.adapter = adapter
 
-        this.adapter = adapter.apply {
-            registerObserver(notifyObserver)
-        }
-        requestLayoutInternal()
+        adapter.registerObserver(notifyObserver)
+        adapter.notifyDataSetChange()
     }
 
     /**
@@ -526,11 +547,53 @@ class RulerView @JvmOverloads constructor(
             }
     }
 
+    /**
+     * Add listener to listen for tick value change
+     *
+     * @since 1.0-rc2
+     */
+    fun addOnTickChangedListener(listener: OnTickChangedListener) {
+        tickChangeListeners = (tickChangeListeners ?: mutableListOf()).also {
+            it.add(listener)
+        }
+    }
+
+    /**
+     * Remove the previously added listener
+     *
+     * @since 1.0-rc2
+     */
+    fun removeOnTickChangedListener(listener: OnTickChangedListener) {
+        tickChangeListeners = tickChangeListeners?.also {
+            it.remove(listener)
+        }?.takeIf { it.isNotEmpty() }
+    }
+
+    /**
+     *
+     * Remove all listener
+     *
+     * @since 1.0-rc2
+     */
+    fun removeAllListener() {
+        tickChangeListeners?.clear()
+        tickChangeListeners = null
+    }
+
     private fun dispatchOnTickChanged(oldValue: Int, newValue: Int) {
+        val label = getAdapter()?.getItemTitle(newValue) ?: newValue.toString()
+        tickChangeListeners?.forEach {
+            it.onTickChanged(
+                oldValue,
+                newValue,
+                label
+            )
+        }
+
         tickChangeListener?.onTickChanged(
             oldValue,
             newValue,
-            getAdapter()?.getItemTitle(newValue) ?: newValue.toString()
+            label
         )
     }
 

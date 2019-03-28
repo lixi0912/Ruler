@@ -5,6 +5,7 @@ import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 import androidx.databinding.adapters.ListenerUtil
 import com.lixicode.ruler.RulerView
+import com.lixicode.ruler.RulerView.OnTickChangedListener
 import com.lixicode.rulerdemo.R
 
 /**
@@ -39,7 +40,7 @@ class RulerBindingAdapter {
                         }
                     }
                     ListenerUtil.trackListener(view, newListener, R.id.callbackListener)
-                    view.tickChangeListener = newListener
+                    view.addOnTickChangedListener(newListener)
                 }
             }
             val tickValue = if (value >= view.minimumOfTicks) {

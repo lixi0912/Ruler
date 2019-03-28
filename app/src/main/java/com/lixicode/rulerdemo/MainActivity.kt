@@ -39,8 +39,7 @@ class MainActivity : AppCompatActivity() {
 //            }
 
             // item count -
-            override val itemCount: Int
-                get() = TEXT.length.times(5)
+            override var itemCount: Int = TEXT.length.times(5)
 
             override fun formatItemLabel(position: Int): String {
                 val index = position.div(5 /* step */)
@@ -74,7 +73,12 @@ class MainActivity : AppCompatActivity() {
                     if (it.isSelected) {
                         rulerView.setLayerType(View.LAYER_TYPE_NONE, null)
 
-                        options.setDrawable(ContextCompat.getDrawable(this@MainActivity, R.drawable.ruler_simple_baseline))
+                        options.setDrawable(
+                            ContextCompat.getDrawable(
+                                this@MainActivity,
+                                R.drawable.ruler_simple_baseline
+                            )
+                        )
                         chip.text = getString(R.string.solid_line)
                     } else {
                         if (chip.isChecked) {
