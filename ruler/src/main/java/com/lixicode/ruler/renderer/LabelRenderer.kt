@@ -146,7 +146,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         }
 
         val textDrawable = helper.labelOptions.getDrawable()!!
-        textDrawable.text = view.getAdapter().getItemTitle(tick)
+        textDrawable.text = view.getAdapter()!!.getItemTitle(tick)
 
         val textBounds: Rect = when {
             helper.autoSizeMode == LabelHelper.ALWAYS -> {

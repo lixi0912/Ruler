@@ -234,7 +234,7 @@ internal class LabelHelper(val view: RulerView) {
 
 
     fun resetLongestLabel(label: String?, notifyChange: Boolean = true) {
-        val measuredText: String? = label ?: view.getAdapter().run {
+        val measuredText: String? = label ?: view.getAdapter()?.run {
             if (itemCount > 0) {
                 if (sameLengthOfLabel) {
                     return@run getItemTitle(0)

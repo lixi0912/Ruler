@@ -85,10 +85,10 @@ internal class ScrollHelper(
     }
 
 
-    fun onSizeChanged(w: Int, h: Int) {
+    fun onSizeChanged(w: Int, h: Int, adapter: Adapter) {
         firstLayout = true
         ensureScrollOffset(w, h)
-        ensureScrollRange(view.getAdapter())
+        ensureScrollRange(adapter)
         resetViewPosition()
     }
 

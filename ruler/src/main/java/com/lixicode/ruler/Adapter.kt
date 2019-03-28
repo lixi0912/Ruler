@@ -24,6 +24,7 @@
 package com.lixicode.ruler
 
 import com.lixicode.ruler.formatter.ValueFormatter
+import java.util.*
 import kotlin.math.abs
 
 /**
@@ -45,6 +46,9 @@ open class Adapter {
         return formatter?.formatItemLabel(itemPosition) ?: formatItemLabel(itemPosition)
     }
 
+
+    private val observable: Observable = Observable()
+
     /**
      * item 的个数
      */
@@ -59,5 +63,16 @@ open class Adapter {
         return position.toString()
     }
 
+    fun registerObserver(observer: Observer) {
+        observable.addObserver(observer)
+    }
+
+    fun unRegisterObserver(observer: Observer) {
+        observable.deleteObserver(observer)
+    }
+
+    fun notifyDataSetChange() {
+        observable.notifyObservers()
+    }
 
 }

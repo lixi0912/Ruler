@@ -37,6 +37,7 @@ import com.lixicode.ruler.renderer.RulerViewRenderer
 import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -113,9 +114,9 @@ class RulerView @JvmOverloads constructor(
      */
     @Deprecated(message = "use adapter instead", level = DeprecationLevel.WARNING)
     var valueFormatter: ValueFormatter?
-        get() = adapter.formatter
+        get() = adapter?.formatter
         set(value) {
-            adapter.formatter = value
+            adapter?.formatter = value
             invalidate()
         }
 
@@ -124,7 +125,7 @@ class RulerView @JvmOverloads constructor(
      *
      * @since 1.0-rc1
      */
-    private lateinit var adapter: Adapter
+    private var adapter: Adapter? = null
 
 
     /**
@@ -157,7 +158,10 @@ class RulerView @JvmOverloads constructor(
 
     internal fun setCurrentItemInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
         val oldItem = this.tick
-        val newItem = abs(position.rem(adapter.itemCount + 1))
+        val newItem = adapter?.run {
+            abs(position.rem(itemCount + 1))
+        } ?: position
+
         this.tick = newItem
         if (width > 0 && height > 0) {
             scrollHelper.scrollTo(position, animateTo)
@@ -291,6 +295,11 @@ class RulerView @JvmOverloads constructor(
 
     private var forcedRemeasure = false
 
+    private val notifyObserver = Observer { _, _ ->
+        helper.resetLongestLabel()
+        requestLayoutInternal()
+    }
+
     init {
 
         scrollHelper = ScrollHelper(this, helper)
@@ -306,9 +315,10 @@ class RulerView @JvmOverloads constructor(
      * @return 适配器
      * @since 1.0-rc1
      */
-    fun getAdapter(): Adapter {
+    fun getAdapter(): Adapter? {
         return adapter
     }
+
 
     /**
      * 设置数据适配器
@@ -317,8 +327,13 @@ class RulerView @JvmOverloads constructor(
      * @since 1.0-rc1
      */
     fun setAdapter(adapter: Adapter) {
-        this.adapter = adapter
-        helper.resetLongestLabel()
+        this.adapter?.run {
+            unRegisterObserver(notifyObserver)
+        }
+
+        this.adapter = adapter.apply {
+            registerObserver(notifyObserver)
+        }
         requestLayoutInternal()
     }
 
@@ -403,8 +418,10 @@ class RulerView @JvmOverloads constructor(
 
 
     private fun dispatchOnSizeChanged(w: Int, h: Int) {
-        helper.onSizeChanged(w, h)
-        scrollHelper.onSizeChanged(w, h)
+        adapter?.also {
+            helper.onSizeChanged(w, h)
+            scrollHelper.onSizeChanged(w, h, it)
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -510,7 +527,11 @@ class RulerView @JvmOverloads constructor(
     }
 
     private fun dispatchOnTickChanged(oldValue: Int, newValue: Int) {
-        tickChangeListener?.onTickChanged(oldValue, newValue, getAdapter().getItemTitle(newValue))
+        tickChangeListener?.onTickChanged(
+            oldValue,
+            newValue,
+            getAdapter()?.getItemTitle(newValue) ?: newValue.toString()
+        )
     }
 
 
