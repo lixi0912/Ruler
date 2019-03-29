@@ -26,7 +26,7 @@ package com.lixicode.ruler.utils
 import androidx.core.util.Pools
 
 open class SingletonPool<T>(
-    maxPoolSize: Int = 3,
+    maxPoolSize: Int = 6,
     val onCreateInstance: () -> T,
     val onPreRelease: (T) -> Unit,
     threadSafe: Boolean = false

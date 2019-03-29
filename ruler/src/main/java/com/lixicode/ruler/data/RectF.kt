@@ -26,6 +26,7 @@ package com.lixicode.ruler.data
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RectF
+import com.lixicode.ruler.utils.MatrixPool
 import com.lixicode.ruler.utils.RectFPool
 import com.lixicode.ruler.utils.RectPool
 
@@ -52,6 +53,7 @@ internal fun RectF.clone(): RectF {
 
 internal fun RectF.concat(matrix: Matrix, src: RectF = this): RectF {
     matrix.mapRect(this, src)
+    MatrixPool.release(matrix)
     return this
 }
 

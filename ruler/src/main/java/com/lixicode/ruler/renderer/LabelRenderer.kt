@@ -55,7 +55,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
                 .also {
                     initTextBounds(view, it)
                 }
-                .concat(view.transformer.labelMatrix)
+                .concat(view.transformer.obtainValueToPxMatrix())
                 .mapToRect()
                 .also {
                     if (view.isHorizontal) {
@@ -158,7 +158,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
                     .let { tempSrc ->
                         initTextBounds(view, tempSrc)
                         RectFPool.obtain()
-                            .concat(view.transformer.labelMatrix, onApplyOffset(tempSrc))
+                            .concat(view.transformer.obtainValueToPxMatrix(), onApplyOffset(tempSrc))
                             .mapToRect()
                             .also {
                                 tempSrc.release()
@@ -168,7 +168,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
             }
             helper.shouldAutoTextSize(view.viewPort) -> return
             else -> RectFPool.obtain()
-                .concat(view.transformer.labelMatrix, onApplyOffset(rectF!!))
+                .concat(view.transformer.obtainValueToPxMatrix(), onApplyOffset(rectF!!))
                 .mapToRect()
         }
 

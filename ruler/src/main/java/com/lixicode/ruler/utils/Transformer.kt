@@ -25,6 +25,8 @@ package com.lixicode.ruler.utils
 
 import android.graphics.Matrix
 import com.lixicode.ruler.RulerView
+import com.lixicode.ruler.data.clone
+import com.lixicode.ruler.data.invert
 import com.lixicode.ruler.internal.RulerViewHelper
 
 /**
@@ -35,10 +37,13 @@ import com.lixicode.ruler.internal.RulerViewHelper
 internal class Transformer(private val viewPort: ViewPortHandler) {
 
 
-    internal var mMatrixScrollOffset = Matrix()
-    internal var labelMatrix = Matrix()
-    internal var mMatrixPxToValue = Matrix()
-    internal var mMatrixValueToPx = Matrix()
+    private var scrollOffsetMatrix = Matrix()
+    private var valueToPxMatrix = Matrix()
+
+    internal fun prepareScrollOffset(dx: Float, dy: Float) {
+        scrollOffsetMatrix.reset()
+        scrollOffsetMatrix.postTranslate(dx, dy)
+    }
 
     fun prepareMatrixValuePx(helper: RulerViewHelper) {
         if (helper.isHorizontal) {
@@ -60,11 +65,8 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val scaleX = minimumWidth / deltaX
         val scaleY = viewPort.contentHeight / helper.weightOfView
 
-        applyToMatrix(mMatrixValueToPx, scaleX, scaleY, 0F, viewPort.contentTop)
+        applyToMatrix(valueToPxMatrix, scaleX, scaleY, 0F, viewPort.contentTop)
 
-        mMatrixValueToPx.invert(mMatrixPxToValue)
-
-        labelMatrix.set(mMatrixValueToPx)
 
     }
 
@@ -81,18 +83,9 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         val deltaY = helper.visibleCountOfTick * helper.stepOfTicks
         val scaleY = minimumHeight / deltaY
 
-        applyToMatrix(mMatrixValueToPx, scaleX, scaleY, viewPort.contentLeft, 0F)
-
-        mMatrixValueToPx.invert(mMatrixPxToValue)
-
-        labelMatrix.set(mMatrixValueToPx)
+        applyToMatrix(valueToPxMatrix, scaleX, scaleY, viewPort.contentLeft, 0F)
     }
 
-
-    internal fun prepareScrollOffset(dx: Float, dy: Float) {
-        mMatrixScrollOffset.reset()
-        mMatrixScrollOffset.postTranslate(dx, dy)
-    }
 
     private fun applyToMatrix(
         matrix: Matrix,
@@ -111,5 +104,16 @@ internal class Transformer(private val viewPort: ViewPortHandler) {
         matrix.postTranslate(postTranslateX, postTranslateY)
     }
 
+    fun obtainScrollOffsetMatrix(): Matrix {
+        return scrollOffsetMatrix.clone()
+    }
+
+    fun obtainValueToPxMatrix(): Matrix {
+        return valueToPxMatrix.clone()
+    }
+
+    fun obtainPxToValueMatrix(): Matrix {
+        return valueToPxMatrix.invert()
+    }
 
 }

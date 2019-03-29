@@ -96,7 +96,7 @@ internal class TickRenderer(private val helper: TickHelper) {
             .also {
                 it.set(tickValue, 0F, tickValue, weight)
             }
-            .concat(view.transformer.mMatrixValueToPx)
+            .concat(view.transformer.obtainValueToPxMatrix())
             .mapToRect()
 
 
@@ -134,7 +134,7 @@ internal class TickRenderer(private val helper: TickHelper) {
             .also {
                 it.set(0F, tickValue, weight, tickValue)
             }
-            .concat(view.transformer.mMatrixValueToPx)
+            .concat(view.transformer.obtainValueToPxMatrix())
             .mapToRect()
 
 
@@ -153,7 +153,7 @@ internal class TickRenderer(private val helper: TickHelper) {
             .also {
                 it.set(0F, 0F, 0F, helper.cursorOptions.weight)
             }
-            .concat(view.transformer.mMatrixValueToPx)
+            .concat(view.transformer.obtainValueToPxMatrix())
             .mapToRect()
             .also {
                 it.left = view.scrollX + view.width.div(2)
@@ -172,7 +172,7 @@ internal class TickRenderer(private val helper: TickHelper) {
             .also {
                 it.set(0F, view.getTick().toFloat(), helper.cursorOptions.weight, view.getTick().toFloat())
             }
-            .concat(view.transformer.mMatrixValueToPx)
+            .concat(view.transformer.obtainValueToPxMatrix())
             .mapToRect()
             .also {
                 it.bottom = view.scrollY + view.height.div(2)

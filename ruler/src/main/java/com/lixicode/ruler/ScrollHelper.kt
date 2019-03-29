@@ -138,7 +138,7 @@ internal class ScrollHelper(
                     it.right = it.left
                     it.bottom = it.top
                 }
-                .concat(helper.transformer.mMatrixValueToPx)
+                .concat(helper.transformer.obtainValueToPxMatrix())
                 .let {
                     //  允许首项居中
                     if (helper.isHorizontal) {
@@ -164,7 +164,7 @@ internal class ScrollHelper(
             .also {
                 it.set(tick, tick, tick, tick)
             }
-            .concat(helper.transformer.mMatrixValueToPx)
+            .concat(helper.transformer.obtainValueToPxMatrix())
             .also {
                 it.inset(-view.scrollX, -view.scrollY)
                 it.offset(-scrollOffset, -scrollOffset)
@@ -340,9 +340,9 @@ internal class ScrollHelper(
                 it.right = it.left
                 it.bottom = it.top
             }
-            .concat(helper.transformer.mMatrixScrollOffset)
-            .concat(helper.transformer.mMatrixPxToValue)
-            .concat(helper.transformer.mMatrixValueToPx)
+            .concat(helper.transformer.obtainScrollOffsetMatrix())
+            .concat(helper.transformer.obtainPxToValueMatrix())
+            .concat(helper.transformer.obtainValueToPxMatrix())
             .also {
                 it.offset(-scrollOffset, -scrollOffset)
                 it.offset(-scroller.finalX, -scroller.finalY)
@@ -382,8 +382,8 @@ internal class ScrollHelper(
                 it.right = it.left
                 it.bottom = it.top
             }
-            .concat(helper.transformer.mMatrixScrollOffset)
-            .concat(helper.transformer.mMatrixPxToValue)
+            .concat(helper.transformer.obtainScrollOffsetMatrix())
+            .concat(helper.transformer.obtainPxToValueMatrix())
             .also {
                 position = if (view.isHorizontal) {
                     it.left
