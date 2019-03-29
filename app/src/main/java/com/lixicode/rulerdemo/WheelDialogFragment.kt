@@ -52,14 +52,18 @@ class WheelDialogFragment : DialogFragment() {
 
 
         val calendar = Calendar.getInstance()
+            .also {
+                it.set(Calendar.DAY_OF_MONTH, 1)
+            }
         binding.monthRuler.addOnTickChangedListener(object : OnTickChangedListener {
 
             override fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
                 if (oldValue != newValue) {
                     binding.dateRuler.getAdapter()?.run {
-                        calendar.set(Calendar.MONTH, newValue)
+                        val newItemCount = calendar.also {
+                            it.set(Calendar.MONTH, newValue)
+                        }.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-                        val newItemCount = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
                         if (itemCount != newItemCount) {
                             itemCount = newItemCount
                             notifyDataSetChange()

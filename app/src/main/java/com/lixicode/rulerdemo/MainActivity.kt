@@ -10,6 +10,7 @@ import com.google.android.material.chip.Chip
 import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.RulerView
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
@@ -51,14 +52,14 @@ class MainActivity : AppCompatActivity() {
 
 
         val valueChip = findViewById<Chip>(R.id.value)
-        rulerView.tickChangeListener = object : RulerView.OnTickChangedListener {
-            override fun onTickChanged(value: Float, label: String) {
-                val text = "tick: ${rulerView.getTick()},value:$value,label:$label"
+
+        rulerView.addOnTickChangedListener(object : RulerView.OnTickChangedListener {
+            override fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
+                val text = "newValue: $newValue, oldValue: $oldValue,label: $label"
                 valueChip.text = text
                 rulerView.requestLayout()
             }
-        }
-
+        })
         val dashBaseLine = findViewById<Chip>(R.id.dash_base_line).also { chip ->
             chip.setOnCloseIconClickListener {
                 rulerView.updateBaseLineOptions {
