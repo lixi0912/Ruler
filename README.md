@@ -1,6 +1,7 @@
 # Ruler
 
 [![GitHub release](https://img.shields.io/github/release/lixi0912/Ruler.svg)](https://github.com/lixi0912/Ruler/releases/latest)
+[![GitHub release](https://img.shields.io/github/release-pre/lixi0912/ruler.svg?label=pre-release)]()
 [![License](https://img.shields.io/github/license/lixi0912/Ruler.svg?style=popout)](https://github.com/lixi0912/Ruler/blob/master/LICENSE)
 
 # Setup
