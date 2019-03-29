@@ -31,14 +31,12 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import com.lixicode.ruler.data.*
-import com.lixicode.ruler.formatter.ValueFormatter
 import com.lixicode.ruler.internal.RulerViewHelper
 import com.lixicode.ruler.renderer.RulerViewRenderer
 import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
 import java.util.*
-import kotlin.math.abs
 import kotlin.math.max
 
 /**
@@ -262,7 +260,10 @@ class RulerView @JvmOverloads constructor(
      *
      * @since 1.0-rc2
      */
-    private val notifyObserver = Observer { _, tick ->
+    private val notifyObserver = Observer { _, _ ->
+        adapter?.run {
+            tick = tick.coerceAtMost(itemCount - 1)
+        }
 
         helper.resetLongestLabel()
 
@@ -499,14 +500,14 @@ class RulerView @JvmOverloads constructor(
                             scrollHelper.maxScrollPosition
                         )
                     }
-                    .concat(transformer.mMatrixScrollOffset)
+                    .concat(transformer.obtainScrollOffsetMatrix())
                     .mapToRectF()
                     .apply {
                         it.coerceIn(this)
                     }
                     .release()
             }
-            .concat(transformer.mMatrixPxToValue)
+            .concat(transformer.obtainPxToValueMatrix())
             .mapToRect()
             .let {
                 val range = if (isHorizontal) {

@@ -21,24 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.lixicode.ruler.utils
+package com.lixicode.ruler.data
 
 import android.graphics.Matrix
-import android.graphics.Rect
-import android.graphics.RectF
+import com.lixicode.ruler.utils.MatrixPool
+
+/**
+ * <>
+ * @author lixi
+ * @date 2019/3/29
+ */
+fun Matrix.clone(): Matrix {
+    return MatrixPool.obtain().also {
+        it.set(this)
+    }
+}
 
 
-internal object RectPool : SingletonPool<Rect>(
-    onCreateInstance = { Rect() },
-    onPreRelease = { it.setEmpty() }
-)
-
-internal object RectFPool : SingletonPool<RectF>(
-    onCreateInstance = { RectF() },
-    onPreRelease = { it.setEmpty() }
-)
-
-internal object MatrixPool : SingletonPool<Matrix>(
-    onCreateInstance = { Matrix() },
-    onPreRelease = { it.reset() }
-)
+fun Matrix.invert(): Matrix {
+    return MatrixPool.obtain().also { saved ->
+        invert(saved)
+    }
+}
