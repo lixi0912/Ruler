@@ -99,13 +99,6 @@ class RulerView @JvmOverloads constructor(
 
     private val scrollHelper: ScrollHelper
 
-
-    @Deprecated(
-        "this method will be removed in a future release",
-        ReplaceWith("this.addOnTickChangedListener(listener)")
-    )
-    var tickChangeListener: OnTickChangedListener? = null
-
     /**
      * tick change listeners
      *
@@ -182,7 +175,7 @@ class RulerView @JvmOverloads constructor(
             }
         }
 
-        if (notify) {
+        if (notify || oldTick != tick) {
             dispatchOnTickChanged(oldTick, tick)
         }
     }
@@ -589,12 +582,6 @@ class RulerView @JvmOverloads constructor(
                 label
             )
         }
-
-        tickChangeListener?.onTickChanged(
-            oldValue,
-            newValue,
-            label
-        )
     }
 
 
