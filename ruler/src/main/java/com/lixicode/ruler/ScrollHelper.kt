@@ -154,7 +154,7 @@ internal class ScrollHelper(
 
 
     fun scrollTo(tick: Int, animateTo: Boolean = false) {
-        if (!scroller.isFinished) {
+        if (!scroller.isFinished || !view.hasDefiniteSize()) {
             return
         }
 
@@ -450,7 +450,11 @@ internal class ScrollHelper(
 
         var clampedY = false
         if (canScrollVertical) {
-            val top = -maxOverScrollY
+            val top = if (minScrollPosition == Int.MIN_VALUE) {
+                minScrollPosition
+            } else {
+                -maxOverScrollY
+            }
             val bottom = if (maxScrollPosition == Int.MAX_VALUE) {
                 maxScrollPosition
             } else {

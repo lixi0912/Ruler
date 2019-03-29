@@ -60,6 +60,13 @@
         <attr name="ruler_baseLineOptions" format="reference"/>
         <attr name="ruler_dividerTickOptions" format="reference"/>
         <attr name="ruler_cursorOptions" format="reference"/>
+        <attr name="ruler_enableInfiniteMode" format="boolean"/>
+
+
+        <attr name="ruler_autoSpacingMode" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="always" value="1"/>
+        </attr>
 
         <!--               -->
         <!-- Label 相关配置 -->
@@ -93,11 +100,6 @@
             <enum name="none" value="0"/>
             <enum name="longest" value="1"/>
             <enum name="always" value="2"/>
-        </attr>
-
-        <attr name="ruler_autoSpacingMode" format="enum">
-            <enum name="none" value="0"/>
-            <enum name="always" value="1"/>
         </attr>
 
         <attr name="ruler_autoSizeMinTextSize" format="dimension"/>

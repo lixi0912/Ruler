@@ -145,6 +145,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         val gravityOfTick = a.getInt(R.styleable.RulerView_ruler_gravityOfTick, gravityOfTick)
         val visibleCountOfTick = a.getInt(R.styleable.RulerView_ruler_visibleCountOfTick, visibleCountOfTick)
         val autoExpandSpacing = a.getInt(R.styleable.RulerView_ruler_autoSpacingMode, autoSpacingMode)
+        val enableInfiniteMode = a.getBoolean(R.styleable.RulerView_ruler_enableInfiniteMode, false)
 
         val tick = a.getInt(R.styleable.RulerView_ruler_tick, 0)
         a.recycle()
@@ -162,6 +163,7 @@ internal class RulerViewHelper(private val view: RulerView) {
         view.minimumOfTicks = minimumOfTicks
         view.maximumOfTicks = maximumOfTicks
         view.tick = tick
+        view.infiniteMode = enableInfiniteMode
 
         val adapter = Adapter()
         adapter.itemCount = maximumOfTicks - minimumOfTicks + stepOfTicks

@@ -43,19 +43,19 @@ internal class TickRenderer(private val helper: TickHelper) {
     fun onDrawHorizontal(
         view: RulerView,
         canvas: Canvas,
-        tick: Int,
+        tickPosition: Int,
         remainderValue: Int,
         significantBetweenTick: Boolean
     ) {
-        drawHorizontalTick(view, canvas, tick, remainderValue, significantBetweenTick)
+        drawHorizontalTick(view, canvas, tickPosition, remainderValue, significantBetweenTick)
     }
 
 
     fun onDrawVertical(
-        view: RulerView, canvas: Canvas, tick: Int, remainderOfTick: Int, significantBetweenTick: Boolean
+        view: RulerView, canvas: Canvas, tickPosition: Int, remainderOfTick: Int, significantBetweenTick: Boolean
     ) {
 
-        drawVerticalTick(view, canvas, tick, remainderOfTick, significantBetweenTick)
+        drawVerticalTick(view, canvas, tickPosition, remainderOfTick, significantBetweenTick)
     }
 
 
@@ -71,7 +71,7 @@ internal class TickRenderer(private val helper: TickHelper) {
     }
 
     private fun drawHorizontalTick(
-        view: RulerView, canvas: Canvas, tick: Int, remainderValue: Int, significantBetweenTick: Boolean
+        view: RulerView, canvas: Canvas, tickPosition: Int, remainderValue: Int, significantBetweenTick: Boolean
     ) {
 
         val options: Options<Drawable>
@@ -91,7 +91,7 @@ internal class TickRenderer(private val helper: TickHelper) {
             }
         }
 
-        val tickValue = tick.toFloat()
+        val tickValue = tickPosition.toFloat()
         val rect = RectFPool.obtain()
             .also {
                 it.set(tickValue, 0F, tickValue, weight)
@@ -108,7 +108,7 @@ internal class TickRenderer(private val helper: TickHelper) {
     private fun drawVerticalTick(
         view: RulerView,
         canvas: Canvas,
-        tick: Int,
+        tickPosition: Int,
         remainderValue: Int,
         significantBetweenTick: Boolean
     ) {
@@ -129,7 +129,7 @@ internal class TickRenderer(private val helper: TickHelper) {
             }
         }
 
-        val tickValue = tick.toFloat()
+        val tickValue = tickPosition.toFloat()
         val rect = RectFPool.obtain()
             .also {
                 it.set(0F, tickValue, weight, tickValue)

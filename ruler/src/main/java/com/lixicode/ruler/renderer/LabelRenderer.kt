@@ -111,31 +111,31 @@ internal class LabelRenderer(private val helper: LabelHelper) {
     }
 
 
-    fun onDrawHorizontal(view: RulerView, canvas: Canvas, tick: Int, remainderOfTick: Int) {
+    fun onDrawHorizontal(view: RulerView, canvas: Canvas, tickPosition: Int, remainderOfTick: Int) {
         drawText(
-            view, canvas, tick, remainderOfTick,
+            view, canvas, tickPosition, remainderOfTick,
             expandWidth = helper.labelOptions.widthNeeded
         ) {
             it.apply {
-                offsetTo(tick.toFloat(), it.top)
+                offsetTo(tickPosition.toFloat(), it.top)
             }
         }
 
     }
 
-    fun onDrawVertical(view: RulerView, canvas: Canvas, tick: Int, remainderOfTick: Int) {
+    fun onDrawVertical(view: RulerView, canvas: Canvas, tickPosition: Int, remainderOfTick: Int) {
         drawText(
-            view, canvas, tick, remainderOfTick,
+            view, canvas, tickPosition, remainderOfTick,
             expandHeight = helper.labelOptions.heightNeeded
         ) {
             it.apply {
-                offsetTo(it.left, tick.toFloat())
+                offsetTo(it.left, tickPosition.toFloat())
             }
         }
     }
 
     private fun drawText(
-        view: RulerView, canvas: Canvas, tick: Int,
+        view: RulerView, canvas: Canvas, tickPosition: Int,
         remainderOfTick: Int,
         expandWidth: Int = 0,
         expandHeight: Int = 0,
@@ -146,7 +146,7 @@ internal class LabelRenderer(private val helper: LabelHelper) {
         }
 
         val textDrawable = helper.labelOptions.getDrawable()!!
-        textDrawable.text = view.getAdapter()!!.getItemTitle(tick)
+        textDrawable.text = view.getAdapter()!!.getItemTitle(tickPosition)
 
         val textBounds: Rect = when {
             helper.autoSizeMode == LabelHelper.ALWAYS -> {

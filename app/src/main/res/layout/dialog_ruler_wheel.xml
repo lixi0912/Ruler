@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        >
 
     <data>
 
         <variable
                 name="month"
-                type="androidx.databinding.ObservableField&lt;Integer&gt;"/>
+                type="androidx.databinding.ObservableField&lt;Integer&gt;"
+                />
+
         <variable
                 name="day"
-                type="androidx.databinding.ObservableField&lt;Integer&gt;"/>
+                type="androidx.databinding.ObservableField&lt;Integer&gt;"
+                />
 
     </data>
 
@@ -19,7 +24,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:orientation="vertical"
-            android:background="@android:color/white">
+            android:background="@android:color/white"
+            >
 
 
         <TextView
@@ -33,7 +39,8 @@
                 android:gravity="center"
                 android:textStyle="bold"
                 android:textColor="#333"
-                android:text="@string/app_name"/>
+                android:text="@string/app_name"
+                />
 
 
         <TextView
@@ -49,7 +56,7 @@
                 app:unitTextSize="@{12}"
                 app:text="@{month}"
                 android:textColor="@android:color/black"
-        />
+                />
 
         <TextView
                 android:id="@+id/date_text"
@@ -64,7 +71,7 @@
                 app:unitTextSize="@{12}"
                 app:text="@{day}"
                 android:textColor="@android:color/black"
-        />
+                />
 
         <com.lixicode.ruler.RulerView
                 android:id="@+id/month_ruler"
@@ -84,10 +91,11 @@
                 app:ruler_enableMirrorTick="true"
                 app:tick="@={month}"
                 app:ruler_baseLineOptions="@null"
+                app:ruler_enableInfiniteMode="true"
                 app:ruler_autoSize="none"
                 app:ruler_autoSizeMaxTextSize="11sp"
                 app:ruler_maximumOfTicks="12"
-        />
+                />
 
 
         <com.lixicode.ruler.RulerView
@@ -110,7 +118,7 @@
                 app:ruler_autoSize="none"
                 app:ruler_autoSizeMaxTextSize="11sp"
                 app:ruler_maximumOfTicks="31"
-        />
+                />
 
 
         <com.google.android.material.button.MaterialButton
@@ -128,7 +136,8 @@
                 app:backgroundTint="@color/colorPrimary"
                 android:insetBottom="0dp"
                 android:insetTop="0dp"
-                android:text="@string/submit"/>
+                android:text="@string/submit"
+                />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
