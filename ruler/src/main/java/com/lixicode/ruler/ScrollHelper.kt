@@ -85,10 +85,10 @@ internal class ScrollHelper(
     }
 
 
-    fun onSizeChanged(w: Int, h: Int) {
+    fun onSizeChanged(w: Int, h: Int, adapter: Adapter) {
         firstLayout = true
         ensureScrollOffset(w, h)
-        ensureScrollRange(view.getAdapter())
+        ensureScrollRange(adapter)
         resetViewPosition()
     }
 
@@ -113,7 +113,7 @@ internal class ScrollHelper(
         // reset scroll position
         view.scrollTo(0, 0)
 
-        scrollTo(view.tick, animateTo = false)
+        view.setCurrentItemInternal(view.getTick(), false, notify = false)
     }
 
     private fun ensureScrollRange(adapter: Adapter) {
@@ -122,9 +122,8 @@ internal class ScrollHelper(
             maxScrollPosition = generateScrollPx(Int.MAX_VALUE)
         } else {
             minScrollPosition = generateScrollPx(0)
-            maxScrollPosition = generateScrollPx(adapter.itemCount)
+            maxScrollPosition = generateScrollPx(adapter.itemCount - view.stepOfTicks)
         }
-
     }
 
 
@@ -155,7 +154,7 @@ internal class ScrollHelper(
 
 
     fun scrollTo(tick: Int, animateTo: Boolean = false) {
-        if (!scroller.isFinished) {
+        if (!scroller.isFinished || !view.hasDefiniteSize()) {
             return
         }
 
@@ -394,7 +393,7 @@ internal class ScrollHelper(
                 it.release()
             }
 
-        view.setTickInternal(position, true)
+        view.setCurrentItemInternal(position, true)
         setScrollState(SCROLL_STATE_IDLE)
     }
 
@@ -451,7 +450,11 @@ internal class ScrollHelper(
 
         var clampedY = false
         if (canScrollVertical) {
-            val top = -maxOverScrollY
+            val top = if (minScrollPosition == Int.MIN_VALUE) {
+                minScrollPosition
+            } else {
+                -maxOverScrollY
+            }
             val bottom = if (maxScrollPosition == Int.MAX_VALUE) {
                 maxScrollPosition
             } else {

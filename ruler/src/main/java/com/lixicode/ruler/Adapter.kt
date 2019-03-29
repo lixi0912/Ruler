@@ -24,6 +24,7 @@
 package com.lixicode.ruler
 
 import com.lixicode.ruler.formatter.ValueFormatter
+import java.util.*
 import kotlin.math.abs
 
 /**
@@ -38,18 +39,32 @@ open class Adapter {
     var formatter: ValueFormatter? = null
 
     /**
-     * 无限模式下，传入的 position 为 [Int.MIN_VALUE]-[Int.MIN_VALUE]，所以需要格式为有效位置
+     * item 的个数
      */
-    internal fun getItemTitle(position: Int): String {
-        val itemPosition = abs(position).rem(itemCount)
-        return formatter?.formatItemLabel(itemPosition) ?: formatItemLabel(itemPosition)
+    open var itemCount: Int = 0
+
+    private val observable = object : Observable() {
+        override fun notifyObservers(arg: Any?) {
+            setChanged()
+            super.notifyObservers(arg)
+        }
+    }
+
+    internal fun wrapItemPosition(position: Int): Int {
+        var itemPosition = abs(position).rem(itemCount)
+        if (position < 0 && itemPosition > 0) {
+            itemPosition = itemCount - itemPosition
+        }
+        return itemPosition
     }
 
     /**
-     * item 的个数
+     * 无限模式下，传入的 position 为 [Int.MIN_VALUE]-[Int.MIN_VALUE]，所以需要格式为有效位置
      */
-    open val itemCount: Int
-        get() = 0
+    internal fun getItemTitle(position: Int): String {
+        val itemPosition = wrapItemPosition(position)
+        return formatter?.formatItemLabel(itemPosition) ?: formatItemLabel(itemPosition)
+    }
 
 
     /**
@@ -59,5 +74,33 @@ open class Adapter {
         return position.toString()
     }
 
+    /**
+     * add an [observer] to [observable]
+     *
+     * @param observer to be added
+     * @since 1.0-rc2
+     */
+    fun registerObserver(observer: Observer?) {
+        observable.addObserver(observer)
+    }
+
+    /**
+     * remove [observer] from [observable]
+     *
+     * @param observer to be removed
+     * @since 1.0-rc2
+     */
+    fun unRegisterObserver(observer: Observer?) {
+        observable.deleteObserver(observer)
+    }
+
+    /**
+     * notify all of its [Observer] update
+     *
+     * @since 1.0-rc2
+     */
+    fun notifyDataSetChange(any: Any? = null) {
+        observable.notifyObservers(any)
+    }
 
 }

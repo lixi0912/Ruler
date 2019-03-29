@@ -50,8 +50,8 @@ internal fun RectF.clone(): RectF {
     }
 }
 
-internal fun RectF.concat(matrix: Matrix): RectF {
-    matrix.mapRect(this)
+internal fun RectF.concat(matrix: Matrix, src: RectF = this): RectF {
+    matrix.mapRect(this, src)
     return this
 }
 

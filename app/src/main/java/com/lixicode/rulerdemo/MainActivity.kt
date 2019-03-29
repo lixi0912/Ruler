@@ -10,6 +10,7 @@ import com.google.android.material.chip.Chip
 import com.lixicode.ruler.Adapter
 import com.lixicode.ruler.RulerView
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
@@ -29,26 +30,36 @@ class MainActivity : AppCompatActivity() {
         val rulerView = findViewById<RulerView>(R.id.ruler)
         rulerView.setAdapter(object : Adapter() {
 
-            override val itemCount: Int
-                get() = TEXT.length.times(5)
+            // item count - 65
+//            override val itemCount: Int
+//                get() = TEXT.length
+
+            // index -> 0 - 64
+//            override fun formatItemLabel(index: Int): String {
+//                return TEXT.substring(index, index + 1)
+//            }
+
+            // item count -
+            override var itemCount: Int = TEXT.length.times(5)
 
             override fun formatItemLabel(position: Int): String {
                 val index = position.div(5 /* step */)
                 return TEXT.substring(index, index + 1)
             }
 
+
         })
 
 
         val valueChip = findViewById<Chip>(R.id.value)
-        rulerView.tickChangeListener = object : RulerView.OnTickChangedListener {
-            override fun onTickChanged(value: Float, label: String) {
-                val text = "tick: ${rulerView.getTick()},value:$value,label:$label"
+
+        rulerView.addOnTickChangedListener(object : RulerView.OnTickChangedListener {
+            override fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
+                val text = "newValue: $newValue, oldValue: $oldValue,label: $label"
                 valueChip.text = text
                 rulerView.requestLayout()
             }
-        }
-
+        })
         val dashBaseLine = findViewById<Chip>(R.id.dash_base_line).also { chip ->
             chip.setOnCloseIconClickListener {
                 rulerView.updateBaseLineOptions {
@@ -63,7 +74,12 @@ class MainActivity : AppCompatActivity() {
                     if (it.isSelected) {
                         rulerView.setLayerType(View.LAYER_TYPE_NONE, null)
 
-                        options.setDrawable(ContextCompat.getDrawable(this@MainActivity, R.drawable.simple_baseline))
+                        options.setDrawable(
+                            ContextCompat.getDrawable(
+                                this@MainActivity,
+                                R.drawable.ruler_simple_baseline
+                            )
+                        )
                         chip.text = getString(R.string.solid_line)
                     } else {
                         if (chip.isChecked) {

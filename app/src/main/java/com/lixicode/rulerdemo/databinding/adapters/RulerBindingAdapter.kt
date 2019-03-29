@@ -5,6 +5,7 @@ import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 import androidx.databinding.adapters.ListenerUtil
 import com.lixicode.ruler.RulerView
+import com.lixicode.ruler.RulerView.OnTickChangedListener
 import com.lixicode.rulerdemo.R
 
 /**
@@ -19,7 +20,7 @@ class RulerBindingAdapter {
         @JvmStatic
         @InverseBindingAdapter(attribute = "tick")
         fun getTick(view: RulerView): Int {
-            return view.getTick()
+            return view.getTick() + view.minimumOfTicks
         }
 
         @JvmStatic
@@ -39,11 +40,17 @@ class RulerBindingAdapter {
                         }
                     }
                     ListenerUtil.trackListener(view, newListener, R.id.callbackListener)
-                    view.tickChangeListener = newListener
+                    view.addOnTickChangedListener(newListener)
                 }
             }
-            if (view.getTick() != value) {
-                view.setTick(value)
+            val tickValue = if (value >= view.minimumOfTicks) {
+                value - view.minimumOfTicks
+            } else {
+                value
+            }
+
+            if (view.getTick() != tickValue) {
+                view.setTick(tickValue, true)
             }
         }
     }

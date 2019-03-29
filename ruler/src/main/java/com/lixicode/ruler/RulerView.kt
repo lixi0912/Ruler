@@ -37,6 +37,7 @@ import com.lixicode.ruler.renderer.RulerViewRenderer
 import com.lixicode.ruler.utils.RectPool
 import com.lixicode.ruler.utils.Transformer
 import com.lixicode.ruler.utils.ViewPortHandler
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -61,18 +62,13 @@ class RulerView @JvmOverloads constructor(
 
         const val MAX_OVER_SCROLL_EDGE = 100
 
+
+        const val NOT_EXPAND_SPACING = 0
+        const val EXPAND_SPACING_ALWAYS = 1
+
     }
 
     interface OnTickChangedListener {
-
-        @Deprecated(
-            message = "this method will be removed in a future release",
-            replaceWith = ReplaceWith("onTickChange(oldValue,value,label)"),
-            level = DeprecationLevel.WARNING
-        )
-        fun onTickChanged(value: Float, label: String) {
-
-        }
 
         /**
          * 值发生改变
@@ -80,7 +76,6 @@ class RulerView @JvmOverloads constructor(
          * @since 1.0-rc1
          */
         fun onTickChanged(oldValue: Int, newValue: Int, label: String) {
-            onTickChanged(newValue.toFloat(), label)
         }
     }
 
@@ -95,7 +90,12 @@ class RulerView @JvmOverloads constructor(
 
     private val scrollHelper: ScrollHelper
 
-    var tickChangeListener: OnTickChangedListener? = null
+    /**
+     * tick change listeners
+     *
+     * @since 1.0-rc2
+     */
+    var tickChangeListeners: MutableList<OnTickChangedListener>? = null
 
     /**
      * 当前显示样式
@@ -105,63 +105,19 @@ class RulerView @JvmOverloads constructor(
 
 
     /**
-     * 用于格式化显示的 Label
-     */
-    @Deprecated(message = "use adapter instead", level = DeprecationLevel.WARNING)
-    var valueFormatter: ValueFormatter?
-        get() = adapter.formatter
-        set(value) {
-            adapter.formatter = value
-            invalidate()
-        }
-
-    /**
      * 数据适配器
      *
      * @since 1.0-rc1
      */
-    private lateinit var adapter: Adapter
+    private var adapter: Adapter? = null
 
 
     /**
      * 当前项的刻度值
      *
+     * @since 1.0-rc2
      */
     internal var tick: Int = 0
-
-
-    /**
-     * 获取当前刻度
-     *
-     * @since 1.0-rc1
-     */
-    fun getTick(): Int {
-        return tick
-    }
-
-    /**
-     * 设置当前刻度
-     *
-     * @param tick current item value
-     * @param notify if it is true, callback will be called
-     * @since 1.0-rc1
-     */
-    fun setTick(tick: Int, notify: Boolean = false) {
-        setTickInternal(tick, animateTo = false, notify = notify)
-    }
-
-    internal fun setTickInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
-        val tick = position.rem(adapter.itemCount + 1)
-        val absTick = abs(tick)
-        val oldTick = this.tick
-        this.tick = absTick
-        if (width > 0 && height > 0) {
-            scrollHelper.scrollTo(position, animateTo)
-        }
-        if (notify) {
-            dispatchOnTickChanged(oldTick, absTick)
-        }
-    }
 
     /**
      * 两个刻度相距的距离
@@ -186,18 +142,7 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see maximumOfTicks
      */
-    @Deprecated(
-        message = "this value will be removed in a future release",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("adapter")
-    )
-    var minimumOfTicks: Int
-        get() {
-            throw UnsupportedOperationException()
-        }
-        set(_) {
-            throw UnsupportedOperationException()
-        }
+    var minimumOfTicks: Int = 0
 
     /**
      * 最大刻度数
@@ -205,18 +150,7 @@ class RulerView @JvmOverloads constructor(
      * @see stepOfTicks
      * @see minimumOfTicks
      */
-    @Deprecated(
-        message = "this value will be removed in a future release",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("adapter")
-    )
-    var maximumOfTicks: Int
-        get() {
-            throw UnsupportedOperationException()
-        }
-        set(_) {
-            throw UnsupportedOperationException()
-        }
+    var maximumOfTicks: Int = 0
 
 
     /**
@@ -307,7 +241,33 @@ class RulerView @JvmOverloads constructor(
 
     private val renderer: RulerViewRenderer
 
-    private var forcedRemeasure = false
+    private var forcedRemeasure = true
+
+    /**
+     *
+     * 是否开启无限模式
+     *
+     * @since 1.0-rc1
+     */
+    var infiniteMode: Boolean
+        get() = scrollHelper.infiniteMode
+        set(value) {
+            scrollHelper.infiniteMode = value
+            requestLayoutInternal()
+        }
+
+    /**
+     *
+     * the adapter changed
+     *
+     * @since 1.0-rc2
+     */
+    private val notifyObserver = Observer { _, tick ->
+
+        helper.resetLongestLabel()
+
+        requestLayoutInternal()
+    }
 
     init {
 
@@ -318,15 +278,61 @@ class RulerView @JvmOverloads constructor(
         helper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
     }
 
+
+    /**
+     * 获取当前刻度
+     *
+     * @since 1.0-rc1
+     */
+    fun getTick(): Int {
+        return tick
+    }
+
+    /**
+     * 设置当前刻度
+     *
+     * @param tick current item value
+     * @param notify if it is true, callback will be called
+     * @since 1.0-rc1
+     */
+    fun setTick(tick: Int, notify: Boolean = false) {
+        setCurrentItemInternal(tick, animateTo = false, notify = notify)
+    }
+
+    internal fun setCurrentItemInternal(position: Int, animateTo: Boolean, notify: Boolean = true) {
+        val oldTick = tick
+
+        tick = adapter?.wrapItemPosition(position) ?: position
+
+        val targetPosition = if (infiniteMode) {
+            position
+        } else {
+            tick
+        }
+
+        scrollHelper.scrollTo(targetPosition, animateTo)
+
+        if (notify || oldTick != tick) {
+            dispatchOnTickChanged(oldTick, tick)
+        }
+    }
+
+
+    internal fun hasDefiniteSize(): Boolean {
+        return width != 0 && height != 0
+    }
+
+
     /**
      * 获取数据适配器
      *
      * @return 适配器
      * @since 1.0-rc1
      */
-    fun getAdapter(): Adapter {
+    fun getAdapter(): Adapter? {
         return adapter
     }
+
 
     /**
      * 设置数据适配器
@@ -335,29 +341,12 @@ class RulerView @JvmOverloads constructor(
      * @since 1.0-rc1
      */
     fun setAdapter(adapter: Adapter) {
+        this.adapter?.unRegisterObserver(notifyObserver)
         this.adapter = adapter
-        helper.resetLongestLabel()
-    }
 
-    /**
-     * @param tick [tick]
-     * @return index of [minimumOfTicks]..[maximumOfTicks]
-     */
-    @Deprecated(
-        message = "this method will be removed in a future release",
-        replaceWith = ReplaceWith("tick"),
-        level = DeprecationLevel.WARNING
-    )
-    fun tickIndex(tick: Int): Int {
-        return tick
+        adapter.registerObserver(notifyObserver)
+        adapter.notifyDataSetChange()
     }
-
-    var infiniteMode: Boolean
-        get() = scrollHelper.infiniteMode
-        set(value) {
-            scrollHelper.infiniteMode = value
-            requestLayoutInternal()
-        }
 
     fun updateBaseLineOptions(onOptionsUpdated: (options: Options<Drawable>) -> Boolean) {
         if (onOptionsUpdated(helper.tickHelper.baseLineOptions)) {
@@ -420,8 +409,10 @@ class RulerView @JvmOverloads constructor(
 
 
     private fun dispatchOnSizeChanged(w: Int, h: Int) {
-        helper.onSizeChanged(w, h)
-        scrollHelper.onSizeChanged(w, h)
+        adapter?.also {
+            helper.onSizeChanged(w, h)
+            scrollHelper.onSizeChanged(w, h, it)
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -458,9 +449,11 @@ class RulerView @JvmOverloads constructor(
     }
 
     private fun requestLayoutInternal() {
-        forcedRemeasure = true
-        requestLayout()
-        invalidate()
+        if (!forcedRemeasure) {
+            forcedRemeasure = true
+            requestLayout()
+            invalidate()
+        }
     }
 
 
@@ -526,8 +519,49 @@ class RulerView @JvmOverloads constructor(
             }
     }
 
+    /**
+     * Add listener to listen for tick value change
+     *
+     * @since 1.0-rc2
+     */
+    fun addOnTickChangedListener(listener: OnTickChangedListener) {
+        tickChangeListeners = (tickChangeListeners ?: mutableListOf()).also {
+            it.add(listener)
+        }
+    }
+
+    /**
+     * Remove the previously added listener
+     *
+     * @since 1.0-rc2
+     */
+    fun removeOnTickChangedListener(listener: OnTickChangedListener) {
+        tickChangeListeners = tickChangeListeners?.also {
+            it.remove(listener)
+        }?.takeIf { it.isNotEmpty() }
+    }
+
+    /**
+     *
+     * Remove all listener
+     *
+     * @since 1.0-rc2
+     */
+    fun removeAllListener() {
+        tickChangeListeners?.clear()
+        tickChangeListeners = null
+    }
+
+
     private fun dispatchOnTickChanged(oldValue: Int, newValue: Int) {
-        tickChangeListener?.onTickChanged(oldValue, newValue, getAdapter().getItemTitle(newValue))
+        val label = getAdapter()?.getItemTitle(newValue) ?: newValue.toString()
+        tickChangeListeners?.forEach {
+            it.onTickChanged(
+                oldValue,
+                newValue,
+                label
+            )
+        }
     }
 
 

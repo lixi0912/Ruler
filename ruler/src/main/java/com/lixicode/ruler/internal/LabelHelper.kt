@@ -28,10 +28,12 @@ import android.content.res.ColorStateList
 import android.content.res.TypedArray
 import android.graphics.*
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.StateListDrawable
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
+import androidx.core.graphics.drawable.TintAwareDrawable
 import com.lixicode.ruler.R
 import com.lixicode.ruler.RulerView
 import com.lixicode.ruler.data.Options
@@ -54,11 +56,15 @@ internal class LabelHelper(val view: RulerView) {
         const val NEVER = 0
         const val LONGEST_TEXT = 1
         const val ALWAYS = 2
+
+
+        val stateHovered = intArrayOf(android.R.attr.state_hovered)
+        val stateNone = intArrayOf()
     }
 
     inner class Attributes(
         var textSize: Float = 0F,
-        var textColor: ColorStateList? = null,
+        var textColor: ColorStateList = ColorStateList.valueOf(Color.LTGRAY),
         var textAlign: Paint.Align = Paint.Align.CENTER,
         var typeface: Typeface = Typeface.DEFAULT,
         var sameLengthOfLabel: Boolean = false,
@@ -73,7 +79,7 @@ internal class LabelHelper(val view: RulerView) {
         fun readAttributes(a: TypedArray) {
 
             if (a.hasValue(R.styleable.RulerView_android_textColor)) {
-                textColor = a.getColorStateList(R.styleable.RulerView_android_textColor)
+                textColor = a.getColorStateList(R.styleable.RulerView_android_textColor) ?: textColor
             }
 
             if (a.hasValue(R.styleable.RulerView_android_textSize)) {
@@ -155,9 +161,7 @@ internal class LabelHelper(val view: RulerView) {
     private var longestLabel: String? = null
 
 
-    val labelOptions = Options(TextDrawable {
-        longestLabel
-    }, updatable = false)
+    val labelOptions = Options(TextDrawable(), updatable = false)
 
     fun loadFromAttributes(
         context: Context,
@@ -205,28 +209,32 @@ internal class LabelHelper(val view: RulerView) {
 
         // do not inset label drawable
         labelOptions.inset = false
+        labelOptions.getDrawable()
+            ?.apply {
+                init(attributes.textColor) {
+                    longestLabel
+                }
+                updatePaintInfo {
+                    var updated = false
+                    if (it.typeface != attributes.typeface) {
+                        it.typeface = attributes.typeface
+                        updated = true
+                    }
 
-        labelOptions.getDrawable()?.updatePaintInfo {
-            var updated = false
-            if (it.typeface != attributes.typeface) {
-                it.typeface = attributes.typeface
-                updated = true
+                    if (it.textSize != attributes.textSize) {
+                        it.textSize = attributes.textSize.coerceAtMost(autoSizeMaxTextSize)
+                        updated = true
+                    }
+
+                    it.textAlign = attributes.textAlign
+                    updated
+                }
             }
-
-            if (it.textSize != attributes.textSize) {
-                it.textSize = attributes.textSize.coerceAtMost(autoSizeMaxTextSize)
-                updated = true
-            }
-
-            it.textAlign = attributes.textAlign
-            it.color = attributes.textColor?.defaultColor ?: it.color
-            updated
-        }
     }
 
 
     fun resetLongestLabel(label: String?, notifyChange: Boolean = true) {
-        val measuredText: String? = label ?: view.getAdapter().run {
+        val measuredText: String? = label ?: view.getAdapter()?.run {
             if (itemCount > 0) {
                 if (sameLengthOfLabel) {
                     return@run getItemTitle(0)
@@ -252,9 +260,8 @@ internal class LabelHelper(val view: RulerView) {
 
 
     fun visibleWidthNeeded(visibleCountOfTick: Int, stepOfTicks: Int): Int {
-
         // 此处计算的 spacing 会被 Transform 均分
-        val visibleSpacing = labelOptions.spacing.times(visibleCountOfTick.times(stepOfTicks))
+        val visibleSpacing = labelOptions.spacing.times(visibleCountOfTick.plus(1)).times(stepOfTicks)
 
         return labelOptions.widthNeeded.times(visibleCountOfTick)
             .plus(visibleSpacing)
@@ -262,7 +269,7 @@ internal class LabelHelper(val view: RulerView) {
 
     fun visibleHeightNeeded(visibleCountOfTick: Int = 1, stepOfTicks: Int = 1): Int {
         // 此处计算的 spacing 会被 Transform 均分
-        val visibleSpacing = labelOptions.spacing.times(visibleCountOfTick.times(stepOfTicks))
+        val visibleSpacing = labelOptions.spacing.times(visibleCountOfTick.plus(1)).times(stepOfTicks)
 
         return labelOptions.heightNeeded.times(visibleCountOfTick).plus(visibleSpacing)
     }
@@ -306,14 +313,22 @@ internal class LabelHelper(val view: RulerView) {
     }
 
 
-    internal class TextDrawable(private val getLongestLabel: () -> String?) : Drawable() {
+    internal class TextDrawable : Drawable() {
 
+        private lateinit var textColors: ColorStateList
+        private lateinit var getLongestLabel: () -> String?
+        val paint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
 
-        internal val paint = TextPaint(TextPaint.ANTI_ALIAS_FLAG)
-        private var textWidthNeeded = -1
-        private var textHeightNeeded = -1
+        var textWidthNeeded = -1
+        var textHeightNeeded = -1
 
         var text: String = ""
+
+        fun init(textColors: ColorStateList, getLongestLabel: () -> String?) {
+            this.textColors = textColors
+            this.getLongestLabel = getLongestLabel
+        }
+
         fun updatePaintInfo(onPaintUpdate: (paint: Paint) -> Boolean): Boolean {
             return if (onPaintUpdate(paint)) {
                 measureTextSize(getLongestLabel())
@@ -331,6 +346,9 @@ internal class LabelHelper(val view: RulerView) {
             } else false
         }
 
+        override fun isStateful(): Boolean {
+            return textColors.isStateful
+        }
 
         /**
          * @return 文本实际高度
@@ -345,6 +363,9 @@ internal class LabelHelper(val view: RulerView) {
             if (TextUtils.isEmpty(text)) {
                 return
             }
+
+            paint.color = textColors.getColorForState(state, textColors.defaultColor)
+
             canvas.drawText(
                 text,
                 bounds.exactCenterX(),

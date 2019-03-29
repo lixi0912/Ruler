@@ -21,6 +21,7 @@
         <item name="ruler_autoSizeMinTextSize">8sp</item>
         <item name="ruler_autoSizeMaxTextSize">18sp</item>
         <item name="ruler_autoSizeStepGranularity">1sp</item>
+        <item name="ruler_autoSpacingMode">always</item>
     </style>
 
     <style name="RulerView.Options">
@@ -33,18 +34,18 @@
 
     <style name="RulerView.Options.Tick" parent="RulerView.Options">
         <item name="ruler_weight">0.8</item>
-        <item name="ruler_drawable">@drawable/simple_tick</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_tick</item>
     </style>
     <style name="RulerView.Options.BaseLine" parent="RulerView.Options">
-        <item name="ruler_drawable">@drawable/simple_baseline</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_baseline</item>
     </style>
     <style name="RulerView.Options.Divider" parent="RulerView.Options">
         <item name="ruler_weight">0.5</item>
-        <item name="ruler_drawable">@drawable/simple_tick</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_tick</item>
     </style>
     <style name="RulerView.Options.Course" parent="RulerView.Options">
         <item name="ruler_weight">0.8</item>
-        <item name="ruler_drawable">@drawable/simple_course</item>
+        <item name="ruler_drawable">@drawable/ruler_simple_course</item>
     </style>
 
     <style name="RulerView.Options.Label" parent="RulerView.Options">
@@ -53,7 +54,7 @@
 
         <item name="android:typeface">sans</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:textColor">@color/ruler_label_color</item>
         <item name="android:textSize">18sp</item>
 
         <item name="ruler_textAlign">CENTER</item>

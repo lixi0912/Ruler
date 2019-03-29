@@ -3,7 +3,10 @@
 
 
     <color name="ruler_baseline">#C7B299</color>
-    <color name="ruler_cursor">@android:color/holo_green_light</color>
+    <color name="ruler_cursor">@android:color/holo_orange_light</color>
     <color name="ruler_tick">@android:color/holo_green_light</color>
+
+    <color name="ruler_labelColorPrimary">@android:color/holo_red_light</color>
+    <color name="ruler_labelColorPrimaryDark">@android:color/holo_blue_bright</color>
 
 </resources>

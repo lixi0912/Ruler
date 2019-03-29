@@ -90,7 +90,7 @@ internal class RulerViewHelper(private val view: RulerView) {
 
     val weightOfTick: Float
         get() {
-            return tickHelper.tickOptions.weight
+            return tickHelper.weight
         }
 
 
@@ -124,6 +124,7 @@ internal class RulerViewHelper(private val view: RulerView) {
     var horizontalScrollRange: Int = 0
     var verticalScrollRange: Int = 0
 
+    var autoSpacingMode: Int = RulerView.NOT_EXPAND_SPACING
 
     fun loadFromAttributes(
         context: Context,
@@ -143,6 +144,8 @@ internal class RulerViewHelper(private val view: RulerView) {
         val orientation = a.getInt(R.styleable.RulerView_android_orientation, orientation)
         val gravityOfTick = a.getInt(R.styleable.RulerView_ruler_gravityOfTick, gravityOfTick)
         val visibleCountOfTick = a.getInt(R.styleable.RulerView_ruler_visibleCountOfTick, visibleCountOfTick)
+        val autoExpandSpacing = a.getInt(R.styleable.RulerView_ruler_autoSpacingMode, autoSpacingMode)
+        val enableInfiniteMode = a.getBoolean(R.styleable.RulerView_ruler_enableInfiniteMode, false)
 
         val tick = a.getInt(R.styleable.RulerView_ruler_tick, 0)
         a.recycle()
@@ -152,31 +155,33 @@ internal class RulerViewHelper(private val view: RulerView) {
         this.orientation = orientation
         this.stepOfTicks = stepOfTicks
         this.enableMirrorTick = enableMirrorTick
+        this.autoSpacingMode = autoExpandSpacing
 
         labelHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
         tickHelper.loadFromAttributes(context, attrs, defStyleAttr, defStyleRes)
 
-        val adapter = object : Adapter() {
-            override val itemCount: Int
-                get() = maximumOfTicks - minimumOfTicks
-        }
+        view.minimumOfTicks = minimumOfTicks
+        view.maximumOfTicks = maximumOfTicks
+        view.tick = tick
+        view.infiniteMode = enableInfiniteMode
+
+        val adapter = Adapter()
+        adapter.itemCount = maximumOfTicks - minimumOfTicks + stepOfTicks
 
         view.setAdapter(adapter)
 
-        setTickValue(tick)
     }
 
     /**
      * @return true [tick] is remainder of ticks
      */
     fun remOfTick(tick: Int): Int {
-        return abs(tick.rem(view.getAdapter().itemCount).rem(stepOfTicks))
+        return view.getAdapter()?.let {
+            abs(tick.rem(it.itemCount).rem(stepOfTicks))
+        } ?: abs(tick.rem(stepOfTicks))
+
     }
 
-
-    private fun setTickValue(tick: Int) {
-        this.view.tick = tick
-    }
 
     fun resetLongestLabel(label: String? = null) {
         labelHelper.resetLongestLabel(label)

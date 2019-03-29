@@ -41,7 +41,7 @@ open class Options<T : Drawable>(
     /**
      * 占据屏幕高度的权重, 刻度线权重 + label 权重 = 控件高度
      */
-    var weight: Float = 1F,
+    var weight: Float = 0F,
 
     /**
      * 用于控制间隙，当文字宽度不满足于显示的时候
@@ -53,7 +53,7 @@ open class Options<T : Drawable>(
     /**
      * 是否显示
      */
-    var enable: Boolean = true,
+    var enable: Boolean = false,
 
     val updatable: Boolean = true
 ) {
