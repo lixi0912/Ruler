@@ -32,7 +32,7 @@ class RulerDialogFragment : DialogFragment() {
             dismiss()
         }
 
-        binding.ruler.valueFormatter = object : ValueFormatter {
+        binding.ruler.getAdapter()!!.formatter = object : ValueFormatter {
 
             override fun formatItemLabel(position: Int): String {
                 return position.plus(binding.ruler.minimumOfTicks).toString()

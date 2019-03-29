@@ -105,17 +105,6 @@ class RulerView @JvmOverloads constructor(
 
 
     /**
-     * 用于格式化显示的 Label
-     */
-    @Deprecated(message = "use adapter instead", level = DeprecationLevel.WARNING)
-    var valueFormatter: ValueFormatter?
-        get() = adapter?.formatter
-        set(value) {
-            adapter?.formatter = value
-            invalidate()
-        }
-
-    /**
      * 数据适配器
      *
      * @since 1.0-rc1

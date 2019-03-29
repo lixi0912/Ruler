@@ -38,13 +38,13 @@ class WheelDialogFragment : DialogFragment() {
             dismiss()
         }
 
-        binding.monthRuler.valueFormatter = object : ValueFormatter {
+        binding.monthRuler.getAdapter()!!.formatter = object : ValueFormatter {
             override fun formatItemLabel(position: Int): String {
                 return position.plus(binding.monthRuler.minimumOfTicks).toString()
             }
         }
 
-        binding.dateRuler.valueFormatter = object : ValueFormatter {
+        binding.dateRuler.getAdapter()!!.formatter = object : ValueFormatter {
             override fun formatItemLabel(position: Int): String {
                 return position.plus(binding.dateRuler.minimumOfTicks).toString()
             }
