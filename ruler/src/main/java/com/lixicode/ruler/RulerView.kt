@@ -457,6 +457,10 @@ class RulerView @JvmOverloads constructor(
         }
     }
 
+    override fun scrollTo(x: Int, y: Int) {
+        super.scrollTo(x, y)
+    }
+
     internal fun computeCanvasPaddingByHorizontal(): Int {
         return paddingBottom.minus(paddingTop).takeIf {
             it > 0
@@ -477,6 +481,7 @@ class RulerView @JvmOverloads constructor(
             }
             .mapToRectF()
             .also {
+
                 it.inset(-viewPort.contentWidth, -viewPort.contentHeight)
                 if (scrollHelper.minScrollPosition == Int.MIN_VALUE || scrollHelper.maxScrollPosition == Int.MAX_VALUE) {
                     return@also

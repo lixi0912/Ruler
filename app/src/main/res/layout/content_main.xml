@@ -6,7 +6,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:showIn="@layout/activity_main"
-        tools:context=".MainActivity">
+        tools:context=".MainActivity"
+        >
 
 
     <com.lixicode.ruler.RulerView
@@ -25,7 +26,7 @@
             app:ruler_enableMirrorTick="true"
             app:ruler_sameLengthOfLabel="false"
             app:ruler_longestLabel="@null"
-    />
+            />
 
 
     <com.google.android.material.chip.ChipGroup
@@ -37,21 +38,23 @@
             android:layout_marginTop="16dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ruler">
+            app:layout_constraintTop_toBottomOf="@id/ruler"
+            >
 
         <com.google.android.material.chip.Chip
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:id="@+id/value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-        />
+                />
 
         <com.google.android.material.chip.Chip
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:id="@+id/orientation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/horizontal"/>
+                android:text="@string/horizontal"
+                />
 
         <com.google.android.material.chip.Chip
                 style="@style/Widget.MaterialComponents.Chip.Action"
@@ -60,14 +63,16 @@
                 android:layout_height="wrap_content"
                 android:checked="true"
                 android:checkable="true"
-                android:text="@string/mirror"/>
+                android:text="@string/mirror"
+                />
 
         <com.google.android.material.chip.Chip
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:id="@+id/gravity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/gravity_invalid"/>
+                android:text="@string/gravity_invalid"
+                />
 
 
         <com.google.android.material.chip.Chip
@@ -76,14 +81,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:closeIconVisible="true"
-                android:text="@string/solid_line"/>
+                android:text="@string/solid_line"
+                />
 
         <com.google.android.material.chip.Chip
                 style="@style/Widget.MaterialComponents.Chip.Action"
                 android:id="@+id/ruler_lp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-        />
+                />
 
         <com.google.android.material.chip.Chip
                 style="@style/Widget.MaterialComponents.Chip.Action"
@@ -93,7 +99,7 @@
                 android:checked="false"
                 android:checkable="true"
                 android:text="@string/finite_mode"
-        />
+                />
     </com.google.android.material.chip.ChipGroup>
 
 
@@ -105,7 +111,8 @@
             android:layout_marginTop="12dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/chip_group"
-            android:text="layout_width: "/>
+            android:text="layout_width: "
+            />
 
     <SeekBar
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
@@ -116,7 +123,8 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/title_progress_width"
-            android:progress="0"/>
+            android:progress="0"
+            />
 
     <TextView
             android:id="@+id/title_progress_height"
@@ -126,7 +134,8 @@
             android:layout_marginTop="12dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/progress_width"
-            android:text="layout_height:"/>
+            android:text="layout_height:"
+            />
 
     <SeekBar
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
@@ -137,26 +146,41 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/title_progress_height"
-            android:progress="100"/>
+            android:progress="100"
+            />
 
 
     <Button
             android:id="@+id/dialog_button"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@id/wheel_button"
             app:layout_constraintTop_toBottomOf="@id/progress_height"
-            android:text="@string/dialog_demo"/>
+            android:text="@string/dialog_demo"
+            />
+
     <Button
             android:id="@+id/wheel_button"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             app:layout_constraintBaseline_toBaselineOf="@id/dialog_button"
             app:layout_constraintLeft_toRightOf="@id/dialog_button"
+            app:layout_constraintRight_toLeftOf="@id/wheel2_button"
+            android:text="@string/wheel_demo"
+            />
+
+    <Button
+            android:id="@+id/wheel2_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:layout_constraintBaseline_toBaselineOf="@id/dialog_button"
+            app:layout_constraintLeft_toRightOf="@id/wheel_button"
             app:layout_constraintRight_toRightOf="parent"
-            android:text="@string/wheel_demo"/>
+            android:text="@string/wheel_demo_single"
+            />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
