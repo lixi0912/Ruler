@@ -457,16 +457,6 @@ class RulerView @JvmOverloads constructor(
         }
     }
 
-
-    override fun computeHorizontalScrollRange(): Int {
-        return helper.horizontalScrollRange
-    }
-
-    override fun computeVerticalScrollRange(): Int {
-        return helper.verticalScrollRange
-    }
-
-
     internal fun computeCanvasPaddingByHorizontal(): Int {
         return paddingBottom.minus(paddingTop).takeIf {
             it > 0
