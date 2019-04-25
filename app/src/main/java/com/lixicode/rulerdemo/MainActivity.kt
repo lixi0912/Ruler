@@ -252,6 +252,13 @@ class MainActivity : AppCompatActivity() {
                     .show(supportFragmentManager, getString(R.string.wheel_demo))
             }
 
+
+        findViewById<View>(R.id.wheel2_button)
+            .setOnClickListener {
+                com.lixicode.rulerdemo.Wheel2DialogFragment()
+                    .show(supportFragmentManager, getString(R.string.wheel_demo_single))
+            }
+
     }
 
     private fun updateText(progressWidth: SeekBar, progressHeight: SeekBar): String {
