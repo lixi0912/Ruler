@@ -360,10 +360,15 @@ internal class ScrollHelper(
             RulerView.MAX_OVER_SCROLL_EDGE, RulerView.MAX_OVER_SCROLL_EDGE
         )
 
-        if (scroller.finalX >= scrollPositionLimits[MAX_SCROLL_X] || scroller.finalX <= scrollPositionLimits[MIN_SCROLL_X]
-            || scroller.finalY >= scrollPositionLimits[MAX_SCROLL_Y] || scroller.finalY <= scrollPositionLimits[MIN_SCROLL_Y]
-        ) {
-            return
+
+        when {
+            view.isHorizontal -> {
+                if (scroller.finalX >= scrollPositionLimits[MAX_SCROLL_X] || scroller.finalX <= scrollPositionLimits[MIN_SCROLL_X]) {
+                    return
+                }
+            }
+            scroller.finalY >= scrollPositionLimits[MAX_SCROLL_Y] -> return
+            scroller.finalY <= scrollPositionLimits[MIN_SCROLL_Y] -> return
         }
 
 
