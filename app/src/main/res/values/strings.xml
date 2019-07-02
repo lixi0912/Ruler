@@ -14,8 +14,9 @@
     <string name="unit_month">/month</string>
     <string name="unit_date">/day</string>
     <string name="submit">submit</string>
-    <string name="dialog_demo">Dialog Demo</string>
-    <string name="wheel_demo">wheel_demo</string>
+    <string name="dialog_demo">Dialog</string>
+    <string name="wheel_demo">wheel</string>
     <string name="infinite_mode">infinite_mode</string>
     <string name="finite_mode">finite_mode</string>
+    <string name="wheel_demo_single">single_wheel</string>
 </resources>

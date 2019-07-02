@@ -30,7 +30,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.widget.OverScroller
 import androidx.core.view.ViewCompat
-import com.lixicode.ruler.data.*
+import com.lixicode.ruler.data.concat
+import com.lixicode.ruler.data.release
 import com.lixicode.ruler.internal.RulerViewHelper
 import com.lixicode.ruler.utils.RectFPool
 import com.lixicode.ruler.utils.RectPool
@@ -54,6 +55,12 @@ internal class ScrollHelper(
         const val SCROLL_STATE_DRAGGING = 1
 
         const val SCROLL_STATE_SETTLING = 2
+
+
+        const val MIN_SCROLL_X = 0
+        const val MAX_SCROLL_X = 1
+        const val MIN_SCROLL_Y = 2
+        const val MAX_SCROLL_Y = 3
     }
 
 
@@ -61,8 +68,25 @@ internal class ScrollHelper(
 
     var scrollOffset: Int = 0
 
-    var minScrollPosition: Int = 0
-    var maxScrollPosition: Int = 0
+    var scrollPositionLimits = IntArray(4)
+
+    val minScrollPosition: Int
+        get() {
+            return if (view.isHorizontal) {
+                scrollPositionLimits[MIN_SCROLL_X]
+            } else {
+                scrollPositionLimits[MIN_SCROLL_Y]
+            }
+        }
+
+    val maxScrollPosition: Int
+        get() {
+            return if (view.isHorizontal) {
+                scrollPositionLimits[MAX_SCROLL_X]
+            } else {
+                scrollPositionLimits[MAX_SCROLL_Y]
+            }
+        }
 
     var infiniteMode: Boolean = false
 
@@ -117,12 +141,26 @@ internal class ScrollHelper(
     }
 
     private fun ensureScrollRange(adapter: Adapter) {
-        if (infiniteMode) {
-            minScrollPosition = generateScrollPx(Int.MIN_VALUE)
-            maxScrollPosition = generateScrollPx(Int.MAX_VALUE)
+
+        // reset limit
+        scrollPositionLimits.fill(0)
+
+        val minScrollIndex: Int
+        val maxScrollIndex: Int
+        if (view.isHorizontal) {
+            minScrollIndex = MIN_SCROLL_X
+            maxScrollIndex = MAX_SCROLL_X
         } else {
-            minScrollPosition = generateScrollPx(0)
-            maxScrollPosition = generateScrollPx(adapter.itemCount - view.stepOfTicks)
+            minScrollIndex = MIN_SCROLL_Y
+            maxScrollIndex = MAX_SCROLL_Y
+        }
+
+        if (infiniteMode) {
+            scrollPositionLimits[minScrollIndex] = generateScrollPx(Int.MIN_VALUE)
+            scrollPositionLimits[maxScrollIndex] = generateScrollPx(Int.MAX_VALUE)
+        } else {
+            scrollPositionLimits[minScrollIndex] = generateScrollPx(0)
+            scrollPositionLimits[maxScrollIndex] = generateScrollPx(adapter.itemCount - view.stepOfTicks)
         }
     }
 
@@ -282,8 +320,8 @@ internal class ScrollHelper(
                         }
                         scroller.springBack(
                             view.scrollX, view.scrollY,
-                            minScrollPosition, maxScrollPosition,
-                            minScrollPosition, maxScrollPosition
+                            scrollPositionLimits[MIN_SCROLL_X], scrollPositionLimits[MAX_SCROLL_X],
+                            scrollPositionLimits[MIN_SCROLL_Y], scrollPositionLimits[MAX_SCROLL_Y]
                         ) -> {
                             updateTickFromScrollPosition(scroller.finalX, scroller.finalY)
                             ViewCompat.postInvalidateOnAnimation(view)
@@ -317,15 +355,20 @@ internal class ScrollHelper(
         scroller.fling(
             scrollX, scrollY,
             velocityX, velocityY,
-            minScrollPosition, maxScrollPosition,
-            minScrollPosition, maxScrollPosition,
+            scrollPositionLimits[MIN_SCROLL_X], scrollPositionLimits[MAX_SCROLL_X],
+            scrollPositionLimits[MIN_SCROLL_Y], scrollPositionLimits[MAX_SCROLL_Y],
             RulerView.MAX_OVER_SCROLL_EDGE, RulerView.MAX_OVER_SCROLL_EDGE
         )
 
-        if (scroller.finalX >= maxScrollPosition || scroller.finalX <= minScrollPosition
-            || scroller.finalY >= maxScrollPosition || scroller.finalY <= minScrollPosition
-        ) {
-            return
+
+        when {
+            view.isHorizontal -> {
+                if (scroller.finalX >= scrollPositionLimits[MAX_SCROLL_X] || scroller.finalX <= scrollPositionLimits[MIN_SCROLL_X]) {
+                    return
+                }
+            }
+            scroller.finalY >= scrollPositionLimits[MAX_SCROLL_Y] -> return
+            scroller.finalY <= scrollPositionLimits[MIN_SCROLL_Y] -> return
         }
 
 
@@ -362,8 +405,8 @@ internal class ScrollHelper(
             scroller.fling(
                 scrollX + deltaX, scrollY + deltaY,
                 velocityX, velocityY,
-                minScrollPosition, maxScrollPosition,
-                minScrollPosition, maxScrollPosition,
+                scrollPositionLimits[MIN_SCROLL_X], scrollPositionLimits[MAX_SCROLL_X],
+                scrollPositionLimits[MIN_SCROLL_Y], scrollPositionLimits[MAX_SCROLL_Y],
                 RulerView.MAX_OVER_SCROLL_EDGE, RulerView.MAX_OVER_SCROLL_EDGE
             )
         }
@@ -373,7 +416,6 @@ internal class ScrollHelper(
 
     private fun updateTickFromScrollPosition(x: Int, y: Int) {
         val position: Int
-
         RectPool
             .obtain()
             .also {
@@ -427,6 +469,9 @@ internal class ScrollHelper(
 
         var clampedX = false
         if (canScrollHorizontal) {
+            val minScrollPosition = scrollPositionLimits[MIN_SCROLL_X]
+            val maxScrollPosition = scrollPositionLimits[MAX_SCROLL_X]
+
             val left = if (minScrollPosition == Int.MIN_VALUE) {
                 minScrollPosition
             } else {
@@ -450,6 +495,9 @@ internal class ScrollHelper(
 
         var clampedY = false
         if (canScrollVertical) {
+            val minScrollPosition = scrollPositionLimits[MIN_SCROLL_Y]
+            val maxScrollPosition = scrollPositionLimits[MAX_SCROLL_Y]
+
             val top = if (minScrollPosition == Int.MIN_VALUE) {
                 minScrollPosition
             } else {
